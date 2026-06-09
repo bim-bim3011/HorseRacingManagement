@@ -33,9 +33,10 @@ public class TestController {
     @GetMapping("/exception")
     public ApiResponse<String> doTestException(@RequestParam(required = false) int number){
 
-        if(number !=0){
-            throw new AppException(ErrorCode.TEST_EXCEPTION);
+        if (number == 0){
+            throw new AppException(ErrorCode.INVALID_USERNAME);
         }
+
         return ApiResponse.success("the number equals zero");
     }
 }

@@ -3,6 +3,9 @@ package com.swp391.horseracing.security;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.swp391.horseracing.dto.request.IntrospectRequest;
+import com.swp391.horseracing.dto.response.IntrospectResponse;
+import com.swp391.horseracing.entity.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,7 +23,7 @@ public class JwtServiceImpl implements JwtService {
 
 
 
-    @Value("{${jwt.sercret}")
+    @Value("{${jwt.signerKey}")
     String secret;
 
     @Value("${jwt.expiration}")
@@ -31,6 +34,13 @@ public class JwtServiceImpl implements JwtService {
         return false;
     }
 
+    @Override
+    public IntrospectResponse introspect(IntrospectRequest introspectRequest) {
+        return null;
+    }
 
-
+    @Override
+    public String generateToken(User user) {
+        return "";
+    }
 }

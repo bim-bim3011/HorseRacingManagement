@@ -1,7 +1,77 @@
 package com.swp391.horseracing.config;
 
+import com.swp391.horseracing.service.impl.UserDetailServiceCustomize;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final UserDetailServiceCustomize userDetailsService;
+
+    private final String[] PUBLIC_ENDPOINTS= {
+
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/logout",
+            "/home/**"
+
+
+    };
+
+
+
+    @Bean
+    public SecurityFilterChain configure(HttpSecurity http,
+                                         CustomJwtDecoder jwtDecoder,
+                                         JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint){
+
+
+        http
+
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+
+                        .anyRequest().authenticated()
+
+
+
+
+                );
+
+        return http.build();
+    }
+
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+
+        return new ProviderManager(authenticationProvider);
+    }
+
+
+
+
 }

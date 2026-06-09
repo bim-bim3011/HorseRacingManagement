@@ -3,7 +3,7 @@ spring:
     name: horse racing management
 
   datasource:
-    url: jdbc:mysql://localhost:3306/horse_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/horse_racing_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: khanhdaubeba
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -32,6 +32,6 @@ spring:
 
 
 jwt:
-  secret: c0015e35ed778f66e55716f375879ebc69c06e356760f7a6c7fb69494b6dab25
+  signerKey: c0015e35ed778f66e55716f375879ebc69c06e356760f7a6c7fb69494b6dab25
   expiration: 604800000
 

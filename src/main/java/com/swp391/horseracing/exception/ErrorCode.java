@@ -12,6 +12,9 @@ import org.springframework.http.HttpStatusCode;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public enum ErrorCode {
 
+
+
+    USER_NOT_FOUND(1005,"user not found ",HttpStatus.BAD_REQUEST),
     INVALID_KEY(1002,"invalid message key",HttpStatus.UNAUTHORIZED),
     INVALID_USERNAME(1003,"invalid username",HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD(1004,"invalid password",HttpStatus.BAD_REQUEST),
