@@ -4,6 +4,7 @@ package com.swp391.horseracing.service.impl;
 
 import com.swp391.horseracing.dto.request.LoginRequest;
 import com.swp391.horseracing.dto.response.LoginResponse;
+import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.security.JwtService;
 import com.swp391.horseracing.service.AuthService;
 import com.swp391.horseracing.service.UserService;
@@ -36,13 +37,16 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = authenticationManager.authenticate(token);
 
 
-        // tra ve token
-        //
+
+        User user = (User) authentication.getPrincipal();
+
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
 
 
         return LoginResponse.builder()
-                .accessToken("accessToken")
-                .refreshToken("refreshToken")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 

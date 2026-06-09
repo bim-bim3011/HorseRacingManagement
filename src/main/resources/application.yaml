@@ -32,6 +32,6 @@ spring:
 
 
 jwt:
-  signerKey: c0015e35ed778f66e55716f375879ebc69c06e356760f7a6c7fb69494b6dab25
+  signerKey: NMi4bXmaTVMsfdZ9dEMsrYbKP9MBLr3bYrhGMwdhUC3cf_D94KxlI7eEOepTYwwGePxrxw6lgWdGxRBtRzuPRw
   expiration: 604800000
 

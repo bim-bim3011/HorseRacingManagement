@@ -14,7 +14,9 @@ public interface JwtService {
          IntrospectResponse introspect(IntrospectRequest introspectRequest);
 
 
-         String generateToken(User user);
+         String generateAccessToken(User user);
 
+
+         String generateRefreshToken(User user);
 
 }
