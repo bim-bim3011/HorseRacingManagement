@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 public class AppException extends  RuntimeException {
 
-            ErrorCode errorCode;
+            ErrorCode errorCode; // loai loi
 
 
 }
