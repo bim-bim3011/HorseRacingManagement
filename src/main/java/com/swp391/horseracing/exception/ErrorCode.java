@@ -22,7 +22,9 @@ public enum ErrorCode {
     TEST_EXCEPTION(6789,"test exception with error code",HttpStatus.ACCEPTED),
 
     UNCATEGORIZED_EXCEPTION(9999,"uncategorized exception",HttpStatus.BAD_REQUEST),
-    USER_EXISTED(1001,"user existed",HttpStatus.CONFLICT),;
+    USER_EXISTED(1001,"user existed",HttpStatus.CONFLICT),
+    CLOUDINARY_UPLOAD_FAILED(2001, "upload image failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    CLOUDINARY_DELETE_FAILED(2002, "delete image failed", HttpStatus.INTERNAL_SERVER_ERROR),;
 
 
 

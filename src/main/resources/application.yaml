@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/horse_racing_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: khanhdaubeba
+    password: 12345
     driver-class-name: com.mysql.cj.jdbc.Driver
 # doi ten password theo mysql cua minh
   jpa:
@@ -34,4 +34,8 @@ spring:
 jwt:
   signerKey: c0015e35ed778f66e55716f375879ebc69c06e356760f7a6c7fb69494b6dab25
   expiration: 604800000
+cloudinary:
+  cloud-name: dzz3kbuuj
+  api-key: 675364625369594
+  api-secret: 1E3Z-HyZ3DwOP8uQF0FAu0jLYN0
 
