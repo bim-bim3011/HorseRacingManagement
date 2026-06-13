@@ -27,9 +27,15 @@ public class Tournament {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
+    @Column(columnDefinition = "TEXT")
+    private String regulations;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private TournamentStatus status = TournamentStatus.upcoming;
+
+    @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
+    private List<PenaltyRule> penaltyRules;
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Race> races;

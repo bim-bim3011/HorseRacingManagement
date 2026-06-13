@@ -36,6 +36,12 @@ public class TestController {
 
         return ApiResponse.success("the number equals zero");
     }
-
+//    private final CloudinaryService cloudinaryService;
+//
+//    @PostMapping("/upload")
+//    public ApiResponse<String> upload(@RequestParam("file") MultipartFile file) {
+//        String url = cloudinaryService.uploadFile(file, "test");
+//        return ApiResponse.success(url);
+//    }
 
 }
