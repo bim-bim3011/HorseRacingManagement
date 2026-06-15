@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -25,5 +27,8 @@ public class Role {
     @Column(name = "role_name", nullable = false, length = 50)
      String roleName;
 
+    @ManyToMany(mappedBy = "roles")
+    @Builder.Default
+    private Set<User> users = new HashSet<>();
 
 }

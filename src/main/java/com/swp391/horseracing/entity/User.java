@@ -1,25 +1,35 @@
 package com.swp391.horseracing.entity;
 
+import com.swp391.horseracing.entity.betting.Bet;
+import com.swp391.horseracing.entity.betting.VnpayDeposit;
+import com.swp391.horseracing.entity.betting.Wallet;
+import com.swp391.horseracing.entity.betting.WithdrawalRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+
+@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
 @Entity
 @Table(name = "users")
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -42,16 +52,30 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "email", nullable = false, length = 100)
      String email;
 
-    @ColumnDefault("'active'")
-    @Lob
-    @Column(name = "status")
-     String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    UserStatus status = UserStatus.active;
 
-    @ManyToMany
+
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = {@JoinColumn(name = "user_id")}, inverseJoinColumns = {@JoinColumn(name = "role_id")})
      Set<Role> roles = new LinkedHashSet<>();
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Wallet wallet;
 
+    @OneToMany(mappedBy = "user")
+    private List<Notification> notifications;
+
+    @OneToMany(mappedBy = "user")
+    private List<Bet> bets;
+
+    @OneToMany(mappedBy = "user")
+    private List<VnpayDeposit> vnpayDeposits;
+
+    @OneToMany(mappedBy = "user")
+    private List<WithdrawalRequest> withdrawalRequests;
 
 
 
@@ -83,6 +107,9 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
+    }
+    public enum UserStatus {
+        active, inactive, banned
     }
 
 }

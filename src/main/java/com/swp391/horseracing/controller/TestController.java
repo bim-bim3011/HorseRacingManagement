@@ -7,10 +7,7 @@ import com.swp391.horseracing.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/test")
@@ -39,4 +36,12 @@ public class TestController {
 
         return ApiResponse.success("the number equals zero");
     }
+//    private final CloudinaryService cloudinaryService;
+//
+//    @PostMapping("/upload")
+//    public ApiResponse<String> upload(@RequestParam("file") MultipartFile file) {
+//        String url = cloudinaryService.uploadFile(file, "test");
+//        return ApiResponse.success(url);
+//    }
+
 }
