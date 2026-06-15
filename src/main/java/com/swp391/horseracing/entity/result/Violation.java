@@ -1,6 +1,7 @@
 package com.swp391.horseracing.entity.result;
 
 import com.swp391.horseracing.entity.profile.Referee;
+import com.swp391.horseracing.entity.tournament.PenaltyRule;
 import com.swp391.horseracing.entity.tournament.Race;
 import com.swp391.horseracing.entity.tournament.RaceEntry;
 import jakarta.persistence.*;
@@ -32,7 +33,8 @@ public class Violation {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(length = 255)
-    private String penalty;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "penalty_rule_id")  // ← thêm FK
+    private PenaltyRule penaltyRule;
 }
 

@@ -38,6 +38,9 @@ public class Jockey extends User {
     @OneToMany(mappedBy = "jockey")
     private List<JockeyInvitation> invitations;
 
+    @Column(name = "certificate_url", length = 500)
+    private String certificateUrl;
+
     public enum JockeyStatus {
         active, inactive, banned
     }
