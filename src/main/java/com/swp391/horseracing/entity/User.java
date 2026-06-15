@@ -57,7 +57,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public @Nullable String getPassword() {
-        return "";
+        return this.getPasswordHash();
     }
 
     @Override

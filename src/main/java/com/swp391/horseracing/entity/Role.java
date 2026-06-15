@@ -3,23 +3,27 @@ package com.swp391.horseracing.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "roles")
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+     Integer id;
 
     @Size(max = 50)
     @NotNull
     @Column(name = "role_name", nullable = false, length = 50)
-    private String roleName;
+     String roleName;
 
 
 }
