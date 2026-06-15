@@ -5,11 +5,13 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Getter
+
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserCreationRequest {
+public class HorseOwnerCreationRequest {
 
-         String email;
-         String password;
+
+
+
 }

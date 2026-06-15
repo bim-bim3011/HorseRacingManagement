@@ -8,8 +8,5 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserCreationRequest {
-
-         String email;
-         String password;
+public class JockeyCreationRequest {
 }

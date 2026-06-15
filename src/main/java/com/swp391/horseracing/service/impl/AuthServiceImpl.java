@@ -2,11 +2,16 @@ package com.swp391.horseracing.service.impl;
 
 
 
+import com.nimbusds.jose.JOSEException;
 import com.swp391.horseracing.dto.request.LoginRequest;
+import com.swp391.horseracing.dto.request.LogoutRequest;
 import com.swp391.horseracing.dto.response.LoginResponse;
+import com.swp391.horseracing.dto.response.LogoutResponse;
+import com.swp391.horseracing.entity.InvalidatedToken;
+import com.swp391.horseracing.entity.User;
+import com.swp391.horseracing.repository.InvalidatedTokenRepository;
 import com.swp391.horseracing.security.JwtService;
 import com.swp391.horseracing.service.AuthService;
-import com.swp391.horseracing.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +22,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.util.Date;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal=true)
@@ -24,27 +32,51 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     JwtService jwtService;
-    UserService userService;
-
     AuthenticationManager authenticationManager;
-    PasswordEncoder passwordEncoder;
+    InvalidatedTokenRepository invalidatedTokenRepository;
+
+
+
 
 
     public LoginResponse login (LoginRequest request){
 
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authentication = authenticationManager.authenticate(token);
 
 
-        // tra ve token
-        //
+
+        User user = (User) authentication.getPrincipal();
+
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
 
 
         return LoginResponse.builder()
-                .accessToken("accessToken")
-                .refreshToken("refreshToken")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
 
+    @Override
+    public LogoutResponse logout(LogoutRequest request) throws ParseException, JOSEException {
+         var signToken = jwtService.verifyToken(request.getToken());
+
+         String jit = signToken.getJWTClaimsSet().getJWTID();
+         Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+
+         InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .tokenId(jit)
+                .expiryDate(expiryTime)
+                .build();
+
+         invalidatedTokenRepository.save(invalidatedToken);
+
+
+         return LogoutResponse.builder()
+                 .success(true)
+                 .build();
+    }
 }

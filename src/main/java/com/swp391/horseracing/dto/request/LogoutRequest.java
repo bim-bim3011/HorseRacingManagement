@@ -1,5 +1,4 @@
-package com.swp391.horseracing.dto.response;
-
+package com.swp391.horseracing.dto.request;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -9,10 +8,8 @@ import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class IntrospectResponse {
-
-     boolean isValid;
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class LogoutRequest {
+    String token;
 }
-

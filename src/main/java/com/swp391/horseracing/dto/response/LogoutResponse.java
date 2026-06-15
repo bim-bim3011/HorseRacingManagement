@@ -9,10 +9,9 @@ import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class IntrospectResponse {
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class LogoutResponse {
 
-     boolean isValid;
+    boolean success;
 }
-

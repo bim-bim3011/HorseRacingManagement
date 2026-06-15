@@ -28,11 +28,11 @@ public abstract  class BaseEntity implements Serializable {
     Integer id;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+     LocalDateTime createdAt;
     @LastModifiedBy
-    private String updatedBy;
+     String updatedBy;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+     LocalDateTime updatedAt;
 
 }

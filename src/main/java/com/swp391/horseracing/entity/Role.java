@@ -12,19 +12,20 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "roles")
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+     Integer id;
 
     @Size(max = 50)
     @NotNull
     @Column(name = "role_name", nullable = false, length = 50)
-    private String roleName;
+     String roleName;
 
     @ManyToMany(mappedBy = "roles")
     @Builder.Default
