@@ -5,12 +5,11 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Getter
-@AllArgsConstructor
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class HorseOwnerCreationRequest {
-
-
-
-
+public class RefreshRequest {
+    String token;
 }
