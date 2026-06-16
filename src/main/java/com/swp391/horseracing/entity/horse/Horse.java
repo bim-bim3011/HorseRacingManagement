@@ -32,8 +32,8 @@ public class Horse {
     @Column(name = "health_status", length = 100)
     private String healthStatus;
 
-    @Column(name = "certificate_url", length = 500)
-    private String certificateUrl;  // ← thêm URL chứng chỉ
+    @Column(name = "health_certificate_url", length = 500)
+    private String healthCertificateUrl; // lưu url của giấy khám sk
 
     @Column
     private Integer age;  // ← tuổi ngựa để kiểm tra tiêu chuẩn race
