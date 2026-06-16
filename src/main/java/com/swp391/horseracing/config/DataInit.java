@@ -45,7 +45,7 @@ public class DataInit implements CommandLineRunner {
                     .username("admin")
                     .email("admin@gmail.com")
                     .passwordHash(passwordEncoder.encode("123456"))
-                    .status("active")
+                    .status(User.UserStatus.active)
                     .roles(Set.of(adminRole))
                     .build();
 

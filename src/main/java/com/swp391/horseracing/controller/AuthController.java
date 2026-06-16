@@ -8,6 +8,8 @@ import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.LoginResponse;
 import com.swp391.horseracing.dto.response.LogoutResponse;
 import com.swp391.horseracing.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,12 +24,15 @@ import java.text.ParseException;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-
+@Tag(name= "authentication",description= "Login Logout API")
 public class AuthController {
 
     AuthService authService;
 
-
+    @Operation(
+            summary = "Authenticate User",
+            description = "check valid user and generate Access Token, Refresh Token"
+    )
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(@RequestBody LoginRequest request){
         var result = authService.login(request);
@@ -36,12 +41,19 @@ public class AuthController {
     }
 
 
+
+    @Operation(
+            summary = "Logout user",
+            description = "persist AccessToken into black-list token"
+    )
     @PostMapping("/logout")
     ApiResponse<LogoutResponse> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
 
         var result = authService.logout(request);
         return ApiResponse.success(result);
     }
+
+
 
 
 }

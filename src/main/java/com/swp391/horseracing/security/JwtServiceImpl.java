@@ -72,8 +72,10 @@ public class JwtServiceImpl implements JwtService {
                 .subject(user.getUsername())
                 .issuer("elite-derby-platform")
                 .issueTime(issueTime)
+                .expirationTime(expirationTime)
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope",buildScope(user))
+                .claim("category","access")
                 .build();
 
         Payload payload = new Payload(claimsSet.toJSONObject());
@@ -101,6 +103,7 @@ public class JwtServiceImpl implements JwtService {
                 .subject(user.getUsername())
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
+                .claim("category","refresh")
                 .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
