@@ -39,7 +39,7 @@ public class PenaltyRuleController {
 
     @DeleteMapping("/{id}")
     //@PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<String> delete(@PathVariable("tournamentId") Integer tournamentId,@PathVariable("id") Integer id) {
+    public ApiResponse<String> delete(@PathVariable Integer tournamentId, @PathVariable("id") Integer id) {
         penaltyRuleService.deletePenaltyRule(tournamentId,id);
         return ApiResponse.success("Delete successfully!");
     }

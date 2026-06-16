@@ -25,17 +25,24 @@ public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS= {
 
-            "/api/auth/login",
-            "/api/auth/register",
+            "/api/auth/**",
+            "/api/register/**",
             "/api/auth/logout",
             "/home/**",
+
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+
+            "/v3/api-docs",
+            "/v3/api-docs/**"
+
+
+    };
+
+    private final String[] TEST_ENDPOINTS= {
+
             "/api/test/**",//để test tạm
             "/api/tournaments/**"//để test tạm
-
-
-
-
-
     };
 
 
@@ -51,11 +58,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-
+                        .requestMatchers(TEST_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
-
-
-
 
                 )
 

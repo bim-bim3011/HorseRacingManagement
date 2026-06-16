@@ -5,6 +5,7 @@ import com.swp391.horseracing.dto.request.RaceRequest;
 import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.RaceResponse;
 import com.swp391.horseracing.service.RaceService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequestMapping("/api/tournaments/{tournamentId}/races")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Tag(name= "Race",description= "Race Management API")
 public class RaceController {
     RaceService raceService;
 
