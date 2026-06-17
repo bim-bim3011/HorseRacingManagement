@@ -45,10 +45,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public SpectatorResponse createSpectator(SpectatorCreationRequest request) {
         if(userRepository.findByUsername(request.getUsername()).isPresent()){
-              throw new AppException(ErrorCode.INVALID_USERNAME);
+              throw new AppException(ErrorCode.DUPLICATE_USERNAME);
           }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new AppException(ErrorCode.EMAIL_EXISTED);
+            throw new AppException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         Role spectatorRole = roleRepository.findByRoleName("SPECTATOR")

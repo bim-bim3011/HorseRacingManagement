@@ -3,13 +3,19 @@ package com.swp391.horseracing.service.impl;
 
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.SignedJWT;
 import com.swp391.horseracing.dto.request.LoginRequest;
 import com.swp391.horseracing.dto.request.LogoutRequest;
+import com.swp391.horseracing.dto.request.RefreshRequest;
+import com.swp391.horseracing.dto.response.AuthenticationResponse;
 import com.swp391.horseracing.dto.response.LoginResponse;
 import com.swp391.horseracing.dto.response.LogoutResponse;
 import com.swp391.horseracing.entity.InvalidatedToken;
 import com.swp391.horseracing.entity.User;
+import com.swp391.horseracing.exception.AppException;
+import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.InvalidatedTokenRepository;
+import com.swp391.horseracing.repository.UserRepository;
 import com.swp391.horseracing.security.JwtService;
 import com.swp391.horseracing.service.AuthService;
 import lombok.AccessLevel;
@@ -34,12 +40,11 @@ public class AuthServiceImpl implements AuthService {
     JwtService jwtService;
     AuthenticationManager authenticationManager;
     InvalidatedTokenRepository invalidatedTokenRepository;
+    private final UserRepository userRepository;
 
 
-
-
-
-    public LoginResponse login (LoginRequest request){
+    @Override
+    public AuthenticationResponse login (LoginRequest request){
 
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
@@ -53,7 +58,8 @@ public class AuthServiceImpl implements AuthService {
         var refreshToken = jwtService.generateRefreshToken(user);
 
 
-        return LoginResponse.builder()
+        return AuthenticationResponse.builder()
+                .authenticated(true)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
@@ -78,5 +84,31 @@ public class AuthServiceImpl implements AuthService {
          return LogoutResponse.builder()
                  .success(true)
                  .build();
+    }
+
+    @Override
+    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
+
+        SignedJWT signedJWT = jwtService.verifyToken(request.getToken());
+
+        String category = signedJWT.getJWTClaimsSet().getStringClaim("category");
+
+        if (!"refresh".equals(category)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        String username = signedJWT.getJWTClaimsSet().getSubject();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        String newAccessToken = jwtService.generateAccessToken(user);
+
+        return AuthenticationResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(request.getToken())
+                .authenticated(true)
+                .build();
+
     }
 }
