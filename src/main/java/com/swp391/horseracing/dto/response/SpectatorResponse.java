@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 public class SpectatorResponse {
 
-
+    Integer spectatorId;
     String username;
     String email;
 

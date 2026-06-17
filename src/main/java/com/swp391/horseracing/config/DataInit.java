@@ -26,7 +26,7 @@ public class DataInit implements CommandLineRunner {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
-    UserMapper userMapper;
+
     @Override
     public void run(String... args) throws Exception {
 

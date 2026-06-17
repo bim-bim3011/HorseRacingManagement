@@ -4,18 +4,16 @@ package com.swp391.horseracing.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
+@Getter @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class HorseOwnerResponse {
-
-    Integer horseId;
-    String fullName;
-    String phone;
+public class JockeyResponse {
+    String username;
     String email;
-
-
+    String fullName;
+    Double weight;
+    Integer experience_years;
+    String certificate_url;
 }
