@@ -1,6 +1,7 @@
 package com.swp391.horseracing.dto.request;
 
 
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,6 +12,12 @@ import lombok.experimental.FieldDefaults;
 public class HorseOwnerCreationRequest {
 
 
+         String username;
+         @Email(message = "please enter valid email")
+         String email;
+         String password;
+         String fullName;
+         String phone;
 
 
 }
