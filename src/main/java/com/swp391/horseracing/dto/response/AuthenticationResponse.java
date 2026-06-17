@@ -7,15 +7,13 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class HorseOwnerResponse {
+public class AuthenticationResponse {
 
-    Integer horseId;
-    String fullName;
-    String phone;
-    String email;
+    String accessToken;
+    String refreshToken;
 
-
+    boolean authenticated;
 }
