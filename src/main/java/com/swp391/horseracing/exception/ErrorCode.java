@@ -32,6 +32,13 @@ public enum ErrorCode {
     TOURNAMENT_MISSING_REGULATIONS(4006, "Tournament missing regulations", HttpStatus.BAD_REQUEST),
     TOURNAMENT_MISSING_PENALTY_RULES(4007, "Tournament missing penalty rules", HttpStatus.BAD_REQUEST),
     TOURNAMENT_ALREADY_EXISTS(4005, "A tournament is already active", HttpStatus.CONFLICT),
+    HORSE_ALREADY_EXISTS(4011, "Horse already exists", HttpStatus.CONFLICT),
+    NOT_HORSE_OWNER(4012, "User is not a horse owner", HttpStatus.FORBIDDEN),
+    RACE_NOT_AVAILABLE(4012, "Race is not available for registration", HttpStatus.BAD_REQUEST),
+    HORSE_NOT_ACTIVE(4013, "Horse is not approved yet", HttpStatus.BAD_REQUEST),
+    HORSE_AGE_NOT_QUALIFIED(4014, "Horse age does not meet race requirements", HttpStatus.BAD_REQUEST),
+    HORSE_ALREADY_REGISTERED(4015, "Horse already registered in this race", HttpStatus.CONFLICT),
+    RACE_FULL(4016, "Race has reached maximum entries", HttpStatus.CONFLICT),
     ;
 
 

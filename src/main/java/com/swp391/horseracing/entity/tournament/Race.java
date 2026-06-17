@@ -40,6 +40,17 @@ public class Race {
     @Column(name = "max_horse_age")
     private Integer maxHorseAge;       // tuổi ngựa tối đa
 
+    @Column(name = "is_final")
+    @Builder.Default
+    private Boolean isFinal = false;       // vòng chung kết hay không
+
+    @Column(name = "max_entries")
+    private Integer maxEntries;            // tối đa bao nhiêu ngựa
+
+    @Column(name = "qualify_count")
+    private Integer qualifyCount;          // lấy bao nhiêu ngựa vào vòng tiếp
+
+
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
