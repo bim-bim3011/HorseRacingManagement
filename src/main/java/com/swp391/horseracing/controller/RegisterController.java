@@ -33,7 +33,7 @@ public class RegisterController {
 
     @PostMapping("/spectator")
     ApiResponse<SpectatorResponse> registerSpectator(@RequestBody SpectatorCreationRequest request){
-         var result = userService.createSpectator(request);
+        var result = userService.createSpectator(request);
         return ApiResponse.success(result);
     }
 

@@ -12,7 +12,8 @@ import org.springframework.http.HttpStatusCode;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public enum ErrorCode {
 
-
+     INACTIVE_ACCOUNT(1010,"your account is inactive",HttpStatus.UNAUTHORIZED),
+     BANNED_ACCOUNT(1011,"your account is banned",HttpStatus.UNAUTHORIZED),
 
     UNAUTHENTICATED(1006,"test exception with error code",HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND(1005,"user not found ",HttpStatus.BAD_REQUEST),
@@ -30,9 +31,12 @@ public enum ErrorCode {
     EMAIL_EXISTED(1008,"email is existed",HttpStatus.CONFLICT),
     UNCATEGORIZED_EXCEPTION(9999,"uncategorized exception",HttpStatus.BAD_REQUEST),
     USER_EXISTED(1001,"user existed",HttpStatus.CONFLICT),
+
     CLOUDINARY_UPLOAD_FAILED(2001, "upload image failed", HttpStatus.INTERNAL_SERVER_ERROR),
     CLOUDINARY_DELETE_FAILED(2002, "delete image failed", HttpStatus.INTERNAL_SERVER_ERROR),
     NOT_FOUND(4040, "Not found", HttpStatus.NOT_FOUND),
+
+
     RACE_MISSING_STANDARDS(4009, "Race missing standards", HttpStatus.BAD_REQUEST),
     TOURNAMENT_MISSING_REGULATIONS(4006, "Tournament missing regulations", HttpStatus.BAD_REQUEST),
     TOURNAMENT_MISSING_PENALTY_RULES(4007, "Tournament missing penalty rules", HttpStatus.BAD_REQUEST),
