@@ -76,7 +76,7 @@ public class HorseController {
     }
     //hàm này ngựa mới đc phép xét tuyển vòng 1 là đc duyệt hồ sơ( có giấy khám) có thể tham gia race còn vòng 2 duyệt đki đua là duyệt vào race nào cụ thể
     @PatchMapping("/{id}/approve")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(
             summary = "Approve Horse",
             description = "Only ADMIN can approve horse"
@@ -87,7 +87,7 @@ public class HorseController {
     }
     //còn hàm này là bị loại ngay vòng 1
     @PatchMapping("/{id}/reject")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(
             summary = "Reject Horse",
             description = "Only ADMIN can reject horse")
@@ -97,7 +97,7 @@ public class HorseController {
     }
     //danh sách dành cho admin xem những con ngựa đang chờ duyệt vòng 1
     @GetMapping("/pending")
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(summary = "Get Pending Horses", description = "Admin view list of horses waiting for approval")
     public ApiResponse<List<HorseResponse>> getPendingHorses() {
         return ApiResponse.success(horseService.getPendingHorses());

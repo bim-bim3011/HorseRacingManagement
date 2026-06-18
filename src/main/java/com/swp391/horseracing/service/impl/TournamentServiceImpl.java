@@ -43,14 +43,14 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     public TournamentResponse getTournament(Integer id) {
         Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
         return mapToResponse(tournament);
     }
 
     @Override
     public TournamentResponse updateTournament(Integer id, TournamentRequest request) {
         Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         tournament.setName(request.getName());
         tournament.setStartDate(request.getStartDate());
@@ -64,7 +64,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     public void deleteTournament(Integer id) {
         Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
         tournamentRepository.delete(tournament);
     }
 

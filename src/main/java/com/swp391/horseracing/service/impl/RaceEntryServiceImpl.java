@@ -34,7 +34,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
 
         // Kiểm tra race tồn tại
         Race race = raceRepository.findById(raceId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
         // Kiểm tra race đang ở trạng thái checking
         if (race.getStatus() != Race.RaceStatus.checking) {
@@ -43,7 +43,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
 
         // Kiểm tra ngựa tồn tại
         Horse horse = horseRepository.findById(request.getHorseId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
         // Kiểm tra ngựa có thuộc chủ này không
         if (!horse.getOwner().getId().equals(owner.getId())) {
@@ -91,7 +91,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     public List<RaceEntryResponse> getEntriesByRace(Integer raceId) {
         //Lấy danh sách tất cả ngựa đã đăng ký vào 1 race : all
         raceRepository.findById(raceId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
         return raceEntryRepository.findByRaceId(raceId)
                 .stream()
                 .map(this::mapToResponse)
@@ -111,7 +111,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     @Override
     public void approveEntry(Integer id) { //thao tác duyệt đơn của admin
         RaceEntry entry = raceEntryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
         entry.setStatus(RaceEntry.EntryStatus.approved);
         raceEntryRepository.save(entry);
     }
@@ -119,7 +119,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     @Override
     public void rejectEntry(Integer id) {//thao tác từ chối đơn của admin
         RaceEntry entry = raceEntryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
         entry.setStatus(RaceEntry.EntryStatus.rejected);
         raceEntryRepository.save(entry);
     }
@@ -127,7 +127,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     @Override
     public List<RaceEntryResponse> getApprovedEntries(Integer raceId) {
         raceRepository.findById(raceId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
         return raceEntryRepository.findByRaceIdAndStatus(raceId, RaceEntry.EntryStatus.approved)
                 .stream()
                 .map(this::mapToResponse)
@@ -138,7 +138,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
         String username = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return horseOwnerRepository.findById(user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_HORSE_OWNER));
     }

@@ -25,7 +25,7 @@ public class RaceController {
 
     @PostMapping
     @Operation(summary = "Create Race", description = "Tournament must exist. Only ADMIN can create race")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<RaceResponse> create(@PathVariable Integer tournamentId,
                                             @RequestBody RaceRequest request) {
         return ApiResponse.success(raceService.createRace(tournamentId, request));
@@ -46,7 +46,7 @@ public class RaceController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Race", description = "Only ADMIN can update race")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<RaceResponse> update(@PathVariable Integer tournamentId,
                                             @PathVariable Integer id,
                                             @RequestBody RaceRequest request) {
@@ -55,7 +55,7 @@ public class RaceController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Race", description = "Only ADMIN can delete race")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> delete(@PathVariable Integer tournamentId,
                                       @PathVariable Integer id) {
         raceService.deleteRace(tournamentId, id);
@@ -67,7 +67,7 @@ public class RaceController {
             summary = "Activate Race",
             description = "Tournament must have regulations and penalty rules. Race must have standards (distance, weight, age)"
     )
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> activate(@PathVariable Integer tournamentId,
                                         @PathVariable Integer id) {
         raceService.activateRace(tournamentId, id);

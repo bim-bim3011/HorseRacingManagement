@@ -27,7 +27,7 @@ public class PenaltyRuleController {
             summary = "Create Penalty Rule",
             description = "Tournament must exist first. Only ADMIN can create penalty rule for a tournament"
     )
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<PenaltyRuleResponse> create(@PathVariable Integer tournamentId,
                                                    @RequestBody PenaltyRuleRequest request) {
         return ApiResponse.success(penaltyRuleService.createPenaltyRule(tournamentId, request));
@@ -41,14 +41,14 @@ public class PenaltyRuleController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Penalty Rule", description = "Only ADMIN can update penalty rule")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<PenaltyRuleResponse> update(@PathVariable("tournamentId") Integer tournamentId,@PathVariable ("id")Integer id,@RequestBody PenaltyRuleRequest request) {
         return ApiResponse.success(penaltyRuleService.updatePenaltyRule(tournamentId,id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Penalty Rule", description = "Only ADMIN can delete penalty rule")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> delete(@PathVariable Integer tournamentId, @PathVariable("id") Integer id) {
         penaltyRuleService.deletePenaltyRule(tournamentId,id);
         return ApiResponse.success("Delete successfully!");

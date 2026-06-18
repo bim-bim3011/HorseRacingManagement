@@ -33,7 +33,7 @@ public class RaceEntryController {
     }
     // Chỉ Admin xem đơn đăng ký
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(
             summary = "Get Entries by Race",
             description = "Only ADMIN can view all entries"
@@ -61,7 +61,7 @@ public class RaceEntryController {
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(summary = "Approve Entry", description = "Only ADMIN can approve race entry")
     public ApiResponse<String> approve(@PathVariable Integer id) {
         raceEntryService.approveEntry(id);
@@ -69,7 +69,7 @@ public class RaceEntryController {
     }
 
     @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(summary = "Reject Entry", description = "Only ADMIN can reject race entry")
     public ApiResponse<String> reject(@PathVariable Integer id) {
         raceEntryService.rejectEntry(id);

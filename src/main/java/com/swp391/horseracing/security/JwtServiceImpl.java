@@ -34,7 +34,7 @@ public class JwtServiceImpl implements JwtService {
 
     final InvalidatedTokenRepository invalidatedTokenRepository;
 
-    @Value("{${jwt.signerKey}")
+    @Value("${jwt.signerKey}")
     String secret;
 
     @Value("${jwt.expiration}")

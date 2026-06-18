@@ -53,7 +53,7 @@ public class HorseServiceImpl implements HorseService {
     @Override
     public HorseResponse getHorse(Integer id) {
         Horse horse = horseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
         return mapToResponse(horse);
     }
 
@@ -63,7 +63,7 @@ public class HorseServiceImpl implements HorseService {
 
         // Tìm ngựa
         Horse horse = horseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
         // Kiểm tra ngựa có thuộc chủ này không
         validateOwnership(horse, owner);
@@ -83,7 +83,7 @@ public class HorseServiceImpl implements HorseService {
 
         // Tìm ngựa
         Horse horse = horseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
         // Kiểm tra ngựa có thuộc chủ này không
         validateOwnership(horse, owner);
@@ -107,7 +107,7 @@ public class HorseServiceImpl implements HorseService {
 
         // Tìm ngựa
         Horse horse = horseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
         // Kiểm tra ngựa có thuộc chủ này không
         validateOwnership(horse, owner);
@@ -121,7 +121,11 @@ public class HorseServiceImpl implements HorseService {
     @Override
     public void approveHorse(Integer id) {
         Horse horse = horseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
+        // Kiểm tra đã upload giấy khám chưa
+        if (horse.getHealthCertificateUrl() == null) {
+            throw new AppException(ErrorCode.HORSE_MISSING_CERTIFICATE);
+        }
         horse.setStatus(Horse.HorseStatus.active);
         horseRepository.save(horse);
     }
@@ -129,7 +133,7 @@ public class HorseServiceImpl implements HorseService {
     @Override
     public void rejectHorse(Integer id) {
         Horse horse = horseRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
         horse.setStatus(Horse.HorseStatus.rejected);
         horseRepository.save(horse);
     }
@@ -161,7 +165,7 @@ public class HorseServiceImpl implements HorseService {
                 .getAuthentication().getName();
         // Tìm user trong DB
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         // Kiểm tra có phải HorseOwner không
         return horseOwnerRepository.findById(user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_HORSE_OWNER));

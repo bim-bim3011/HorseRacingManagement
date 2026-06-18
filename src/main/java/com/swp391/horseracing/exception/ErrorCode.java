@@ -44,6 +44,12 @@ public enum ErrorCode {
     HORSE_AGE_NOT_QUALIFIED(4014, "Horse age does not meet race requirements", HttpStatus.BAD_REQUEST),
     HORSE_ALREADY_REGISTERED(4015, "Horse already registered in this race", HttpStatus.CONFLICT),
     RACE_FULL(4016, "Race has reached maximum entries", HttpStatus.CONFLICT),
+    TOURNAMENT_NOT_FOUND(4041, "Tournament not found", HttpStatus.NOT_FOUND),
+    RACE_NOT_FOUND(4042, "Race not found", HttpStatus.NOT_FOUND),
+    RACE_NOT_BELONG_TO_TOURNAMENT(4043, "Race does not belong to this tournament", HttpStatus.BAD_REQUEST),PENALTY_RULE_NOT_FOUND(4044, "Penalty rule not found", HttpStatus.NOT_FOUND),PENALTY_RULE_NOT_BELONG_TO_TOURNAMENT(4045, "Penalty rule does not belong to this tournament", HttpStatus.BAD_REQUEST),
+    HORSE_NOT_FOUND(4046, "Horse not found", HttpStatus.NOT_FOUND),
+    RACE_ENTRY_NOT_FOUND(4047, "Race entry not found", HttpStatus.NOT_FOUND),
+    HORSE_MISSING_CERTIFICATE(4048, "Horse health certificate is missing", HttpStatus.BAD_REQUEST),
     ;
 
 

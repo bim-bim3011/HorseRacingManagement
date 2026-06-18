@@ -27,7 +27,7 @@ public class TournamentController {
             summary = "Create Tournanment",
             description = "Only ADMIN can create tournament"
     )
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<TournamentResponse> create(@RequestBody TournamentRequest request) {
         return ApiResponse.success(tournamentService.createTournament(request));
     }
@@ -43,10 +43,10 @@ public class TournamentController {
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Create Tournanment",
+            summary = "Update Tournanment",
             description = "Only ADMIN can update tournament"
     )
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<TournamentResponse> update(@PathVariable Integer id,
                                                   @RequestBody TournamentRequest request) {
         return ApiResponse.success(tournamentService.updateTournament(id, request));
@@ -57,7 +57,7 @@ public class TournamentController {
             summary = "Delete Tournament",
             description = "Only ADMIN can delete tournament"
     )
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> delete(@PathVariable Integer id) {
         tournamentService.deleteTournament(id);
         return ApiResponse.success("Delete successfully!");
