@@ -30,7 +30,7 @@ public class Jockey extends User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private JockeyStatus jockeyStatus = JockeyStatus.active;
+    private JockeyStatus jockeyStatus = JockeyStatus.pending_certification;
 
     @OneToMany(mappedBy = "jockey")
     private List<RaceEntry> raceEntries;
@@ -42,6 +42,6 @@ public class Jockey extends User {
     private String certificateUrl;
 
     public enum JockeyStatus {
-        active, inactive, banned
+       pending_certification,approval
     }
 }

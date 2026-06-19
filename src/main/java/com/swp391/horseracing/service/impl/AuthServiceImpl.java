@@ -54,6 +54,12 @@ public class AuthServiceImpl implements AuthService {
 
         User user = (User) authentication.getPrincipal();
 
+        if(user.getStatus().equals(User.UserStatus.inactive)) {
+            throw new AppException(ErrorCode.INACTIVE_ACCOUNT);
+        }else if(user.getStatus().equals(User.UserStatus.banned)) {
+            throw new AppException(ErrorCode.BANNED_ACCOUNT);
+        }
+
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 

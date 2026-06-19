@@ -1,6 +1,7 @@
 package com.swp391.horseracing.service.impl;
 
 import com.swp391.horseracing.dto.request.HorseOwnerCreationRequest;
+import com.swp391.horseracing.dto.request.UpdateHorseOwnerRequest;
 import com.swp391.horseracing.dto.response.HorseOwnerResponse;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.entity.profile.HorseOwner;
@@ -16,7 +17,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,6 +33,7 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
     RoleRepository roleRepository;
 
     @Override
+    @Transactional
     public HorseOwnerResponse registerHorseOwner(HorseOwnerCreationRequest request) {
 
         if(horseOwnerRepository.existsByUsername(request.getUsername())){
@@ -50,7 +52,7 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
                 .phone(request.getPhone())
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(User.UserStatus.inactive)
+                .status(User.UserStatus.active)
                 .roles(new HashSet<>(Set.of(roles)))
                 .build();
 
@@ -61,17 +63,60 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
 
 
     @Override
+    @Transactional
     public Void changeStatus(Integer horseOwnerId) {
+
+        var horseOwner = findById(horseOwnerId);
+        horseOwner.setStatus(User.UserStatus.active);
+
         return null;
     }
 
     @Override
-    public HorseOwnerResponse updateProfile(Integer horseOwnerId) {
-        return null;
+    @Transactional
+    public HorseOwnerResponse updateProfile(Integer horseOwnerId, UpdateHorseOwnerRequest request) {
+        HorseOwner horseOwner = findById(horseOwnerId);
+
+        if (request.getUsername() != null && !request.getUsername().equals(horseOwner.getUsername())) {
+            if (horseOwnerRepository.existsByUsernameAndIdNot(request.getUsername(), horseOwnerId)) {
+                throw new AppException(ErrorCode.DUPLICATE_USERNAME);
+            }
+            horseOwner.setUsername(request.getUsername());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().equals(horseOwner.getEmail())) {
+            if (horseOwnerRepository.existsByEmailAndIdNot(request.getEmail(), horseOwnerId)) {
+                throw new AppException(ErrorCode.DUPLICATE_EMAIL);
+            }
+            horseOwner.setEmail(request.getEmail());
+        }
+
+        if (request.getFullName() != null) {
+            horseOwner.setFullName(request.getFullName());
+        }
+        if (request.getPhone() != null) {
+            horseOwner.setPhone(request.getPhone());
+        }
+
+        return horseOwnerMapper.toRepsonse(horseOwnerRepository.save(horseOwner));
     }
 
     @Override
     public Void softDeleteAccount(Integer horseOwnerId) {
         return null;
+    }
+
+
+    @Override
+    public HorseOwnerResponse getHorseOwnerById(Integer horseOwnerId) {
+       return horseOwnerMapper.toRepsonse(
+             findById(horseOwnerId)
+       );
+
+    }
+
+    private HorseOwner findById(Integer horseOwnerId) {
+        return horseOwnerRepository.findById(horseOwnerId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
     }
 }
