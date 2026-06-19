@@ -103,7 +103,7 @@ public class JockeyServiceImpl implements JockeyService {
         }
 
         Jockey jockey = findById(jockeyId);
-        String certificateUrl = cloudinaryService.uploadFile(file, "jockey-certificates");
+        String certificateUrl = cloudinaryService.uploadFile(file, "EliteDerbyCloud/Jockey");
         jockey.setCertificateUrl(certificateUrl);
 
         return jockeyMapper.toResponse(jockeyRepository.save(jockey));
