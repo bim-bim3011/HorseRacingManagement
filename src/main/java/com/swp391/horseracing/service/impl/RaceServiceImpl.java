@@ -26,7 +26,7 @@ public class RaceServiceImpl implements RaceService {
     @Override
     public RaceResponse createRace(Integer tournamentId, RaceRequest request) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         Race race = Race.builder()
                 .tournament(tournament)
@@ -45,13 +45,13 @@ public class RaceServiceImpl implements RaceService {
     @Override
     public RaceResponse getRace(Integer tournamentId, Integer id) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         Race race = raceRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
         if (!race.getTournament().getId().equals(tournamentId))
-            throw new AppException(ErrorCode.NOT_FOUND);
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
 
         return mapToResponse(race);
     }
@@ -59,13 +59,13 @@ public class RaceServiceImpl implements RaceService {
     @Override
     public RaceResponse updateRace(Integer tournamentId, Integer id, RaceRequest request) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         Race race = raceRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
         if (!race.getTournament().getId().equals(tournamentId))
-            throw new AppException(ErrorCode.NOT_FOUND);
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
 
         race.setName(request.getName());
         race.setRaceDatetime(request.getRaceDatetime());
@@ -81,13 +81,13 @@ public class RaceServiceImpl implements RaceService {
     @Override
     public void deleteRace(Integer tournamentId, Integer id) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         Race race = raceRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
         if (!race.getTournament().getId().equals(tournamentId))
-            throw new AppException(ErrorCode.NOT_FOUND);
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
 
         raceRepository.delete(race);
     }
@@ -95,7 +95,7 @@ public class RaceServiceImpl implements RaceService {
     @Override
     public List<RaceResponse> getAllRaces(Integer tournamentId) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         return raceRepository.findByTournamentId(tournamentId)
                 .stream()
@@ -106,27 +106,27 @@ public class RaceServiceImpl implements RaceService {
     @Override
     public void activateRace(Integer tournamentId, Integer raceId) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         Race race = raceRepository.findById(raceId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
         if (!race.getTournament().getId().equals(tournamentId))
-            throw new AppException(ErrorCode.NOT_FOUND);
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
 
-        // Kiểm tra Tournament
+
         if (tournament.getRegulations() == null)
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_REGULATIONS);
 
         if (tournament.getPenaltyRules().isEmpty())
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_PENALTY_RULES);
 
-        // Kiểm tra Race
+
         if (race.getDistance() == null || race.getWeightLimit() == null
                 || race.getMinHorseAge() == null || race.getMaxHorseAge() == null)
             throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
 
-        // Đủ điều kiện → cập nhật cả 2
+
         race.setStatus(Race.RaceStatus.checking);
         tournament.setStatus(Tournament.TournamentStatus.ongoing);
 

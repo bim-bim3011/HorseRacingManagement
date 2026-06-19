@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .code(exception.getErrorCode().getCode())
                 .error(exception.getErrorCode().getStatus().getReasonPhrase())
-                .message(exception.getMessage())
+                .message(exception.getErrorCode().getMessage())
                 .timestamp(new Date())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();

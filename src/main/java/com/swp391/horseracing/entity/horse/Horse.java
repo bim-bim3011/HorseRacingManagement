@@ -32,15 +32,15 @@ public class Horse {
     @Column(name = "health_status", length = 100)
     private String healthStatus;
 
-    @Column(name = "certificate_url", length = 500)
-    private String certificateUrl;  // ← thêm URL chứng chỉ
+    @Column(name = "health_certificate_url", length = 500)
+    private String healthCertificateUrl; // lưu url của giấy khám sk
 
     @Column
     private Integer age;  // ← tuổi ngựa để kiểm tra tiêu chuẩn race
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private HorseStatus status = HorseStatus.active;
+    private HorseStatus status = HorseStatus.inactive;
 
     @OneToMany(mappedBy = "horse")
     private List<RaceEntry> raceEntries;
@@ -49,6 +49,6 @@ public class Horse {
     private List<JockeyInvitation> invitations;
 
     public enum HorseStatus {
-        active, inactive, banned
+        active, inactive,rejected, banned
     }
 }

@@ -4,6 +4,8 @@ import com.swp391.horseracing.dto.request.PenaltyRuleRequest;
 import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.PenaltyRuleResponse;
 import com.swp391.horseracing.service.PenaltyRuleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,29 +18,36 @@ import java.util.List;
 @RequestMapping("/api/tournaments/{tournamentId}/penalty-rules")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Tag(name = "Penalty Rule", description = "Penalty rule management APIs")
 public class PenaltyRuleController {
     PenaltyRuleService penaltyRuleService;
-    //Giải đấu tồn tại  → tạo penalty_rule được điều kiện cần
     @PostMapping
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Create Penalty Rule",
+            description = "Tournament must exist first. Only ADMIN can create penalty rule for a tournament"
+    )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<PenaltyRuleResponse> create(@PathVariable Integer tournamentId,
                                                    @RequestBody PenaltyRuleRequest request) {
         return ApiResponse.success(penaltyRuleService.createPenaltyRule(tournamentId, request));
     }
 
     @GetMapping
+    @Operation(summary = "Get All Penalty Rules", description = "Get all penalty rules of tournament")
     public ApiResponse<List<PenaltyRuleResponse>> getAll(@PathVariable Integer tournamentId) {
         return ApiResponse.success(penaltyRuleService.getPenaltyRules(tournamentId));
     }
 
     @PutMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update Penalty Rule", description = "Only ADMIN can update penalty rule")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<PenaltyRuleResponse> update(@PathVariable("tournamentId") Integer tournamentId,@PathVariable ("id")Integer id,@RequestBody PenaltyRuleRequest request) {
         return ApiResponse.success(penaltyRuleService.updatePenaltyRule(tournamentId,id, request));
     }
 
     @DeleteMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete Penalty Rule", description = "Only ADMIN can delete penalty rule")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> delete(@PathVariable Integer tournamentId, @PathVariable("id") Integer id) {
         penaltyRuleService.deletePenaltyRule(tournamentId,id);
         return ApiResponse.success("Delete successfully!");

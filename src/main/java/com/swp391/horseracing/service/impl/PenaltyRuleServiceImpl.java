@@ -26,7 +26,7 @@ public class PenaltyRuleServiceImpl implements PenaltyRuleService {
     @Override
     public PenaltyRuleResponse createPenaltyRule(Integer tournamentId, PenaltyRuleRequest request) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
         PenaltyRule penaltyRule = PenaltyRule.builder()
                 .tournament(tournament)
@@ -44,7 +44,7 @@ public class PenaltyRuleServiceImpl implements PenaltyRuleService {
     @Override
     public List<PenaltyRuleResponse> getPenaltyRules(Integer tournamentId) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
         return penaltyRuleRepository.findByTournamentId(tournamentId)
                 .stream()
                 .map(this::mapToResponse)
@@ -54,10 +54,11 @@ public class PenaltyRuleServiceImpl implements PenaltyRuleService {
     @Override
     public PenaltyRuleResponse updatePenaltyRule(Integer tournamentId,Integer id, PenaltyRuleRequest request) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
         PenaltyRule penaltyRule = penaltyRuleRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-
+                .orElseThrow(() -> new AppException(ErrorCode.PENALTY_RULE_NOT_FOUND));
+        if (!penaltyRule.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.PENALTY_RULE_NOT_BELONG_TO_TOURNAMENT);
         penaltyRule.setViolationType(request.getViolationType());
         penaltyRule.setPointDeduction(request.getPointDeduction());
         penaltyRule.setFineAmount(request.getFineAmount());
@@ -71,9 +72,13 @@ public class PenaltyRuleServiceImpl implements PenaltyRuleService {
     @Override
     public void deletePenaltyRule(Integer tournamentId,Integer id) {
         tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
         PenaltyRule penaltyRule = penaltyRuleRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.PENALTY_RULE_NOT_FOUND));
+
+
+        if (!penaltyRule.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.PENALTY_RULE_NOT_BELONG_TO_TOURNAMENT);
         penaltyRuleRepository.delete(penaltyRule);
     }
     private PenaltyRuleResponse mapToResponse(PenaltyRule penaltyRule) {

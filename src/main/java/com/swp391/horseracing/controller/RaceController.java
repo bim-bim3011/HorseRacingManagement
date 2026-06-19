@@ -5,6 +5,7 @@ import com.swp391.horseracing.dto.request.RaceRequest;
 import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.RaceResponse;
 import com.swp391.horseracing.service.RaceService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,25 +24,29 @@ public class RaceController {
     RaceService raceService;
 
     @PostMapping
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create Race", description = "Tournament must exist. Only ADMIN can create race")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<RaceResponse> create(@PathVariable Integer tournamentId,
                                             @RequestBody RaceRequest request) {
         return ApiResponse.success(raceService.createRace(tournamentId, request));
     }
 
     @GetMapping
+    @Operation(summary = "Get All Races", description = "Get all races of tournament")
     public ApiResponse<List<RaceResponse>> getAll(@PathVariable Integer tournamentId) {
         return ApiResponse.success(raceService.getAllRaces(tournamentId));
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get Race by ID", description = "Get race detail by ID")
     public ApiResponse<RaceResponse> getOne(@PathVariable Integer tournamentId,
                                             @PathVariable Integer id) {
         return ApiResponse.success(raceService.getRace(tournamentId, id));
     }
 
     @PutMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update Race", description = "Only ADMIN can update race")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<RaceResponse> update(@PathVariable Integer tournamentId,
                                             @PathVariable Integer id,
                                             @RequestBody RaceRequest request) {
@@ -49,7 +54,8 @@ public class RaceController {
     }
 
     @DeleteMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete Race", description = "Only ADMIN can delete race")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> delete(@PathVariable Integer tournamentId,
                                       @PathVariable Integer id) {
         raceService.deleteRace(tournamentId, id);
@@ -57,7 +63,11 @@ public class RaceController {
     }
 
     @PatchMapping("/{id}/activate")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Activate Race",
+            description = "Tournament must have regulations and penalty rules. Race must have standards (distance, weight, age)"
+    )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> activate(@PathVariable Integer tournamentId,
                                         @PathVariable Integer id) {
         raceService.activateRace(tournamentId, id);

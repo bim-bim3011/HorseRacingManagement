@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-//@EnableMethodSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final UserDetailServiceCustomize userDetailsService;
@@ -42,7 +42,7 @@ public class SecurityConfig {
     private final String[] TEST_ENDPOINTS= {
 
             "/api/test/**",//để test tạm
-            "/api/tournaments/**"//để test tạm
+
     };
 
 
