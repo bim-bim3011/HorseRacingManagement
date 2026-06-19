@@ -76,7 +76,7 @@ public class PenaltyRuleServiceImpl implements PenaltyRuleService {
         PenaltyRule penaltyRule = penaltyRuleRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PENALTY_RULE_NOT_FOUND));
 
-        // Kiểm tra penalty rule có thuộc tournament này không
+
         if (!penaltyRule.getTournament().getId().equals(tournamentId))
             throw new AppException(ErrorCode.PENALTY_RULE_NOT_BELONG_TO_TOURNAMENT);
         penaltyRuleRepository.delete(penaltyRule);

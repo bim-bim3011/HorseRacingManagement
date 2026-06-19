@@ -114,19 +114,19 @@ public class RaceServiceImpl implements RaceService {
         if (!race.getTournament().getId().equals(tournamentId))
             throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
 
-        // Kiểm tra Tournament
+
         if (tournament.getRegulations() == null)
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_REGULATIONS);
 
         if (tournament.getPenaltyRules().isEmpty())
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_PENALTY_RULES);
 
-        // Kiểm tra Race
+
         if (race.getDistance() == null || race.getWeightLimit() == null
                 || race.getMinHorseAge() == null || race.getMaxHorseAge() == null)
             throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
 
-        // Đủ điều kiện → cập nhật cả 2
+
         race.setStatus(Race.RaceStatus.checking);
         tournament.setStatus(Tournament.TournamentStatus.ongoing);
 

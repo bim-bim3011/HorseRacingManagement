@@ -31,7 +31,7 @@ public class RaceEntryController {
                                                    @RequestBody RaceEntryRequest request) {
         return ApiResponse.success(raceEntryService.registerHorse(raceId, request));
     }
-    // Chỉ Admin xem đơn đăng ký
+
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(
@@ -41,7 +41,6 @@ public class RaceEntryController {
     public ApiResponse<List<RaceEntryResponse>> getByRace(@PathVariable Integer raceId) {
         return ApiResponse.success(raceEntryService.getEntriesByRace(raceId));
     }
-    //khán giả xem ds ngựa đã đc duyệt trong vòng đấu nào
     @GetMapping("/approved")
     @Operation(
             summary = "Get Approved Entries",
@@ -50,7 +49,6 @@ public class RaceEntryController {
     public ApiResponse<List<RaceEntryResponse>> getApproved(@PathVariable Integer raceId) {
         return ApiResponse.success(raceEntryService.getApprovedEntries(raceId));
     }
-    //chủ ngựa xem những con ngựa của mình đã đki
     @GetMapping("/my-entries")
     @Operation(
             summary = "Get My Horse Entries",

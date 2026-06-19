@@ -29,33 +29,28 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     UserRepository userRepository;
     @Override
     public RaceEntryResponse registerHorse(Integer raceId, RaceEntryRequest request) {
-        // Lấy chủ ngựa đang đăng nhập
+
         HorseOwner owner = getCurrentOwner();
 
-        // Kiểm tra race tồn tại
+
         Race race = raceRepository.findById(raceId)
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
-        // Kiểm tra race đang ở trạng thái checking
         if (race.getStatus() != Race.RaceStatus.checking) {
             throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
         }
 
-        // Kiểm tra ngựa tồn tại
         Horse horse = horseRepository.findById(request.getHorseId())
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
-        // Kiểm tra ngựa có thuộc chủ này không
         if (!horse.getOwner().getId().equals(owner.getId())) {
             throw new AppException(ErrorCode.ACCESS_DENIED);
         }
 
-        // Kiểm tra ngựa đã được duyệt chưa
         if (horse.getStatus() != Horse.HorseStatus.active) {
             throw new AppException(ErrorCode.HORSE_NOT_ACTIVE);
         }
 
-        // Kiểm tra tuổi ngựa
         if (race.getMinHorseAge() != null && horse.getAge() < race.getMinHorseAge()) {
             throw new AppException(ErrorCode.HORSE_AGE_NOT_QUALIFIED);
         }
@@ -63,12 +58,10 @@ public class RaceEntryServiceImpl implements RaceEntryService {
             throw new AppException(ErrorCode.HORSE_AGE_NOT_QUALIFIED);
         }
 
-        // Kiểm tra ngựa đã đăng ký vào race chưa
         if (raceEntryRepository.existsByRaceIdAndHorseId(raceId, horse.getId())) {
             throw new AppException(ErrorCode.HORSE_ALREADY_REGISTERED);
         }
 
-        // Kiểm tra race đã đủ số ngựa chưa
         if (race.getMaxEntries() != null) {
             int count = raceEntryRepository.countByRaceIdAndStatus(
                     raceId, RaceEntry.EntryStatus.approved);
@@ -77,7 +70,6 @@ public class RaceEntryServiceImpl implements RaceEntryService {
             }
         }
 
-        // Tạo entry
         RaceEntry entry = RaceEntry.builder()
                 .race(race)
                 .horse(horse)
@@ -89,7 +81,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
 
     @Override
     public List<RaceEntryResponse> getEntriesByRace(Integer raceId) {
-        //Lấy danh sách tất cả ngựa đã đăng ký vào 1 race : all
+
         raceRepository.findById(raceId)
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
         return raceEntryRepository.findByRaceId(raceId)
@@ -107,9 +99,9 @@ public class RaceEntryServiceImpl implements RaceEntryService {
                 .map(this::mapToResponse)
                 .toList();
     }
-//khi lướt danh sách đki thấy ai đang chờ duyệt từ admin thì admin bấm duyệt thì nó phải gởi mã id của đơn đó xuống tương tự v từ chối
+
     @Override
-    public void approveEntry(Integer id) { //thao tác duyệt đơn của admin
+    public void approveEntry(Integer id) {
         RaceEntry entry = raceEntryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
         entry.setStatus(RaceEntry.EntryStatus.approved);
@@ -117,7 +109,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     }
 
     @Override
-    public void rejectEntry(Integer id) {//thao tác từ chối đơn của admin
+    public void rejectEntry(Integer id) {
         RaceEntry entry = raceEntryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
         entry.setStatus(RaceEntry.EntryStatus.rejected);

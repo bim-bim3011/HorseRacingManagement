@@ -21,7 +21,6 @@ import java.util.List;
 @Tag(name = "Penalty Rule", description = "Penalty rule management APIs")
 public class PenaltyRuleController {
     PenaltyRuleService penaltyRuleService;
-    //Giải đấu tồn tại  → tạo penalty_rule được điều kiện cần
     @PostMapping
     @Operation(
             summary = "Create Penalty Rule",

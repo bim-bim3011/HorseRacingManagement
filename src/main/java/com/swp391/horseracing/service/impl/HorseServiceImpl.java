@@ -33,7 +33,7 @@ public class HorseServiceImpl implements HorseService {
     public HorseResponse createHorse(HorseCreationRequest request) {
         HorseOwner owner = getCurrentOwner();
 
-        // Kiểm tra ngựa trùng tên
+
         if (horseRepository.existsByNameAndOwnerId(request.getName(), owner.getId())) {
             throw new AppException(ErrorCode.HORSE_ALREADY_EXISTS);
         }
@@ -61,11 +61,11 @@ public class HorseServiceImpl implements HorseService {
     public HorseResponse updateHorse(Integer id, HorseCreationRequest request) {
         HorseOwner owner = getCurrentOwner();
 
-        // Tìm ngựa
+
         Horse horse = horseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
-        // Kiểm tra ngựa có thuộc chủ này không
+
         validateOwnership(horse, owner);
 
         horse.setName(request.getName());
@@ -78,21 +78,19 @@ public class HorseServiceImpl implements HorseService {
 
     @Override
     public void deleteHorse(Integer id) {
-        // Lấy user đang đăng nhập
+
         HorseOwner owner = getCurrentOwner();
 
-        // Tìm ngựa
         Horse horse = horseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
-        // Kiểm tra ngựa có thuộc chủ này không
         validateOwnership(horse, owner);
 
         horseRepository.delete(horse);
     }
 
     @Override
-    public List<HorseResponse> getMyHorses() {//này chủ ngựa xem danh sách ngựa của họ
+    public List<HorseResponse> getMyHorses() {
         HorseOwner owner = getCurrentOwner();
         return horseRepository.findByOwnerId(owner.getId())
                 .stream()
@@ -102,14 +100,14 @@ public class HorseServiceImpl implements HorseService {
 
     @Override
     public String uploadCertificate(Integer id, MultipartFile file) {
-        // Lấy user đang đăng nhập
+
         HorseOwner owner = getCurrentOwner();
 
-        // Tìm ngựa
+
         Horse horse = horseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
-        // Kiểm tra ngựa có thuộc chủ này không
+
         validateOwnership(horse, owner);
 
         String url = cloudinaryService.uploadFile(file, "EliteDerbyCloud/Horse");
@@ -122,7 +120,7 @@ public class HorseServiceImpl implements HorseService {
     public void approveHorse(Integer id) {
         Horse horse = horseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
-        // Kiểm tra đã upload giấy khám chưa
+
         if (horse.getHealthCertificateUrl() == null) {
             throw new AppException(ErrorCode.HORSE_MISSING_CERTIFICATE);
         }
@@ -137,7 +135,6 @@ public class HorseServiceImpl implements HorseService {
         horse.setStatus(Horse.HorseStatus.rejected);
         horseRepository.save(horse);
     }
-    //danh sách ngựa đang chờ duyệt vòng 1 bới admin , cụ thể là duyệt giấy tờ các kiểu
     @Override
     public List<HorseResponse> getPendingHorses() {
         return horseRepository.findByStatus(Horse.HorseStatus.inactive)
@@ -158,19 +155,18 @@ public class HorseServiceImpl implements HorseService {
                 .ownerName(horse.getOwner() != null ? horse.getOwner().getFullName() : null)
                 .build();
     }
-    // Lấy HorseOwner từ token
+
     private HorseOwner getCurrentOwner() {
-        // Lấy username từ token (SecurityContext)
+
         String username = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
-        // Tìm user trong DB
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        // Kiểm tra có phải HorseOwner không
+
         return horseOwnerRepository.findById(user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_HORSE_OWNER));
     }
-    // Kiểm tra ngựa có thuộc chủ không
     private void validateOwnership(Horse horse, HorseOwner owner) {
         if (!horse.getOwner().getId().equals(owner.getId())) {
             throw new AppException(ErrorCode.ACCESS_DENIED);

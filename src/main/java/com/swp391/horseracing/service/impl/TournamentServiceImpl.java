@@ -21,13 +21,13 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentResponse createTournament(TournamentRequest request) {
-        // Kiểm tra có giải đang upcoming hoặc ongoing chưa
+
         boolean exists = tournamentRepository.existsByStatusIn(
                 List.of(Tournament.TournamentStatus.upcoming,
                         Tournament.TournamentStatus.ongoing)
         );
         if (exists) {
-            throw new AppException(ErrorCode.TOURNAMENT_ALREADY_EXISTS);//trong 1 thởi điểm có 1 giải đấu đc diễn ra khi nào giải đó kết thúc thì mới đc tạp giải mới
+            throw new AppException(ErrorCode.TOURNAMENT_ALREADY_EXISTS);
         }
         Tournament tournament = Tournament.builder()
                 .name(request.getName())

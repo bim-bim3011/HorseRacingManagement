@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface RaceRepository extends JpaRepository<Race,Integer> {
     List<Race> findByTournamentId(Integer tournamentId);
-    //trước khi có vòng đấu cũng cần bắt buộc nó thuộc về giải đấu nào
+
     List<Race> findByStatusAndRaceDatetimeBefore(
             Race.RaceStatus status, LocalDateTime dateTime
-    );//tìm có vòng đua nào khớp với trạng thái gì đó với thời gian đó không
+    );
 }
