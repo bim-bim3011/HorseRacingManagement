@@ -74,7 +74,7 @@ public class HorseController {
                                                  @RequestParam("file") MultipartFile file) {
         return ApiResponse.success(horseService.uploadCertificate(id, file));
     }
-    //hàm này ngựa mới đc phép xét tuyển vòng 1 là đc duyệt hồ sơ( có giấy khám) có thể tham gia race còn vòng 2 duyệt đki đua là duyệt vào race nào cụ thể
+
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(
@@ -85,7 +85,7 @@ public class HorseController {
         horseService.approveHorse(id);
         return ApiResponse.success("Horse approved!");
     }
-    //còn hàm này là bị loại ngay vòng 1
+
     @PatchMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(
@@ -95,7 +95,7 @@ public class HorseController {
         horseService.rejectHorse(id);
         return ApiResponse.success("Horse rejected!");
     }
-    //danh sách dành cho admin xem những con ngựa đang chờ duyệt vòng 1
+
     @GetMapping("/pending")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(summary = "Get Pending Horses", description = "Admin view list of horses waiting for approval")
