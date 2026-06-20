@@ -50,6 +50,14 @@ public enum ErrorCode {
     HORSE_NOT_FOUND(4046, "Horse not found", HttpStatus.NOT_FOUND),
     RACE_ENTRY_NOT_FOUND(4047, "Race entry not found", HttpStatus.NOT_FOUND),
     HORSE_MISSING_CERTIFICATE(4048, "Horse health certificate is missing", HttpStatus.BAD_REQUEST),
+    //jokeyinvation
+    JOCKEY_NOT_FOUND(4049, "Jockey not found", HttpStatus.NOT_FOUND),
+    JOCKEY_NOT_APPROVED(4050, "Jockey is not approved yet", HttpStatus.BAD_REQUEST),
+    HORSE_ALREADY_HAS_JOCKEY(4051, "Horse already has an accepted jockey in this race", HttpStatus.CONFLICT),
+    INVITATION_ALREADY_EXISTS(4052, "Invitation already sent to this jockey", HttpStatus.CONFLICT),
+    JOCKEY_ALREADY_ASSIGNED(4053, "Jockey already assigned to another horse in this race", HttpStatus.CONFLICT),
+    INVITATION_NOT_FOUND(4054, "Invitation not found", HttpStatus.NOT_FOUND),
+    NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
     ;
 
 
