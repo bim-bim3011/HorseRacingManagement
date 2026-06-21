@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface JockeyRepository extends JpaRepository<Jockey,Integer> {
     List<Jockey> findByJockeyStatus(Jockey.JockeyStatus status);
+    boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
+    boolean existsByUsernameAndIdNot(String username, Integer id);
 }

@@ -15,6 +15,6 @@ public class SpectatorResponse {
     Integer spectatorId;
     String username;
     String email;
-
+    String status;
 
 }

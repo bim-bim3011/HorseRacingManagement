@@ -11,6 +11,7 @@ import com.swp391.horseracing.dto.response.SpectatorResponse;
 import com.swp391.horseracing.service.HorseOwnerService;
 import com.swp391.horseracing.service.JockeyService;
 import com.swp391.horseracing.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,19 +32,27 @@ public class RegisterController {
     HorseOwnerService horseOwnerService;
     JockeyService jockeyService;
 
+
+    @Operation(
+            summary = "register spectator account"
+    )
     @PostMapping("/spectator")
     ApiResponse<SpectatorResponse> registerSpectator(@RequestBody SpectatorCreationRequest request){
-         var result = userService.createSpectator(request);
+        var result = userService.createSpectator(request);
         return ApiResponse.success(result);
     }
-
+    @Operation(
+            summary = "register horse owner account "
+    )
     @PostMapping("/horse-owner")
     ApiResponse<HorseOwnerResponse> registerHorseOwner(@RequestBody HorseOwnerCreationRequest request){
         var result = horseOwnerService.registerHorseOwner(request);
         return ApiResponse.success(result);
     }
 
-
+    @Operation(
+            summary = "register jockey account "
+    )
     @PostMapping("/jockey")
     ApiResponse<JockeyResponse> registerJockey(@RequestBody JockeyCreationRequest request){
         var result = jockeyService.registerJockey(request);

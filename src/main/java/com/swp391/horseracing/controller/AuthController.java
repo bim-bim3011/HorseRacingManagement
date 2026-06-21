@@ -58,8 +58,8 @@ public class AuthController {
     
 
     @Operation(
-            summary = "Logout user",
-            description = "persist AccessToken into black-list token"
+            summary = "get new AccessToken ",
+            description = "provide refresh token to get new access token"
     )
     @PostMapping("/refresh")
     ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
