@@ -27,6 +27,7 @@ public class RaceEntryController {
             summary = "Register Horse",
             description = "Horse Owner register horse into race"
     )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_HORSE_OWNER')")
     public ApiResponse<RaceEntryResponse> register(@PathVariable Integer raceId,
                                                    @RequestBody RaceEntryRequest request) {
         return ApiResponse.success(raceEntryService.registerHorse(raceId, request));
@@ -54,6 +55,7 @@ public class RaceEntryController {
             summary = "Get My Horse Entries",
             description = "Horse Owner view their horse entries"
     )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_HORSE_OWNER')")
     public ApiResponse<List<RaceEntryResponse>> getMyEntries() {
         return ApiResponse.success(raceEntryService.getMyHorseEntries());
     }

@@ -42,6 +42,13 @@ public class Jockey extends User {
     private String certificateUrl;
 
     public enum JockeyStatus {
-       pending_certification,approval
+        pending_certification, approval
+    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rank")
+    private Rank rank;
+
+    public enum Rank {
+        A, B, C
     }
 }

@@ -10,16 +10,12 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JockeyResponse {
-
-    Integer id;
+    private Integer id;
     String username;
     String email;
     String fullName;
-    String status;
-    Float weight;
-    String certificate_url;
-    String jockeyStatus;
-    Integer experienceYears ;
-
-
+    Float  weight;
+    Integer experienceYears;
+    String certificateUrl;
+    String rank;
 }
