@@ -28,6 +28,13 @@ public class Race {
 
     @Column(name = "race_datetime", nullable = false)
     private LocalDateTime raceDatetime;
+
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
+    @Column(name = "ended_at")
+    private LocalDateTime endedAt;
+
     @Column
     private Integer distance;          // cự ly (mét)
 
