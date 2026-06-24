@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 public interface JockeyMapper {
 
 
-    @Mapping(source = "certificateUrl", target = "certificate_url")
+    @Mapping(source = "certificateUrl", target = "certificateUrl")
     JockeyResponse toResponse(Jockey jockey);
 
 }

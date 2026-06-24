@@ -62,6 +62,16 @@ public enum ErrorCode {
     JOCKEY_ALREADY_ASSIGNED(4053, "Jockey already assigned to another horse in this race", HttpStatus.CONFLICT),
     INVITATION_NOT_FOUND(4054, "Invitation not found", HttpStatus.NOT_FOUND),
     NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
+    //referee
+    REFEREE_NOT_FOUND(4058, "Referee not found", HttpStatus.NOT_FOUND),
+    REFEREE_NOT_APPROVED(4059, "Referee is not approved yet", HttpStatus.BAD_REQUEST),
+    //referee assignment
+    REFEREE_ALREADY_ASSIGNED(4060, "Referee already assigned to this race", HttpStatus.CONFLICT),
+    RACE_REFEREE_LIMIT_REACHED(4061, "Race has reached maximum referee limit (3)", HttpStatus.CONFLICT),
+    REFEREE_SCHEDULE_CONFLICT(4062, "Referee already assigned to another race at the same time", HttpStatus.CONFLICT),
+    ASSIGNMENT_NOT_FOUND(4063, "Referee assignment not found", HttpStatus.NOT_FOUND),
+    //race
+    RACE_MISSING_REFEREES(4064, "Race must have exactly 3 referees assigned before activation", HttpStatus.BAD_REQUEST),
     ;
 
 
