@@ -17,5 +17,6 @@ public class JockeyResponse {
     Float  weight;
     Integer experienceYears;
     String certificateUrl;
+    String jockeyStatus;
     String rank;
 }

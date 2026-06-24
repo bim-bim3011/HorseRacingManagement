@@ -6,7 +6,9 @@ import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.entity.horse.Horse;
 import com.swp391.horseracing.entity.profile.HorseOwner;
 import com.swp391.horseracing.entity.tournament.Race;
+
 import com.swp391.horseracing.entity.tournament.RaceEntry;
+import com.swp391.horseracing.entity.tournament.Tournament;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.*;
@@ -39,6 +41,9 @@ public class RaceEntryServiceImpl implements RaceEntryService {
         if (race.getStatus() != Race.RaceStatus.checking) {
             throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
         }
+        if (race.getRoundOrder() == null || race.getRoundOrder() != 1) {
+            throw new AppException(ErrorCode.CAN_ONLY_REGISTER_FIRST_ROUND);
+        }
 
         Horse horse = horseRepository.findById(request.getHorseId())
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
@@ -50,19 +55,23 @@ public class RaceEntryServiceImpl implements RaceEntryService {
         if (horse.getStatus() != Horse.HorseStatus.active) {
             throw new AppException(ErrorCode.HORSE_NOT_ACTIVE);
         }
-
-        if (race.getMinHorseAge() != null && horse.getAge() < race.getMinHorseAge()) {
+        Tournament tournament = race.getTournament();
+        if (tournament.getMinHorseAge() != null && horse.getAge() < tournament.getMinHorseAge()) {
             throw new AppException(ErrorCode.HORSE_AGE_NOT_QUALIFIED);
         }
-        if (race.getMaxHorseAge() != null && horse.getAge() > race.getMaxHorseAge()) {
+        if (tournament.getMaxHorseAge() != null && horse.getAge() > tournament.getMaxHorseAge()) {
             throw new AppException(ErrorCode.HORSE_AGE_NOT_QUALIFIED);
+        }
+        if (tournament.getAllowedBreed() != null
+                && !horse.getBreed().equalsIgnoreCase(tournament.getAllowedBreed())) {
+            throw new AppException(ErrorCode.HORSE_BREED_NOT_QUALIFIED);
         }
 
         if (raceEntryRepository.existsByRaceIdAndHorseId(raceId, horse.getId())) {
             throw new AppException(ErrorCode.HORSE_ALREADY_REGISTERED);
         }
 
-        if (race.getMaxEntries() != null) {
+        if (tournament.getMaxMainEntries() != null) {
             int count = raceEntryRepository.countByRaceIdAndStatus(
                     raceId, RaceEntry.EntryStatus.approved);
             if (count >= race.getMaxEntries()) {

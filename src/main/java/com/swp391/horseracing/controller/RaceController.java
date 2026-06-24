@@ -65,7 +65,7 @@ public class RaceController {
     @PatchMapping("/{id}/activate")
     @Operation(
             summary = "Activate Race",
-            description = "Tournament must have regulations and penalty rules. Race must have standards (distance, weight, age)"
+            description = "Tournament must have penalty rules and standards (weight, age, breed, distance). Race must have round order, max entries, qualify count, and at least 1 referee assigned"
     )
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> activate(@PathVariable Integer tournamentId,

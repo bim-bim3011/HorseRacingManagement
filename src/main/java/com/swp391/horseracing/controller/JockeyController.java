@@ -1,6 +1,7 @@
 package com.swp391.horseracing.controller;
 
 
+import com.swp391.horseracing.dto.request.UpdateJockeyProfileRequest;
 import com.swp391.horseracing.dto.request.UpdateJockeyRequest;
 import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.JockeyResponse;
@@ -24,6 +25,12 @@ public class JockeyController {
     ApiResponse<JockeyResponse> updateProfile(@PathVariable Integer id,
                                                @RequestBody UpdateJockeyRequest request) {
         return ApiResponse.success(jockeyService.updateProfile(id, request));
+    }
+
+    @PutMapping(value = "/{id}/competition-profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ApiResponse<JockeyResponse> updateCompetitionProfile(@PathVariable Integer id,
+                                                         @ModelAttribute UpdateJockeyProfileRequest request) {
+        return ApiResponse.success(jockeyService.updateCompetitionProfile(id, request));
     }
 
     @PostMapping(value = "/{id}/certificate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

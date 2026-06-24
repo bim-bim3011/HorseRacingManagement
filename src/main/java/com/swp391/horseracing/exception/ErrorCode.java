@@ -25,6 +25,7 @@ public enum ErrorCode {
 
     DUPLICATE_USERNAME(1008,"username already exists",HttpStatus.BAD_REQUEST),
     DUPLICATE_EMAIL(1009,"email already exists",HttpStatus.BAD_REQUEST),
+    INVALID_USER_STATUS(1012, "Invalid user status", HttpStatus.BAD_REQUEST),
 
     ACCESS_DENIED(1005,"you do not has permission",HttpStatus.FORBIDDEN),
     TEST_EXCEPTION(6789,"test exception with error code",HttpStatus.ACCEPTED),
@@ -37,10 +38,20 @@ public enum ErrorCode {
     NOT_FOUND(4040, "Not found", HttpStatus.NOT_FOUND),
 
 
-    RACE_MISSING_STANDARDS(4009, "Race missing standards", HttpStatus.BAD_REQUEST),
-    TOURNAMENT_MISSING_REGULATIONS(4006, "Tournament missing regulations", HttpStatus.BAD_REQUEST),
+
+
+    //tournament
+    TOURNAMENT_START_DATE_IN_PAST(4068, "Start date cannot be in the past", HttpStatus.BAD_REQUEST),
+    TOURNAMENT_INVALID_DATE_RANGE(4069, "End date must be after start date", HttpStatus.BAD_REQUEST),
+    TOURNAMENT_DATE_OVERLAP(4070, "Tournament date range overlaps with an existing tournament", HttpStatus.CONFLICT),
     TOURNAMENT_MISSING_PENALTY_RULES(4007, "Tournament missing penalty rules", HttpStatus.BAD_REQUEST),
-    TOURNAMENT_ALREADY_EXISTS(4005, "A tournament is already active", HttpStatus.CONFLICT),
+    TOURNAMENT_MISSING_STANDARDS(4009, "Tournament missing standards", HttpStatus.BAD_REQUEST),
+
+    //race
+    TOURNAMENT_MISSING_MAX_ENTRIES(4067, "Tournament missing max main entries", HttpStatus.BAD_REQUEST),
+    RACE_MISSING_STANDARDS(4009, "Race missing standards", HttpStatus.BAD_REQUEST),
+    RACE_MISSING_REFEREES(4064, "Race must have at least 1 referee assigned before activation", HttpStatus.BAD_REQUEST),
+
     HORSE_ALREADY_EXISTS(4011, "Horse already exists", HttpStatus.CONFLICT),
     NOT_HORSE_OWNER(4012, "User is not a horse owner", HttpStatus.FORBIDDEN),
     RACE_NOT_AVAILABLE(4012, "Race is not available for registration", HttpStatus.BAD_REQUEST),
@@ -61,17 +72,16 @@ public enum ErrorCode {
     INVITATION_ALREADY_EXISTS(4052, "Invitation already sent to this jockey", HttpStatus.CONFLICT),
     JOCKEY_ALREADY_ASSIGNED(4053, "Jockey already assigned to another horse in this race", HttpStatus.CONFLICT),
     INVITATION_NOT_FOUND(4054, "Invitation not found", HttpStatus.NOT_FOUND),
-    NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
-    //referee
+    NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),
+    HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
     REFEREE_NOT_FOUND(4058, "Referee not found", HttpStatus.NOT_FOUND),
-    REFEREE_NOT_APPROVED(4059, "Referee is not approved yet", HttpStatus.BAD_REQUEST),
-    //referee assignment
-    REFEREE_ALREADY_ASSIGNED(4060, "Referee already assigned to this race", HttpStatus.CONFLICT),
-    RACE_REFEREE_LIMIT_REACHED(4061, "Race has reached maximum referee limit (3)", HttpStatus.CONFLICT),
-    REFEREE_SCHEDULE_CONFLICT(4062, "Referee already assigned to another race at the same time", HttpStatus.CONFLICT),
-    ASSIGNMENT_NOT_FOUND(4063, "Referee assignment not found", HttpStatus.NOT_FOUND),
-    //race
-    RACE_MISSING_REFEREES(4064, "Race must have exactly 3 referees assigned before activation", HttpStatus.BAD_REQUEST),
+    REFEREE_NOT_ACTIVE(4059, "Referee is not active", HttpStatus.BAD_REQUEST),
+    REFEREE_ALREADY_ASSIGNED_TO_RACE(4060, "Referee already assigned to this race", HttpStatus.CONFLICT),
+    REFEREE_ASSIGNMENT_NOT_FOUND(4061, "Referee assignment not found", HttpStatus.NOT_FOUND),
+    DUPLICATE_LICENSE_NUMBER(4062, "License number already exists", HttpStatus.CONFLICT),
+    JOCKEY_PROFILE_INCOMPLETE(4063, "Jockey profile is incomplete for approval", HttpStatus.BAD_REQUEST),
+    CAN_ONLY_REGISTER_FIRST_ROUND(4071, "Horse can only be registered to the first round of the tournament", HttpStatus.BAD_REQUEST),
+    HORSE_BREED_NOT_QUALIFIED(4065, "Horse breed does not match tournament requirement", HttpStatus.BAD_REQUEST),
     ;
 
 

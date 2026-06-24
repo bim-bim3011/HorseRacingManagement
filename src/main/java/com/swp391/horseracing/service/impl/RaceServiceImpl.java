@@ -7,6 +7,7 @@ import com.swp391.horseracing.entity.tournament.Tournament;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.RaceRepository;
+import com.swp391.horseracing.repository.RefereeAssignmentRepository;
 import com.swp391.horseracing.repository.TournamentRepository;
 import com.swp391.horseracing.service.RaceService;
 import lombok.AccessLevel;
@@ -23,6 +24,7 @@ import java.util.List;
 public class RaceServiceImpl implements RaceService {
     RaceRepository raceRepository;
     TournamentRepository tournamentRepository;
+    RefereeAssignmentRepository refereeAssignmentRepository;
     @Override
     public RaceResponse createRace(Integer tournamentId, RaceRequest request) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
@@ -32,10 +34,10 @@ public class RaceServiceImpl implements RaceService {
                 .tournament(tournament)
                 .name(request.getName())
                 .raceDatetime(request.getRaceDatetime())
-                .distance(request.getDistance())
-                .weightLimit(request.getWeightLimit())
-                .minHorseAge(request.getMinHorseAge())
-                .maxHorseAge(request.getMaxHorseAge())
+                .roundOrder(request.getRoundOrder())
+                .isFinal(request.getIsFinal())
+                .maxEntries(request.getMaxEntries())
+                .qualifyCount(request.getQualifyCount())
                 .build();
 
         raceRepository.save(race);
@@ -69,10 +71,10 @@ public class RaceServiceImpl implements RaceService {
 
         race.setName(request.getName());
         race.setRaceDatetime(request.getRaceDatetime());
-        race.setDistance(request.getDistance());
-        race.setWeightLimit(request.getWeightLimit());
-        race.setMinHorseAge(request.getMinHorseAge());
-        race.setMaxHorseAge(request.getMaxHorseAge());
+        race.setRoundOrder(request.getRoundOrder());
+        race.setIsFinal(request.getIsFinal());
+        race.setMaxEntries(request.getMaxEntries());
+        race.setQualifyCount(request.getQualifyCount());
 
 
         return mapToResponse(raceRepository.save(race));
@@ -114,19 +116,22 @@ public class RaceServiceImpl implements RaceService {
         if (!race.getTournament().getId().equals(tournamentId))
             throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
 
-
-        if (tournament.getRegulations() == null)
-            throw new AppException(ErrorCode.TOURNAMENT_MISSING_REGULATIONS);
-
         if (tournament.getPenaltyRules().isEmpty())
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_PENALTY_RULES);
 
+        if (tournament.getWeightLimit() == null || tournament.getMinHorseAge() == null
+                || tournament.getMaxHorseAge() == null || tournament.getDistance() == null)
+            throw new AppException(ErrorCode.TOURNAMENT_MISSING_STANDARDS);
 
-        if (race.getDistance() == null || race.getWeightLimit() == null
-                || race.getMinHorseAge() == null || race.getMaxHorseAge() == null)
+        if (tournament.getMaxMainEntries() == null)
+            throw new AppException(ErrorCode.TOURNAMENT_MISSING_MAX_ENTRIES);
+
+        if (race.getMaxEntries() == null || race.getQualifyCount() == null || race.getRoundOrder() == null)
             throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
 
-
+        int refereeCount = refereeAssignmentRepository.countByRaceId(raceId);
+        if (refereeCount < 1)
+            throw new AppException(ErrorCode.RACE_MISSING_REFEREES);
         race.setStatus(Race.RaceStatus.checking);
         tournament.setStatus(Tournament.TournamentStatus.ongoing);
 
@@ -139,11 +144,13 @@ public class RaceServiceImpl implements RaceService {
                 .id(race.getId())
                 .name(race.getName())
                 .raceDatetime(race.getRaceDatetime())
+                .startedAt(race.getStartedAt())
+                .endedAt(race.getEndedAt())
                 .status(race.getStatus().name())
-                .distance(race.getDistance())
-                .weightLimit(race.getWeightLimit())
-                .minHorseAge(race.getMinHorseAge())
-                .maxHorseAge(race.getMaxHorseAge())
+                .roundOrder(race.getRoundOrder())
+                .isFinal(race.getIsFinal())
+                .maxEntries(race.getMaxEntries())
+                .qualifyCount(race.getQualifyCount())
                 .tournamentId(race.getTournament().getId())
                 .build();
     }
