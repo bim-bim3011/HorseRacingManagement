@@ -4,6 +4,7 @@ import com.swp391.horseracing.entity.tournament.RaceEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RaceEntryRepository extends JpaRepository<RaceEntry , Integer> {
 
@@ -18,4 +19,9 @@ public interface RaceEntryRepository extends JpaRepository<RaceEntry , Integer> 
     int countByRaceIdAndStatus(Integer raceId, RaceEntry.EntryStatus status);
 
     List<RaceEntry> findByRaceIdAndStatus(Integer raceId, RaceEntry.EntryStatus status);
+
+    int countByRaceIdAndIsReserve(Integer raceId, Boolean isReserve);
+
+    Optional<RaceEntry> findFirstByRaceIdAndIsReserveOrderByReserveOrderAsc(Integer raceId, Boolean isReserve);
+
 }

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/races/{raceId}/entries")
+@RequestMapping("/api/tournaments/{tournamentId}/entries")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Race Entry", description = "Race Entry Management API")
@@ -28,9 +28,9 @@ public class RaceEntryController {
             description = "Horse Owner register horse into race"
     )
     @PreAuthorize("hasAuthority('SCOPE_ROLE_HORSE_OWNER')")
-    public ApiResponse<RaceEntryResponse> register(@PathVariable Integer raceId,
+    public ApiResponse<RaceEntryResponse> register(@PathVariable Integer tournamentId,
                                                    @RequestBody RaceEntryRequest request) {
-        return ApiResponse.success(raceEntryService.registerHorse(raceId, request));
+        return ApiResponse.success(raceEntryService.registerHorse(tournamentId, request));
     }
 
     @GetMapping
@@ -39,16 +39,16 @@ public class RaceEntryController {
             summary = "Get Entries by Race",
             description = "Only ADMIN can view all entries"
     )
-    public ApiResponse<List<RaceEntryResponse>> getByRace(@PathVariable Integer raceId) {
-        return ApiResponse.success(raceEntryService.getEntriesByRace(raceId));
+    public ApiResponse<List<RaceEntryResponse>> getByRace(@PathVariable Integer tournamentId) {
+        return ApiResponse.success(raceEntryService.getEntriesByTournament(tournamentId));
     }
     @GetMapping("/approved")
     @Operation(
             summary = "Get Approved Entries",
             description = "Anyone can view approved entries"
     )
-    public ApiResponse<List<RaceEntryResponse>> getApproved(@PathVariable Integer raceId) {
-        return ApiResponse.success(raceEntryService.getApprovedEntries(raceId));
+    public ApiResponse<List<RaceEntryResponse>> getApproved(@PathVariable Integer tournamentId) {
+        return ApiResponse.success(raceEntryService.getApprovedEntriesByTournament(tournamentId));
     }
     @GetMapping("/my-entries")
     @Operation(
@@ -74,6 +74,13 @@ public class RaceEntryController {
     public ApiResponse<String> reject(@PathVariable Integer id) {
         raceEntryService.rejectEntry(id);
         return ApiResponse.success("Entry rejected!");
+    }
+    @PatchMapping("/{id}/replace-with-reserve")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @Operation(summary = "Replace with Reserve", description = "Only ADMIN can replace a main entry with a reserve horse")
+    public ApiResponse<String> replaceWithReserve(@PathVariable Integer tournamentId, @PathVariable Integer id) {
+        raceEntryService.replaceWithReserve(id);
+        return ApiResponse.success("Replaced with reserve horse!");
     }
 
 }

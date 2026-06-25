@@ -6,10 +6,11 @@ import com.swp391.horseracing.dto.response.RaceEntryResponse;
 import java.util.List;
 
 public interface RaceEntryService {
-    RaceEntryResponse registerHorse(Integer raceId, RaceEntryRequest request);
-    List<RaceEntryResponse> getEntriesByRace(Integer raceId);
+    RaceEntryResponse registerHorse(Integer tournamentId, RaceEntryRequest request);
+    List<RaceEntryResponse> getEntriesByTournament(Integer tournamentId);
     List<RaceEntryResponse> getMyHorseEntries();
     void approveEntry(Integer id);
     void rejectEntry(Integer id);
-    List<RaceEntryResponse> getApprovedEntries(Integer raceId);
+    List<RaceEntryResponse> getApprovedEntriesByTournament(Integer tournamentId);
+    void replaceWithReserve(Integer mainEntryId);
 }

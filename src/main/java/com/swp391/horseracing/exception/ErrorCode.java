@@ -65,6 +65,8 @@ public enum ErrorCode {
     HORSE_NOT_FOUND(4046, "Horse not found", HttpStatus.NOT_FOUND),
     RACE_ENTRY_NOT_FOUND(4047, "Race entry not found", HttpStatus.NOT_FOUND),
     HORSE_MISSING_CERTIFICATE(4048, "Horse health certificate is missing", HttpStatus.BAD_REQUEST),
+    ENTRY_IS_NOT_MAIN(4073, "Entry is already a reserve, cannot be replaced", HttpStatus.BAD_REQUEST),
+    NO_RESERVE_AVAILABLE(4074, "No reserve horse available to replace", HttpStatus.BAD_REQUEST),
     //jokeyinvation
     JOCKEY_NOT_FOUND(4049, "Jockey not found", HttpStatus.NOT_FOUND),
     JOCKEY_NOT_APPROVED(4050, "Jockey is not approved yet", HttpStatus.BAD_REQUEST),
@@ -80,7 +82,7 @@ public enum ErrorCode {
     REFEREE_ASSIGNMENT_NOT_FOUND(4061, "Referee assignment not found", HttpStatus.NOT_FOUND),
     DUPLICATE_LICENSE_NUMBER(4062, "License number already exists", HttpStatus.CONFLICT),
     JOCKEY_PROFILE_INCOMPLETE(4063, "Jockey profile is incomplete for approval", HttpStatus.BAD_REQUEST),
-    CAN_ONLY_REGISTER_FIRST_ROUND(4071, "Horse can only be registered to the first round of the tournament", HttpStatus.BAD_REQUEST),
+    FIRST_ROUND_NOT_FOUND(4071, "No race found for this tournament", HttpStatus.NOT_FOUND),
     HORSE_BREED_NOT_QUALIFIED(4065, "Horse breed does not match tournament requirement", HttpStatus.BAD_REQUEST),
     ;
 
