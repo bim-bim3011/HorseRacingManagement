@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  /* ===== Colors - Material Design 3 Tokens ===== */
+
+  /* Primary */
+  --color-primary: #775a19;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #c5a059;
+  --color-on-primary-container: #4e3700;
+  --color-primary-fixed: #ffdea5;
+  --color-primary-fixed-dim: #e9c176;
+  --color-on-primary-fixed: #261900;
+  --color-on-primary-fixed-variant: #5d4201;
+
+  /* Secondary */
+  --color-secondary: #5f5e5b;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e5e2dd;
+  --color-on-secondary-container: #656461;
+  --color-secondary-fixed: #e5e2dd;
+  --color-secondary-fixed-dim: #c9c6c2;
+  --color-on-secondary-fixed: #1c1c19;
+  --color-on-secondary-fixed-variant: #474743;
+
+  /* Tertiary */
+  --color-tertiary: #5f5e5e;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #a7a5a5;
+  --color-on-tertiary-container: #3b3b3b;
+  --color-tertiary-fixed: #e5e2e1;
+  --color-tertiary-fixed-dim: #c8c6c5;
+  --color-on-tertiary-fixed: #1c1b1b;
+  --color-on-tertiary-fixed-variant: #474746;
+
+  /* Error */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Surface */
+  --color-surface: #fcf9f8;
+  --color-on-surface: #1c1b1b;
+  --color-surface-variant: #e5e2e1;
+  --color-on-surface-variant: #4e4639;
+  --color-surface-dim: #dcd9d9;
+  --color-surface-bright: #fcf9f8;
+  --color-surface-tint: #775a19;
+  --color-surface-container: #f0eded;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-surface-container-lowest: #ffffff;
+
+  /* Background */
+  --color-background: #fcf9f8;
+  --color-on-background: #1c1b1b;
+
+  /* Outline */
+  --color-outline: #7f7667;
+  --color-outline-variant: #d1c5b4;
+
+  /* Inverse */
+  --color-inverse-surface: #313030;
+  --color-inverse-on-surface: #f3f0ef;
+  --color-inverse-primary: #e9c176;
+
+  /* ===== Font Families ===== */
+  --font-display: "Playfair Display", serif;
+  --font-body: "Hanken Grotesk", sans-serif;
+
+  /* ===== Font Sizes ===== */
+  --text-display-lg: 48px;
+  --text-display-lg--line-height: 1.2;
+  --text-display-lg--letter-spacing: -0.02em;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 1.3;
+
+  --text-headline-lg-mobile: 28px;
+  --text-headline-lg-mobile--line-height: 1.3;
+
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 1.4;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.6;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.6;
+
+  --text-interactive-md: 14px;
+  --text-interactive-md--line-height: 1.2;
+
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 1.2;
+  --text-label-caps--letter-spacing: 0.1em;
+}
+
+/* ===== Base Styles ===== */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Selection */
+::selection {
+  background-color: var(--color-primary-fixed);
+  color: var(--color-on-primary-fixed);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-variant);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline-variant);
+}
