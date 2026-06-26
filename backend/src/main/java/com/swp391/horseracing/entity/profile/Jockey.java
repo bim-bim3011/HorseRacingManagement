@@ -4,9 +4,13 @@ import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.entity.tournament.JockeyInvitation;
 import com.swp391.horseracing.entity.tournament.RaceEntry;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -59,13 +63,13 @@ public class Jockey extends User {
     private LocalDate dob;
 
     public enum JockeyStatus {
-        pending_certification, approval
+        pending_certification, approval,rejected
     }
-    @Enumerated(EnumType.STRING)
-    @Column(name = "rank")
-    private Rank rank;
-
-    public enum Rank {
-        A, B, C
-    }
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "rank")
+//    private Rank rank;
+//
+//    public enum Rank {
+//        A, B, C
+//    }
 }
