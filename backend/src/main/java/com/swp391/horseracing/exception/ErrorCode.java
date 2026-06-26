@@ -81,6 +81,9 @@ public enum ErrorCode {
     REFEREE_ASSIGNMENT_NOT_FOUND(4061, "Referee assignment not found", HttpStatus.NOT_FOUND),
     DUPLICATE_LICENSE_NUMBER(4062, "License number already exists", HttpStatus.CONFLICT),
     JOCKEY_PROFILE_INCOMPLETE(4063, "Jockey profile is incomplete for approval", HttpStatus.BAD_REQUEST),
+    FIRST_ROUND_NOT_FOUND(4072, "First round race not found for this tournament", HttpStatus.NOT_FOUND),
+    HORSE_BREED_NOT_QUALIFIED(4065, "Horse breed does not match tournament requirement", HttpStatus.BAD_REQUEST),
+    INVALID_USER_STATUS(1013, "Invalid user status", HttpStatus.BAD_REQUEST),
     ;
 
 
