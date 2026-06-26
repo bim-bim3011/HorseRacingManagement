@@ -16,6 +16,11 @@ public class TournamentRequest {
 
     @NotNull(message = "End date is required")
     private LocalDate endDate;
-
-    private String regulations;  // ← không bắt buộc
+    private Integer distance;
+    private Float weightLimit;
+    private Integer minHorseAge;
+    private Integer maxHorseAge;
+    private String allowedBreed;
+    private Integer maxMainEntries;
+    private Integer maxReserveEntries;
 }

@@ -12,6 +12,12 @@ public class TournamentResponse {
     private String name;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Integer distance;
     private String status;
-    private String regulations;
+    private Float weightLimit;
+    private Integer minHorseAge;
+    private Integer maxHorseAge;
+    private String allowedBreed;
+    private Integer maxMainEntries;
+    private Integer maxReserveEntries;
 }

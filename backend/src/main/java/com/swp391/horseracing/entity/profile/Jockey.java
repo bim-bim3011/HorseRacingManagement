@@ -63,13 +63,13 @@ public class Jockey extends User {
     private LocalDate dob;
 
     public enum JockeyStatus {
-        pending_certification, approval,rejected
+        pending_certification, approval
     }
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "rank")
-//    private Rank rank;
-//
-//    public enum Rank {
-//        A, B, C
-//    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rank")
+    private Rank rank;
+
+    public enum Rank {
+        A, B, C
+    }
 }
