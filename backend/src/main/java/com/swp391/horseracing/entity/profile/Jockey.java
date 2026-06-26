@@ -65,11 +65,11 @@ public class Jockey extends User {
     public enum JockeyStatus {
         pending_certification, approval,rejected
     }
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "rank")
-//    private Rank rank;
-//
-//    public enum Rank {
-//        A, B, C
-//    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rank")
+    private Rank rank;
+
+    public enum Rank {
+        A, B, C
+    }
 }

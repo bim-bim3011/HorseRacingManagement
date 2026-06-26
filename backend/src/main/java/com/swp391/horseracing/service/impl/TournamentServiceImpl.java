@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -21,19 +22,32 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentResponse createTournament(TournamentRequest request) {
-
-        boolean exists = tournamentRepository.existsByStatusIn(
-                List.of(Tournament.TournamentStatus.upcoming,
-                        Tournament.TournamentStatus.ongoing)
-        );
-        if (exists) {
-            throw new AppException(ErrorCode.TOURNAMENT_ALREADY_EXISTS);
+        if (request.getStartDate().isBefore(LocalDate.now())) {
+            throw new AppException(ErrorCode.TOURNAMENT_START_DATE_IN_PAST);
         }
+
+        if (request.getEndDate().isBefore(request.getStartDate())) {
+            throw new AppException(ErrorCode.TOURNAMENT_INVALID_DATE_RANGE);
+        }
+
+        boolean isOverlap = tournamentRepository.existsOverlapping(
+                request.getStartDate(), request.getEndDate());
+
+        if (isOverlap) {
+            throw new AppException(ErrorCode.TOURNAMENT_DATE_OVERLAP);
+        }
+
         Tournament tournament = Tournament.builder()
                 .name(request.getName())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .regulations(request.getRegulations())
+                .distance(request.getDistance())
+                .weightLimit(request.getWeightLimit())
+                .minHorseAge(request.getMinHorseAge())
+                .maxHorseAge(request.getMaxHorseAge())
+                .allowedBreed(request.getAllowedBreed())
+                .maxMainEntries(request.getMaxMainEntries())
+                .maxReserveEntries(request.getMaxReserveEntries())
                 .build();
 
         tournamentRepository.save(tournament);
@@ -55,7 +69,13 @@ public class TournamentServiceImpl implements TournamentService {
         tournament.setName(request.getName());
         tournament.setStartDate(request.getStartDate());
         tournament.setEndDate(request.getEndDate());
-        tournament.setRegulations(request.getRegulations());
+        tournament.setDistance(request.getDistance());
+        tournament.setWeightLimit(request.getWeightLimit());
+        tournament.setMinHorseAge(request.getMinHorseAge());
+        tournament.setMaxHorseAge(request.getMaxHorseAge());
+        tournament.setAllowedBreed(request.getAllowedBreed());
+        tournament.setMaxMainEntries(request.getMaxMainEntries());
+        tournament.setMaxReserveEntries(request.getMaxReserveEntries());
 
         tournamentRepository.save(tournament);
         return mapToResponse(tournament);
@@ -83,7 +103,13 @@ public class TournamentServiceImpl implements TournamentService {
                 .startDate(tournament.getStartDate())
                 .endDate(tournament.getEndDate())
                 .status(tournament.getStatus().name())
-                .regulations(tournament.getRegulations())
+                .distance(tournament.getDistance())
+                .weightLimit(tournament.getWeightLimit())
+                .minHorseAge(tournament.getMinHorseAge())
+                .maxHorseAge(tournament.getMaxHorseAge())
+                .allowedBreed(tournament.getAllowedBreed())
+                .maxMainEntries(tournament.getMaxMainEntries())
+                .maxReserveEntries(tournament.getMaxReserveEntries())
                 .build();
     }
 }

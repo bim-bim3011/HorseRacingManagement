@@ -43,6 +43,13 @@ public class RaceEntry {
     @Column(name = "lane_number")
     private Integer laneNumber;
 
+    @Column(name = "is_reserve")
+    @Builder.Default
+    private Boolean isReserve = false;
+
+    @Column(name = "reserve_order")
+    private Integer reserveOrder;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private EntryStatus status = EntryStatus.pending_admin;

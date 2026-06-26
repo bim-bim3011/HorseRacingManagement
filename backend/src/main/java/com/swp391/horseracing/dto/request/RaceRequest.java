@@ -9,11 +9,10 @@ import java.time.LocalDateTime;
 public class RaceRequest {
     @NotBlank(message = "Name is required")
     private String name;
-
     @NotNull(message = "Race datetime is required")
     private LocalDateTime raceDatetime;
-    private Integer distance;
-    private Float weightLimit;
-    private Integer minHorseAge;
-    private Integer maxHorseAge;
+    private Integer roundOrder;
+    private Boolean isFinal;
+    private Integer maxEntries;
+    private Integer qualifyCount;
 }

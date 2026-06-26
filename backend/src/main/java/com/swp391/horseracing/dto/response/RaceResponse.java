@@ -10,10 +10,12 @@ public class RaceResponse {
     private Integer id;
     private String name;
     private LocalDateTime raceDatetime;
+    private LocalDateTime startedAt;
+    private LocalDateTime endedAt;
     private String status;
-    private Integer distance;
-    private Float weightLimit;
-    private Integer minHorseAge;
-    private Integer maxHorseAge;
+    private Integer roundOrder;
+    private Boolean isFinal;
+    private Integer maxEntries;
+    private Integer qualifyCount;
     private Integer tournamentId;
 }

@@ -14,4 +14,5 @@ public interface RefereeAssignmentRepository extends JpaRepository<RefereeAssign
     List<RefereeAssignment> findByRaceId(Integer raceId);
 
     List<RefereeAssignment> findByRefereeId(Integer refereeId);
+    int countByRaceId(Integer raceId);
 }

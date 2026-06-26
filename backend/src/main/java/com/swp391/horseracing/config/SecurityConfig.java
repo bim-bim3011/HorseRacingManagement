@@ -27,78 +27,87 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-        private final UserDetailServiceCustomize userDetailsService;
+    private final UserDetailServiceCustomize userDetailsService;
 
-        private final String[] PUBLIC_ENDPOINTS = {
+    private final String[] PUBLIC_ENDPOINTS= {
 
-                        "/api/auth/**",
-                        "/api/register/**",
-                        "/api/auth/logout",
-                        "/home/**",
+            "/api/auth/**",
+            "/api/register/**",
+            "/api/auth/logout",
+            "/home/**",
 
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
 
-                        "/v3/api-docs",
-                        "/v3/api-docs/**"
+            "/v3/api-docs",
+            "/v3/api-docs/**"
 
-        };
 
-        private final String[] TEST_ENDPOINTS = {
+    };
 
-                        "/api/test/**",
+    private final String[] TEST_ENDPOINTS= {
 
-        };
+            "/api/test/**",
 
-        @Bean
-        public SecurityFilterChain configure(HttpSecurity http,
-                        CustomJwtDecoder jwtDecoder,
-                        JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
+    };
 
-                http
 
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                                .csrf(AbstractHttpConfigurer::disable)
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                                                .requestMatchers(TEST_ENDPOINTS).permitAll()
-                                                .anyRequest().authenticated()
 
-                                )
+    @Bean
+    public SecurityFilterChain configure(HttpSecurity http,
+                                         CustomJwtDecoder jwtDecoder,
+                                         JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception{
 
-                                .oauth2ResourceServer(oauth2 -> oauth2
-                                                .jwt(jwt -> jwt.decoder(jwtDecoder))
-                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
-                return http.build();
-        }
+        http
 
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder();
-        }
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(TEST_ENDPOINTS).permitAll()
+                        .anyRequest().authenticated()
 
-        @Bean
-        public AuthenticationManager authenticationManager() {
-                DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
-                authenticationProvider.setPasswordEncoder(passwordEncoder());
+                )
 
-                return new ProviderManager(authenticationProvider);
-        }
+         .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.decoder(jwtDecoder))
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        );
 
-        @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-                CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(true);
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/api/**", config);
-                source.registerCorsConfiguration("/ws/**", config);
-                return source;
-        }
+        return http.build();
+    }
+
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+
+        return new ProviderManager(authenticationProvider);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/ws/**", config);
+        return source;
+    }
+
 
 }

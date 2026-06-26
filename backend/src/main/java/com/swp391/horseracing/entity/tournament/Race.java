@@ -35,17 +35,10 @@ public class Race {
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
 
-    @Column
-    private Integer distance;          // cự ly (mét)
 
-    @Column(name = "weight_limit")
-    private Float weightLimit;         // cân nặng jockey tối đa (kg)
 
-    @Column(name = "min_horse_age")
-    private Integer minHorseAge;       // tuổi ngựa tối thiểu
-
-    @Column(name = "max_horse_age")
-    private Integer maxHorseAge;       // tuổi ngựa tối đa
+    @Column(name = "round_order")
+    private Integer roundOrder;           // thứ tự vòng: 1=vòng loại, 2=tứ kết...
 
     @Column(name = "is_final")
     @Builder.Default
