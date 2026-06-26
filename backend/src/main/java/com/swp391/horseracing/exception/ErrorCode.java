@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatusCode;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public enum ErrorCode {
 
-     INACTIVE_ACCOUNT(1010,"your account is inactive",HttpStatus.UNAUTHORIZED),
-     BANNED_ACCOUNT(1011,"your account is banned",HttpStatus.UNAUTHORIZED),
+    INACTIVE_ACCOUNT(1010,"your account is inactive",HttpStatus.UNAUTHORIZED),
+    BANNED_ACCOUNT(1011,"your account is banned",HttpStatus.UNAUTHORIZED),
 
     UNAUTHENTICATED(1006,"test exception with error code",HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND(1005,"user not found ",HttpStatus.BAD_REQUEST),
@@ -25,6 +25,7 @@ public enum ErrorCode {
 
     DUPLICATE_USERNAME(1008,"username already exists",HttpStatus.BAD_REQUEST),
     DUPLICATE_EMAIL(1009,"email already exists",HttpStatus.BAD_REQUEST),
+    INVALID_USER_STATUS(1012, "Invalid user status", HttpStatus.BAD_REQUEST),
 
     ACCESS_DENIED(1005,"you do not has permission",HttpStatus.FORBIDDEN),
     TEST_EXCEPTION(6789,"test exception with error code",HttpStatus.ACCEPTED),
@@ -61,17 +62,17 @@ public enum ErrorCode {
     INVITATION_ALREADY_EXISTS(4052, "Invitation already sent to this jockey", HttpStatus.CONFLICT),
     JOCKEY_ALREADY_ASSIGNED(4053, "Jockey already assigned to another horse in this race", HttpStatus.CONFLICT),
     INVITATION_NOT_FOUND(4054, "Invitation not found", HttpStatus.NOT_FOUND),
-    NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
-    //referee
+    NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),
+    HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
     REFEREE_NOT_FOUND(4058, "Referee not found", HttpStatus.NOT_FOUND),
-    REFEREE_NOT_APPROVED(4059, "Referee is not approved yet", HttpStatus.BAD_REQUEST),
-    //referee assignment
-    REFEREE_ALREADY_ASSIGNED(4060, "Referee already assigned to this race", HttpStatus.CONFLICT),
-    RACE_REFEREE_LIMIT_REACHED(4061, "Race has reached maximum referee limit (3)", HttpStatus.CONFLICT),
-    REFEREE_SCHEDULE_CONFLICT(4062, "Referee already assigned to another race at the same time", HttpStatus.CONFLICT),
-    ASSIGNMENT_NOT_FOUND(4063, "Referee assignment not found", HttpStatus.NOT_FOUND),
-    //race
-    RACE_MISSING_REFEREES(4064, "Race must have exactly 3 referees assigned before activation", HttpStatus.BAD_REQUEST),
+    REFEREE_NOT_ACTIVE(4059, "Referee is not active", HttpStatus.BAD_REQUEST),
+    REFEREE_ALREADY_ASSIGNED_TO_RACE(4060, "Referee already assigned to this race", HttpStatus.CONFLICT),
+    REFEREE_ASSIGNMENT_NOT_FOUND(4061, "Referee assignment not found", HttpStatus.NOT_FOUND),
+    DUPLICATE_LICENSE_NUMBER(4062, "License number already exists", HttpStatus.CONFLICT),
+    JOCKEY_PROFILE_INCOMPLETE(4063, "Jockey profile is incomplete for approval", HttpStatus.BAD_REQUEST),
+    ;
+
+
     ;
 
 
