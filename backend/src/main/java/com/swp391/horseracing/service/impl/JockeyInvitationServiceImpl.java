@@ -151,11 +151,9 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
             }
         });
 
-        RaceEntry entry = invitation.getHorse().getRaceEntries().stream()
-                .filter(e -> e.getRace().getId().equals(invitation.getRace().getId()))
-                .findFirst()
+        RaceEntry entry = raceEntryRepository
+                .findByRaceIdAndHorseId(invitation.getRace().getId(), invitation.getHorse().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
-
         entry.setJockey(invitation.getJockey());
         raceEntryRepository.save(entry);
     }
