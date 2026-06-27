@@ -62,6 +62,12 @@ public class JockeyServiceImpl implements JockeyService {
                 .status(User.UserStatus.active)
                 .jockeyStatus(Jockey.JockeyStatus.pending_certification)
                 .roles(new HashSet<>(Set.of(roles)))
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .height(request.getHeight())
+                .weight(request.getWeight())
+                .gender(request.getGender())
+                .dob(request.getDob())
                 .build();
 
         jockeyRepository.save(jockey);

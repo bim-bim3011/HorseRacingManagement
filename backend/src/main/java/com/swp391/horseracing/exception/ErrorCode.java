@@ -75,6 +75,7 @@ public enum ErrorCode {
     JOCKEY_ALREADY_ASSIGNED(4053, "Jockey already assigned to another horse in this race", HttpStatus.CONFLICT),
     INVITATION_NOT_FOUND(4054, "Invitation not found", HttpStatus.NOT_FOUND),
     NOT_JOCKEY(4056, "User is not a jockey", HttpStatus.FORBIDDEN),HORSE_ENTRY_NOT_APPROVED(4057, "Horse entry is not approved yet by admin", HttpStatus.BAD_REQUEST),
+    JOCKEY_WEIGHT_EXCEEDS_LIMIT(4082, "Jockey weight exceeds tournament weight limit", HttpStatus.BAD_REQUEST),
     //referee
     REFEREE_NOT_FOUND(4058, "Referee not found", HttpStatus.NOT_FOUND),
     REFEREE_NOT_ACTIVE(4059, "Referee is not active", HttpStatus.BAD_REQUEST),
