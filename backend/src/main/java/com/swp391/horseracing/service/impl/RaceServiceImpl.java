@@ -4,19 +4,17 @@ import com.swp391.horseracing.dto.request.RaceRequest;
 import com.swp391.horseracing.dto.response.RaceResponse;
 import com.swp391.horseracing.entity.tournament.Race;
 import com.swp391.horseracing.entity.tournament.Tournament;
+import com.swp391.horseracing.entity.tournament.TournamentRegistration;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
-import com.swp391.horseracing.repository.RaceRepository;
-import com.swp391.horseracing.repository.RefereeAssignmentRepository;
-import com.swp391.horseracing.repository.TournamentRepository;
+import com.swp391.horseracing.repository.*;
+import com.swp391.horseracing.service.RaceEntryService;
 import com.swp391.horseracing.service.RaceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -25,6 +23,8 @@ public class RaceServiceImpl implements RaceService {
     RaceRepository raceRepository;
     TournamentRepository tournamentRepository;
     RefereeAssignmentRepository refereeAssignmentRepository;
+    TournamentRegistrationRepository tournamentRegistrationRepository;
+    RaceEntryService raceEntryService;
     @Override
     public RaceResponse createRace(Integer tournamentId, RaceRequest request) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
@@ -41,6 +41,15 @@ public class RaceServiceImpl implements RaceService {
                 .build();
 
         raceRepository.save(race);
+        if (request.getRoundOrder() != null && request.getRoundOrder() == 1) {
+            List<TournamentRegistration> approvedRegistrations = tournamentRegistrationRepository
+                    .findByTournamentId(tournamentId)
+                    .stream()
+                    .filter(r -> r.getStatus() == TournamentRegistration.RegistrationStatus.approved)
+                    .toList();
+
+            raceEntryService.createEntriesForFirstRound(race, approvedRegistrations);
+        }
         return mapToResponse(race);
     }
 
@@ -119,12 +128,7 @@ public class RaceServiceImpl implements RaceService {
         if (tournament.getPenaltyRules().isEmpty())
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_PENALTY_RULES);
 
-        if (tournament.getWeightLimit() == null || tournament.getMinHorseAge() == null
-                || tournament.getMaxHorseAge() == null || tournament.getDistance() == null)
-            throw new AppException(ErrorCode.TOURNAMENT_MISSING_STANDARDS);
 
-        if (tournament.getMaxMainEntries() == null)
-            throw new AppException(ErrorCode.TOURNAMENT_MISSING_MAX_ENTRIES);
 
         if (race.getMaxEntries() == null || race.getQualifyCount() == null || race.getRoundOrder() == null)
             throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
@@ -137,6 +141,24 @@ public class RaceServiceImpl implements RaceService {
 
         raceRepository.save(race);
         tournamentRepository.save(tournament);
+    }
+
+    @Override
+    public void assignApprovedHorsesToRace(Integer raceId) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (race.getRoundOrder() == null || race.getRoundOrder() != 1) {
+            throw new AppException(ErrorCode.CAN_ONLY_REGISTER_FIRST_ROUND);
+        }
+
+        List<TournamentRegistration> approvedRegistrations = tournamentRegistrationRepository
+                .findByTournamentId(race.getTournament().getId())
+                .stream()
+                .filter(r -> r.getStatus() == TournamentRegistration.RegistrationStatus.approved)
+                .toList();
+
+        raceEntryService.createEntriesForFirstRound(race, approvedRegistrations);
     }
 
     private RaceResponse mapToResponse(Race race) {

@@ -50,6 +50,7 @@ public enum ErrorCode {
     TOURNAMENT_MISSING_MAX_ENTRIES(4067, "Tournament missing max main entries", HttpStatus.BAD_REQUEST),
     RACE_MISSING_STANDARDS(4009, "Race missing standards", HttpStatus.BAD_REQUEST),
     RACE_MISSING_REFEREES(4064, "Race must have at least 1 referee assigned before activation", HttpStatus.BAD_REQUEST),
+    CAN_ONLY_REGISTER_FIRST_ROUND(4071, "Horse can only be registered to the first round of the tournament", HttpStatus.BAD_REQUEST),
 
     HORSE_ALREADY_EXISTS(4011, "Horse already exists", HttpStatus.CONFLICT),
     NOT_HORSE_OWNER(4012, "User is not a horse owner", HttpStatus.FORBIDDEN),
@@ -84,6 +85,10 @@ public enum ErrorCode {
     FIRST_ROUND_NOT_FOUND(4072, "First round race not found for this tournament", HttpStatus.NOT_FOUND),
     HORSE_BREED_NOT_QUALIFIED(4065, "Horse breed does not match tournament requirement", HttpStatus.BAD_REQUEST),
     INVALID_USER_STATUS(1013, "Invalid user status", HttpStatus.BAD_REQUEST),
+
+    //tournamentresign
+    REGISTRATION_NOT_FOUND(4079, "Tournament registration not found", HttpStatus.NOT_FOUND),
+    TOURNAMENT_FULL(4081, "Tournament has reached maximum entries (main + reserve)", HttpStatus.CONFLICT),
     ;
 
 

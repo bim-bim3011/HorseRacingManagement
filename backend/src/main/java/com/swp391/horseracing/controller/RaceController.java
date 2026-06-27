@@ -73,4 +73,16 @@ public class RaceController {
         raceService.activateRace(tournamentId, id);
         return ApiResponse.success("Race activated!");
     }
+
+    @PostMapping("/{id}/assign-approved")
+    @Operation(
+            summary = "Assign Approved Horses",
+            description = "Manually re-scan approved TournamentRegistrations and create missing RaceEntry for this race (round 1 only). Safe to call multiple times."
+    )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ApiResponse<String> assignApproved(@PathVariable Integer tournamentId,
+                                              @PathVariable Integer id) {
+        raceService.assignApprovedHorsesToRace(id);
+        return ApiResponse.success("Approved horses assigned!");
+    }
 }
