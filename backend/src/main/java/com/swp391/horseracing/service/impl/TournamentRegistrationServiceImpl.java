@@ -6,12 +6,12 @@ import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.entity.horse.Horse;
 import com.swp391.horseracing.entity.profile.HorseOwner;
 import com.swp391.horseracing.entity.tournament.Race;
-import com.swp391.horseracing.entity.tournament.RaceEntry;
 import com.swp391.horseracing.entity.tournament.Tournament;
 import com.swp391.horseracing.entity.tournament.TournamentRegistration;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.*;
+import com.swp391.horseracing.service.RaceEntryService;
 import com.swp391.horseracing.service.TournamentRegistrationService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +35,16 @@ public class TournamentRegistrationServiceImpl implements TournamentRegistration
     UserRepository userRepository;
     RaceRepository raceRepository;
     RaceEntryRepository raceEntryRepository;
+    RaceEntryService raceEntryService;
     @Override
     public TournamentRegistrationResponse register(Integer tournamentId, TournamentRegistrationRequest request) {
         HorseOwner owner = getCurrentOwner();
 
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+        raceRepository.findByTournamentIdAndRoundOrder(tournamentId, 1)
+                .orElseThrow(() -> new AppException(ErrorCode.FIRST_ROUND_NOT_FOUND));
+
         Horse horse = horseRepository.findById(request.getHorseId())
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
@@ -129,7 +133,13 @@ public class TournamentRegistrationServiceImpl implements TournamentRegistration
 
         registration.setStatus(TournamentRegistration.RegistrationStatus.approved);
         tournamentRegistrationRepository.save(registration);
+        if (!Boolean.TRUE.equals(registration.getIsReserve())) {
+            Race firstRound = raceRepository.findByTournamentIdAndRoundOrder(
+                            registration.getTournament().getId(), 1)
+                    .orElseThrow(() -> new AppException(ErrorCode.FIRST_ROUND_NOT_FOUND));
 
+            raceEntryService.createEntryForRegistration(firstRound, registration);
+        }
     }
 
     @Override

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -37,34 +38,30 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     UserRepository userRepository;
     TournamentRegistrationRepository tournamentRegistrationRepository;
     RaceRepository raceRepository;
-
     @Override
-    public void createEntriesForFirstRound(Race race, List<TournamentRegistration> approvedRegistrations) {
-        List<Integer> usedLanes = new ArrayList<>();
-        Integer maxLane = race.getMaxEntries();
-
-        for (TournamentRegistration reg : approvedRegistrations) {
-            if (Boolean.TRUE.equals(reg.getIsReserve())) {
-                continue; // ngựa dự bị, chưa tạo entry, chờ khi cần thay thế
-            }
-
-            // Bỏ qua nếu ngựa này ĐÃ CÓ entry trong race rồi (tránh trùng khi gọi lại nhiều lần)
-            if (raceEntryRepository.existsByRaceIdAndHorseId(race.getId(), reg.getHorse().getId())) {
-                continue;
-            }
-
-            Integer lane = assignRandomLane(maxLane, usedLanes);
-            usedLanes.add(lane);
-
-            RaceEntry entry = RaceEntry.builder()
-                    .race(race)
-                    .horse(reg.getHorse())
-                    .laneNumber(lane)
-                    .status(RaceEntry.EntryStatus.approved)
-                    .build();
-            raceEntryRepository.save(entry);
+    public void createEntryForRegistration(Race race, TournamentRegistration registration) {
+        if (raceEntryRepository.existsByRaceIdAndHorseId(race.getId(), registration.getHorse().getId())) {
+            return;
         }
+
+        List<Integer> usedLanes = raceEntryRepository.findByRaceId(race.getId())
+                .stream()
+                .map(RaceEntry::getLaneNumber)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        Integer lane = assignRandomLane(race.getMaxEntries(), usedLanes);
+
+        RaceEntry entry = RaceEntry.builder()
+                .race(race)
+                .horse(registration.getHorse())
+                .laneNumber(lane)
+                .status(RaceEntry.EntryStatus.approved)
+                .build();
+
+        raceEntryRepository.save(entry);
     }
+
     @Override
     public List<RaceEntryResponse> getMyHorseEntries() {
         HorseOwner owner = getCurrentOwner();

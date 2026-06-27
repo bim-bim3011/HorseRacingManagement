@@ -8,7 +8,7 @@ import com.swp391.horseracing.entity.tournament.TournamentRegistration;
 import java.util.List;
 
 public interface RaceEntryService {
-    void createEntriesForFirstRound(Race race, List<TournamentRegistration> approvedRegistrations);
+    void createEntryForRegistration(Race race, TournamentRegistration registration);
     List<RaceEntryResponse> getMyHorseEntries();
     void replaceWithReserve(Integer mainEntryId);
     //void advanceToNextRound(Integer currentRaceId);
