@@ -16,7 +16,8 @@ import java.util.List;
         name = "race_entries",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uq_race_horse",   columnNames = {"race_id", "horse_id"}),
-                @UniqueConstraint(name = "uq_race_jockey",  columnNames = {"race_id", "jockey_id"})
+                @UniqueConstraint(name = "uq_race_jockey",  columnNames = {"race_id", "jockey_id"}),
+                @UniqueConstraint(name = "uq_race_lane", columnNames = {"race_id", "lane_number"})
         }
 )
 @Getter @Setter
@@ -43,16 +44,10 @@ public class RaceEntry {
     @Column(name = "lane_number")
     private Integer laneNumber;
 
-    @Column(name = "is_reserve")
-    @Builder.Default
-    private Boolean isReserve = false;
-
-    @Column(name = "reserve_order")
-    private Integer reserveOrder;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private EntryStatus status = EntryStatus.pending_admin;
+    private EntryStatus status = EntryStatus.approved;
 
     @OneToOne(mappedBy = "entry", cascade = CascadeType.ALL)
     private RaceResult result;
@@ -67,7 +62,7 @@ public class RaceEntry {
     private List<Violation> violations;
 
     public enum EntryStatus {
-        pending_admin, approved, rejected
+         approved, rejected
     }
 }
 

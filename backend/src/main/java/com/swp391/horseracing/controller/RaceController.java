@@ -73,4 +73,6 @@ public class RaceController {
         raceService.activateRace(tournamentId, id);
         return ApiResponse.success("Race activated!");
     }
+
+
 }
