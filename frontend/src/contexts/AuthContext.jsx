@@ -4,7 +4,6 @@ import { loginApi, logoutApi } from '../api/authApi';
 const AuthContext = createContext(null);
 
 const TOKEN_KEY = 'accessToken';
-const REFRESH_KEY = 'refreshToken';
 
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem(TOKEN_KEY));
@@ -12,6 +11,26 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const isAuthenticated = !!accessToken;
+
+  // Listen for custom events from fetchWithAuth
+  useEffect(() => {
+    const handleTokenRefreshed = (e) => {
+      setAccessToken(e.detail);
+    };
+    
+    const handleAuthLogout = () => {
+      setAccessToken(null);
+      setError('Session expired. Please login again.');
+    };
+
+    window.addEventListener('token-refreshed', handleTokenRefreshed);
+    window.addEventListener('auth-logout', handleAuthLogout);
+
+    return () => {
+      window.removeEventListener('token-refreshed', handleTokenRefreshed);
+      window.removeEventListener('auth-logout', handleAuthLogout);
+    };
+  }, []);
 
   /**
    * Login with username and password.
@@ -23,7 +42,6 @@ export function AuthProvider({ children }) {
     try {
       const result = await loginApi(username, password);
       localStorage.setItem(TOKEN_KEY, result.accessToken);
-      localStorage.setItem(REFRESH_KEY, result.refreshToken);
       setAccessToken(result.accessToken);
       return result;
     } catch (err) {
@@ -46,7 +64,6 @@ export function AuthProvider({ children }) {
       // Continue with local logout even if server call fails
     } finally {
       localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(REFRESH_KEY);
       setAccessToken(null);
       setError(null);
     }

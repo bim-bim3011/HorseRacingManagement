@@ -20,4 +20,6 @@ public interface AuthService {
 
       AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException;
 
+
+      LogoutResponse  LogoutUsingRedis(LogoutRequest request) throws ParseException;
 }

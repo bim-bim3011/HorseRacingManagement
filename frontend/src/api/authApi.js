@@ -12,6 +12,7 @@ export async function loginApi(username, password) {
   const response = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ username, password }),
   });
 
@@ -35,6 +36,7 @@ export async function logoutApi(accessToken) {
   const response = await fetch(`${API_BASE}/auth/logout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ token: accessToken }),
   });
 
@@ -42,6 +44,27 @@ export async function logoutApi(accessToken) {
 
   if (!response.ok || data.code !== 1000) {
     throw new Error(data.message || 'Logout failed');
+  }
+
+  return data.result;
+}
+
+/**
+ * Refresh access token using HttpOnly cookie.
+ * POST /api/auth/refresh
+ *
+ * @returns {Promise<{ accessToken: string, authenticated: boolean }>}
+ */
+export async function refreshTokenApi() {
+  const response = await fetch(`${API_BASE}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Refresh failed');
   }
 
   return data.result;

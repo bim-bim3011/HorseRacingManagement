@@ -4,6 +4,7 @@ package com.swp391.horseracing.service.impl;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
+import com.swp391.horseracing.dto.JwtInfo;
 import com.swp391.horseracing.dto.request.LoginRequest;
 import com.swp391.horseracing.dto.request.LogoutRequest;
 import com.swp391.horseracing.dto.request.RefreshRequest;
@@ -11,10 +12,12 @@ import com.swp391.horseracing.dto.response.AuthenticationResponse;
 import com.swp391.horseracing.dto.response.LoginResponse;
 import com.swp391.horseracing.dto.response.LogoutResponse;
 import com.swp391.horseracing.entity.InvalidatedToken;
+import com.swp391.horseracing.entity.RedisToken;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.InvalidatedTokenRepository;
+import com.swp391.horseracing.repository.RedisTokenRepository;
 import com.swp391.horseracing.repository.UserRepository;
 import com.swp391.horseracing.security.JwtService;
 import com.swp391.horseracing.service.AuthService;
@@ -40,8 +43,9 @@ public class AuthServiceImpl implements AuthService {
     JwtService jwtService;
     AuthenticationManager authenticationManager;
     InvalidatedTokenRepository invalidatedTokenRepository;
-    private final UserRepository userRepository;
+    UserRepository userRepository;
 
+    RedisTokenRepository redisTokenRepository;
 
     @Override
     public AuthenticationResponse login (LoginRequest request){
@@ -60,14 +64,16 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.BANNED_ACCOUNT);
         }
 
-        var accessToken = jwtService.generateAccessToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        var accessPayload = jwtService.generateAccessToken(user);
+        var refreshPayload = jwtService.generateRefreshToken(user);
+
+
 
 
         return AuthenticationResponse.builder()
                 .authenticated(true)
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(accessPayload.getToken())
+                .refreshToken(refreshPayload.getToken())
                 .build();
     }
 
@@ -108,7 +114,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
-        String newAccessToken = jwtService.generateAccessToken(user);
+        String newAccessToken = jwtService.generateAccessToken(user).getToken();
 
         return AuthenticationResponse.builder()
                 .accessToken(newAccessToken)
@@ -116,5 +122,31 @@ public class AuthServiceImpl implements AuthService {
                 .authenticated(true)
                 .build();
 
+    }
+
+
+
+    public LogoutResponse LogoutUsingRedis(LogoutRequest request) throws ParseException {
+        JwtInfo jwtInfo = jwtService.parseToken(request.getToken());
+        String jwtId = jwtInfo.getJwtId();
+        Date issueTime = jwtInfo.getIssueTime();
+        Date expiryTime = jwtInfo.getExpirationTime();
+
+        RedisToken redisToken;
+        if(!expiryTime.before(new Date())) {
+            Long ttlseconds = (expiryTime.getTime() - System.currentTimeMillis())/1000;
+             redisToken = RedisToken
+                    .builder()
+                    .jwtId(jwtId)
+                    .expiredTime(ttlseconds)
+                    .build();
+            redisTokenRepository.save(redisToken);
+            log.info("invalidated Token is saved in redis with issueTime{} and expiryTime{}",
+                    issueTime, expiryTime);
+        }
+
+        return LogoutResponse.builder()
+                .success(true)
+                .build();
     }
 }

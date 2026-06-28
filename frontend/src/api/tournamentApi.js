@@ -1,0 +1,60 @@
+import { fetchWithAuth } from '../utils/fetchWithAuth';
+
+const API_BASE = '/api/tournaments';
+
+export async function getAllTournaments() {
+  const response = await fetchWithAuth(API_BASE, {
+    method: 'GET',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to fetch tournaments');
+  }
+  return data.result;
+}
+
+export async function getTournamentById(id) {
+  const response = await fetchWithAuth(`${API_BASE}/${id}`, {
+    method: 'GET',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to fetch tournament');
+  }
+  return data.result;
+}
+
+export async function createTournament(tournamentData) {
+  const response = await fetchWithAuth(API_BASE, {
+    method: 'POST',
+    body: JSON.stringify(tournamentData),
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to create tournament');
+  }
+  return data.result;
+}
+
+export async function updateTournament(id, tournamentData) {
+  const response = await fetchWithAuth(`${API_BASE}/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(tournamentData),
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to update tournament');
+  }
+  return data.result;
+}
+
+export async function deleteTournament(id) {
+  const response = await fetchWithAuth(`${API_BASE}/${id}`, {
+    method: 'DELETE',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to delete tournament');
+  }
+  return data.result;
+}

@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CookieValue;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.text.ParseException;
 
@@ -36,8 +39,14 @@ public class AuthController {
             description = "check valid user and generate Access Token, Refresh Token"
     )
     @PostMapping("/login")
-    ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request){
+    ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response){
         var result = authService.login(request);
+        
+        Cookie cookie = new Cookie("refreshToken", result.getRefreshToken());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        response.addCookie(cookie);
 
         return ApiResponse.success(result);
     }
@@ -49,9 +58,16 @@ public class AuthController {
             description = "persist AccessToken into black-list token"
     )
     @PostMapping("/logout")
-    ApiResponse<LogoutResponse> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+    ApiResponse<LogoutResponse> logout(@RequestBody LogoutRequest request, HttpServletResponse response) throws ParseException, JOSEException {
 
-        var result = authService.logout(request);
+        var result = authService.LogoutUsingRedis(request);
+        
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        
         return ApiResponse.success(result);
     }
 
@@ -62,7 +78,8 @@ public class AuthController {
             description = "provide refresh token to get new access token"
     )
     @PostMapping("/refresh")
-    ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+    ApiResponse<AuthenticationResponse> refresh(@CookieValue(name = "refreshToken") String refreshToken) throws ParseException, JOSEException {
+       RefreshRequest request = new RefreshRequest(refreshToken);
        var result = authService.refreshToken(request);
         return ApiResponse.success(result);
     }

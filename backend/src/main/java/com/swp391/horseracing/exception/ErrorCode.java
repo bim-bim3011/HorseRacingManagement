@@ -26,6 +26,8 @@ public enum ErrorCode {
     DUPLICATE_USERNAME(1008,"username already exists",HttpStatus.BAD_REQUEST),
     DUPLICATE_EMAIL(1009,"email already exists",HttpStatus.BAD_REQUEST),
 
+    ACCESS_TOKEN_EXPIRED(1011,"access token expired",HttpStatus.UNAUTHORIZED),
+
     ACCESS_DENIED(1005,"you do not has permission",HttpStatus.FORBIDDEN),
     TEST_EXCEPTION(6789,"test exception with error code",HttpStatus.ACCEPTED),
     EMAIL_EXISTED(1008,"email is existed",HttpStatus.CONFLICT),
