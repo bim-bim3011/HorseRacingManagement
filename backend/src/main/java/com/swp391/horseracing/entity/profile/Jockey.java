@@ -66,7 +66,7 @@ public class Jockey extends User {
         pending_certification, approval,rejected
     }
     @Enumerated(EnumType.STRING)
-    @Column(name = "rank")
+    @Column(name = "'rank'")
     private Rank rank;
 
     public enum Rank {

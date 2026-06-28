@@ -20,8 +20,8 @@ public interface RaceEntryRepository extends JpaRepository<RaceEntry , Integer> 
 
     List<RaceEntry> findByRaceIdAndStatus(Integer raceId, RaceEntry.EntryStatus status);
 
-    int countByRaceIdAndIsReserve(Integer raceId, Boolean isReserve);
+    Optional<RaceEntry> findByRaceIdAndHorseId(Integer raceId, Integer horseId);
 
-    Optional<RaceEntry> findFirstByRaceIdAndIsReserveOrderByReserveOrderAsc(Integer raceId, Boolean isReserve);
+
 
 }

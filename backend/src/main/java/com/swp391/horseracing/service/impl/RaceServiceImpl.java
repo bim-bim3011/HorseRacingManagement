@@ -6,17 +6,13 @@ import com.swp391.horseracing.entity.tournament.Race;
 import com.swp391.horseracing.entity.tournament.Tournament;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
-import com.swp391.horseracing.repository.RaceRepository;
-import com.swp391.horseracing.repository.RefereeAssignmentRepository;
-import com.swp391.horseracing.repository.TournamentRepository;
+import com.swp391.horseracing.repository.*;
 import com.swp391.horseracing.service.RaceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -119,12 +115,7 @@ public class RaceServiceImpl implements RaceService {
         if (tournament.getPenaltyRules().isEmpty())
             throw new AppException(ErrorCode.TOURNAMENT_MISSING_PENALTY_RULES);
 
-        if (tournament.getWeightLimit() == null || tournament.getMinHorseAge() == null
-                || tournament.getMaxHorseAge() == null || tournament.getDistance() == null)
-            throw new AppException(ErrorCode.TOURNAMENT_MISSING_STANDARDS);
 
-        if (tournament.getMaxMainEntries() == null)
-            throw new AppException(ErrorCode.TOURNAMENT_MISSING_MAX_ENTRIES);
 
         if (race.getMaxEntries() == null || race.getQualifyCount() == null || race.getRoundOrder() == null)
             throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
@@ -138,6 +129,7 @@ public class RaceServiceImpl implements RaceService {
         raceRepository.save(race);
         tournamentRepository.save(tournament);
     }
+
 
     private RaceResponse mapToResponse(Race race) {
         return RaceResponse.builder()

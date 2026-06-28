@@ -10,6 +10,7 @@ import com.swp391.horseracing.entity.profile.Jockey;
 import com.swp391.horseracing.entity.tournament.JockeyInvitation;
 import com.swp391.horseracing.entity.tournament.Race;
 import com.swp391.horseracing.entity.tournament.RaceEntry;
+import com.swp391.horseracing.entity.tournament.Tournament;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.*;
@@ -63,6 +64,11 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
 
         if (jockey.getJockeyStatus() != Jockey.JockeyStatus.approval) {
             throw new AppException(ErrorCode.JOCKEY_NOT_APPROVED);
+        }
+        Tournament tournament = race.getTournament();
+        if (jockey.getWeight() != null && tournament.getWeightLimit() != null
+                && jockey.getWeight() > tournament.getWeightLimit()) {
+            throw new AppException(ErrorCode.JOCKEY_WEIGHT_EXCEEDS_LIMIT);
         }
 
         if (jockeyInvitationRepository.existsByRaceIdAndHorseIdAndStatus(
@@ -151,11 +157,9 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
             }
         });
 
-        RaceEntry entry = invitation.getHorse().getRaceEntries().stream()
-                .filter(e -> e.getRace().getId().equals(invitation.getRace().getId()))
-                .findFirst()
+        RaceEntry entry = raceEntryRepository
+                .findByRaceIdAndHorseId(invitation.getRace().getId(), invitation.getHorse().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
-
         entry.setJockey(invitation.getJockey());
         raceEntryRepository.save(entry);
     }
