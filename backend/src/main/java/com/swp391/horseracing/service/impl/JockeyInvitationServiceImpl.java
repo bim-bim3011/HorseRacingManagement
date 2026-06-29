@@ -15,6 +15,7 @@ import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.*;
 import com.swp391.horseracing.service.JockeyInvitationService;
+import com.swp391.horseracing.service.RaceEntryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -33,7 +34,7 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
     HorseRepository horseRepository;
     HorseOwnerRepository horseOwnerRepository;
     UserRepository userRepository;
-    RaceEntryRepository raceEntryRepository;
+    RaceEntryService raceEntryService;
 
     @Override
     public JockeyInvitationResponse sendInvitation(JockeyInvitationRequest request) {
@@ -157,11 +158,7 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
             }
         });
 
-        RaceEntry entry = raceEntryRepository
-                .findByRaceIdAndHorseId(invitation.getRace().getId(), invitation.getHorse().getId())
-                .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
-        entry.setJockey(invitation.getJockey());
-        raceEntryRepository.save(entry);
+        raceEntryService.assignJockey(invitation.getRace().getId(), invitation.getHorse().getId(), invitation.getJockey());
     }
 
     @Override

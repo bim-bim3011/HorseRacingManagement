@@ -90,6 +90,16 @@ public enum ErrorCode {
     //tournamentresign
     REGISTRATION_NOT_FOUND(4079, "Tournament registration not found", HttpStatus.NOT_FOUND),
     TOURNAMENT_FULL(4081, "Tournament has reached maximum entries (main + reserve)", HttpStatus.CONFLICT),
+    //wellet
+    WALLET_NOT_FOUND(4083, "Wallet not found", HttpStatus.NOT_FOUND),
+    INSUFFICIENT_BALANCE(4084, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
+
+    //bet
+    INVALID_BET_TYPE(4085, "Invalid bet type", HttpStatus.BAD_REQUEST),
+    BET_ODDS_NOT_FOUND(4086, "Bet odds not found for this entry and type", HttpStatus.NOT_FOUND),
+    //withdrawalService
+    WITHDRAWAL_NOT_FOUND(4088, "Withdrawal request not found", HttpStatus.NOT_FOUND),
+    WITHDRAWAL_NOT_APPROVED(4089, "Withdrawal must be approved before marking as transferred", HttpStatus.BAD_REQUEST),
     ;
 
 

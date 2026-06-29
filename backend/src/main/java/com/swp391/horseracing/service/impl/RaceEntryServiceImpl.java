@@ -1,6 +1,6 @@
 package com.swp391.horseracing.service.impl;
 
-import com.swp391.horseracing.dto.request.RaceEntryRequest;
+
 import com.swp391.horseracing.dto.response.RaceEntryResponse;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.entity.horse.Horse;
@@ -9,11 +9,11 @@ import com.swp391.horseracing.entity.profile.Jockey;
 import com.swp391.horseracing.entity.tournament.Race;
 
 import com.swp391.horseracing.entity.tournament.RaceEntry;
-import com.swp391.horseracing.entity.tournament.Tournament;
 import com.swp391.horseracing.entity.tournament.TournamentRegistration;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.*;
+import com.swp391.horseracing.service.BetOddsService;
 import com.swp391.horseracing.service.RaceEntryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     HorseOwnerRepository horseOwnerRepository;
     UserRepository userRepository;
     TournamentRegistrationRepository tournamentRegistrationRepository;
-    RaceRepository raceRepository;
+    BetOddsService betOddsService;
     @Override
     public void createEntryForRegistration(Race race, TournamentRegistration registration) {
         if (raceEntryRepository.existsByRaceIdAndHorseId(race.getId(), registration.getHorse().getId())) {
@@ -113,6 +113,16 @@ public class RaceEntryServiceImpl implements RaceEntryService {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Override
+    public void assignJockey(Integer raceId, Integer horseId, Jockey jockey) {
+        RaceEntry entry = raceEntryRepository.findByRaceIdAndHorseId(raceId, horseId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
+
+        entry.setJockey(jockey);
+        raceEntryRepository.save(entry);
+        betOddsService.generateOddsForRace(entry.getRace());
     }
 
 

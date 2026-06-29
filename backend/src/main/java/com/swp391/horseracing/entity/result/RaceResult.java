@@ -29,10 +29,6 @@ public class RaceResult {
     @Column(name = "finish_time")
     private LocalTime finishTime;
 
-    @Column(name = "prize_money", precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal prizeMoney = BigDecimal.ZERO;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "confirmed_by", nullable = false)
     private Referee confirmedBy;
