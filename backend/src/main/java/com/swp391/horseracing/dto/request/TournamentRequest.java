@@ -3,6 +3,7 @@ package com.swp391.horseracing.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -12,13 +13,22 @@ public class TournamentRequest {
     private String name;
 
     @NotNull(message = "Start date is required")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate startDate;
 
     @NotNull(message = "End date is required")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate endDate;
 
-    @NotNull(message = "Distance is required")
-    private Integer distance;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    private LocalDate registrationStart;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    private LocalDate registrationEnd;
+
+    private Double prizePool;
+
+
 
     @NotNull(message = "Weight limit is required")
     private Float weightLimit;
@@ -32,8 +42,5 @@ public class TournamentRequest {
     @NotBlank(message = "Allowed breed is required")
     private String allowedBreed;
 
-    @NotNull(message = "Max main entries is required")
-    private Integer maxMainEntries;
-    @NotNull(message = "Max reserve entries is required")
-    private Integer maxReserveEntries;
+
 }

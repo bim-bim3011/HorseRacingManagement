@@ -51,23 +51,18 @@ public class JockeyServiceImpl implements JockeyService {
            }
 
 
-           var roles = roleRepository.findByRoleName("JOCKEY")
+           var jockeyRole = roleRepository.findByRoleName("JOCKEY")
                    .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         Jockey jockey = Jockey.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .fullName(request.getFullName())
+
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .status(User.UserStatus.active)
                 .jockeyStatus(Jockey.JockeyStatus.pending_certification)
-                .roles(new HashSet<>(Set.of(roles)))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .height(request.getHeight())
-                .weight(request.getWeight())
-                .gender(request.getGender())
-                .dob(request.getDob())
+                .roles(new HashSet<>(Set.of(jockeyRole)))
+
                 .build();
 
         jockeyRepository.save(jockey);
@@ -141,6 +136,26 @@ public class JockeyServiceImpl implements JockeyService {
 
         if (request.getWeight() != null) {
             jockey.setWeight(request.getWeight());
+        }
+
+        if (request.getFirstName() != null) {
+            jockey.setFirstName(request.getFirstName());
+        }
+
+        if (request.getLastName() != null) {
+            jockey.setLastName(request.getLastName());
+        }
+
+        if (request.getHeight() != null) {
+            jockey.setHeight(request.getHeight());
+        }
+
+        if (request.getGender() != null) {
+            jockey.setGender(request.getGender());
+        }
+
+        if (request.getDob() != null) {
+            jockey.setDob(request.getDob());
         }
 
         MultipartFile file = request.getFile();

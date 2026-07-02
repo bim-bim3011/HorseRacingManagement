@@ -67,6 +67,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tournaments/**").permitAll()
                         .requestMatchers(TEST_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
 

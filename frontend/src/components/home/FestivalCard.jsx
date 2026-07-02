@@ -1,6 +1,8 @@
-function FestivalCard({ title, location, dateRange, status, isPrimary = false }) {
+import { Link } from 'react-router-dom';
+
+function FestivalCard({ id, title, location, dateRange, status, isPrimary = false }) {
   return (
-    <article className="md:col-span-4 bg-surface-container-lowest rounded-lg border border-secondary-fixed p-6 flex flex-col justify-between hover:border-primary/50 transition-colors duration-300">
+    <Link to={`/tournaments/${id || 1}`} className="md:col-span-4 bg-surface-container-lowest rounded-lg border border-secondary-fixed p-6 flex flex-col justify-between hover:border-primary/50 transition-colors duration-300 block no-underline">
       <div>
         <div className="flex justify-between items-start mb-6">
           <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center">
@@ -34,7 +36,7 @@ function FestivalCard({ title, location, dateRange, status, isPrimary = false })
           <span className="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
-    </article>
+    </Link>
   );
 }
 

@@ -15,4 +15,6 @@ public class RaceRequest {
     private Boolean isFinal;
     private Integer maxEntries;
     private Integer qualifyCount;
+    @NotNull(message = "Distance is required")
+    private Integer distance;
 }

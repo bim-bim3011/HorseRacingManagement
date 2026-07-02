@@ -9,8 +9,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,14 +24,16 @@ import java.util.List;
 public class TournamentController {
     TournamentService tournamentService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Create Tournanment",
             description = "Only ADMIN can create tournament"
     )
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    public ApiResponse<TournamentResponse> create(@RequestBody TournamentRequest request) {
-        return ApiResponse.success(tournamentService.createTournament(request));
+    public ApiResponse<TournamentResponse> create(
+            @ModelAttribute TournamentRequest request,
+            @RequestPart(value = "banner", required = false) MultipartFile banner) {
+        return ApiResponse.success(tournamentService.createTournament(request, banner));
     }
 
     @GetMapping("/{id}")
@@ -41,15 +45,16 @@ public class TournamentController {
         return ApiResponse.success(tournamentService.getTournament(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Update Tournanment",
             description = "Only ADMIN can update tournament"
     )
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<TournamentResponse> update(@PathVariable Integer id,
-                                                  @RequestBody TournamentRequest request) {
-        return ApiResponse.success(tournamentService.updateTournament(id, request));
+                                                  @ModelAttribute TournamentRequest request,
+                                                  @RequestPart(value = "banner", required = false) MultipartFile banner) {
+        return ApiResponse.success(tournamentService.updateTournament(id, request, banner));
     }
 
     @DeleteMapping("/{id}")

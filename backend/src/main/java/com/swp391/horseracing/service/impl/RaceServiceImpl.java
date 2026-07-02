@@ -34,6 +34,7 @@ public class RaceServiceImpl implements RaceService {
                 .isFinal(request.getIsFinal())
                 .maxEntries(request.getMaxEntries())
                 .qualifyCount(request.getQualifyCount())
+                .distance(request.getDistance())
                 .build();
 
         raceRepository.save(race);
@@ -71,6 +72,7 @@ public class RaceServiceImpl implements RaceService {
         race.setIsFinal(request.getIsFinal());
         race.setMaxEntries(request.getMaxEntries());
         race.setQualifyCount(request.getQualifyCount());
+        race.setDistance(request.getDistance());
 
 
         return mapToResponse(raceRepository.save(race));
@@ -143,6 +145,7 @@ public class RaceServiceImpl implements RaceService {
                 .isFinal(race.getIsFinal())
                 .maxEntries(race.getMaxEntries())
                 .qualifyCount(race.getQualifyCount())
+                .distance(race.getDistance())
                 .tournamentId(race.getTournament().getId())
                 .build();
     }

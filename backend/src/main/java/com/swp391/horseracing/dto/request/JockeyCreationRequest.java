@@ -29,23 +29,4 @@ public class JockeyCreationRequest {
     @NotBlank(message = "Password is required")
     String password;
 
-    @NotBlank(message = "Full name is required")
-    String fullName;
-
-    @NotBlank(message = "First name is required")
-    String firstName;
-
-    @NotBlank(message = "Last name is required")
-    String lastName;
-
-    @NotNull(message = "Height is required")
-    BigDecimal height;
-
-    @NotNull(message = "Weight is required")
-    Float weight;
-
-    @NotBlank(message = "Gender is required")
-    String gender;
-
-    LocalDate dob;
 }

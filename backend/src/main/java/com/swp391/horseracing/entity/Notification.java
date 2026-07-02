@@ -30,7 +30,7 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private NotificationType type = NotificationType.system;
+    private NotificationType type = NotificationType.SYSTEM;
 
     @Column(name = "is_read")
     @Builder.Default
@@ -41,12 +41,23 @@ public class Notification {
     private LocalDateTime createdAt;
 
     public enum NotificationType {
-        jockey_invitation,
-        invitation_accepted,
-        invitation_declined,
-        prediction_won,
-        prediction_lost,
-        system
+        HORSE_APPROVED,
+        HORSE_REJECTED,
+        TOURNAMENT_REGISTRATION_APPROVED,
+        TOURNAMENT_REGISTRATION_REJECTED,
+        JOCKEY_INVITATION_RECEIVED,
+        JOCKEY_INVITATION_ACCEPTED,
+        JOCKEY_INVITATION_DECLINED,
+        RACE_SCHEDULE_CHANGED,
+        RACE_STARTING_SOON,
+        RACE_RESULT_PUBLISHED,
+        WITHDRAW_REQUEST_APPROVED,
+        WITHDRAW_REQUEST_REJECTED,
+        
+        // Cũ (giữ lại và viết hoa)
+        PREDICTION_WON,
+        PREDICTION_LOST,
+        SYSTEM
     }
 }
 

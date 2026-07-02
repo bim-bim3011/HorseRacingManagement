@@ -22,4 +22,14 @@ public class UserController {
 
         return null;
     }
+
+    @GetMapping("/my-profile")
+    public ApiResponse<com.swp391.horseracing.dto.response.UserProfileResponse> getMyProfile() {
+        return ApiResponse.success(userService.getMyProfile());
+    }
+
+    @PutMapping("/my-profile")
+    public ApiResponse<com.swp391.horseracing.dto.response.UserProfileResponse> updateMyProfile(@RequestBody com.swp391.horseracing.dto.request.UpdateUserProfileRequest request) {
+        return ApiResponse.success(userService.updateMyProfile(request));
+    }
 }

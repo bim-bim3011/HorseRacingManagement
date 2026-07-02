@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { loginApi, logoutApi } from '../api/authApi';
+import { getRolesFromToken } from '../utils/authUtils';
 
 const AuthContext = createContext(null);
 
 const TOKEN_KEY = 'accessToken';
-const REFRESH_KEY = 'refreshToken';
 
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem(TOKEN_KEY));
@@ -12,6 +12,32 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const isAuthenticated = !!accessToken;
+
+  // Derive user roles from JWT scope claim
+  const userRoles = useMemo(() => getRolesFromToken(accessToken), [accessToken]);
+
+  // Convenience function to check if user has a specific role
+  const checkRole = useCallback((role) => userRoles.includes(role), [userRoles]);
+
+  // Listen for custom events from fetchWithAuth
+  useEffect(() => {
+    const handleTokenRefreshed = (e) => {
+      setAccessToken(e.detail);
+    };
+    
+    const handleAuthLogout = () => {
+      setAccessToken(null);
+      setError('Session expired. Please login again.');
+    };
+
+    window.addEventListener('token-refreshed', handleTokenRefreshed);
+    window.addEventListener('auth-logout', handleAuthLogout);
+
+    return () => {
+      window.removeEventListener('token-refreshed', handleTokenRefreshed);
+      window.removeEventListener('auth-logout', handleAuthLogout);
+    };
+  }, []);
 
   /**
    * Login with username and password.
@@ -23,7 +49,6 @@ export function AuthProvider({ children }) {
     try {
       const result = await loginApi(username, password);
       localStorage.setItem(TOKEN_KEY, result.accessToken);
-      localStorage.setItem(REFRESH_KEY, result.refreshToken);
       setAccessToken(result.accessToken);
       return result;
     } catch (err) {
@@ -46,7 +71,6 @@ export function AuthProvider({ children }) {
       // Continue with local logout even if server call fails
     } finally {
       localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(REFRESH_KEY);
       setAccessToken(null);
       setError(null);
     }
@@ -59,6 +83,8 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     isLoading,
     error,
+    userRoles,
+    hasRole: checkRole,
     login,
     logout,
     clearError,

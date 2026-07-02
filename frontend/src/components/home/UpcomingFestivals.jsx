@@ -1,4 +1,5 @@
 import FestivalCard from './FestivalCard';
+import { Link } from 'react-router-dom';
 
 function UpcomingFestivals() {
   return (
@@ -27,7 +28,7 @@ function UpcomingFestivals() {
       {/* Bento-inspired Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Feature Card (Spans 8 cols) */}
-        <article className="md:col-span-8 group relative bg-surface-container-lowest rounded-lg border border-secondary-fixed overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-shadow duration-500">
+        <Link to="/tournaments/1" className="md:col-span-8 group relative bg-surface-container-lowest rounded-lg border border-secondary-fixed overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-shadow duration-500 block no-underline">
           <div className="w-full md:w-1/2 h-64 md:h-auto relative overflow-hidden">
             <div
               className="bg-cover bg-center w-full h-full group-hover:scale-105 transition-transform duration-700"
@@ -57,13 +58,14 @@ function UpcomingFestivals() {
               racing.
             </p>
             <button className="self-start font-body text-interactive-md font-semibold border-b-2 border-primary text-on-surface pb-1 hover:text-primary transition-colors cursor-pointer">
-              Manage Entries
+              View Details
             </button>
           </div>
-        </article>
+        </Link>
 
         {/* Smaller Card 1 */}
         <FestivalCard
+          id={2}
           title="Grand National Festival"
           location="Aintree Racecourse"
           dateRange="11 - 13 Apr 2024"
@@ -73,6 +75,7 @@ function UpcomingFestivals() {
 
         {/* Smaller Card 2 */}
         <FestivalCard
+          id={3}
           title="Derby Festival"
           location="Epsom Downs"
           dateRange="31 May - 01 Jun 2024"

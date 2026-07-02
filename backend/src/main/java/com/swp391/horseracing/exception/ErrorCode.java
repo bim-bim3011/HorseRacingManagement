@@ -26,6 +26,8 @@ public enum ErrorCode {
     DUPLICATE_USERNAME(1008,"username already exists",HttpStatus.BAD_REQUEST),
     DUPLICATE_EMAIL(1009,"email already exists",HttpStatus.BAD_REQUEST),
 
+    ACCESS_TOKEN_EXPIRED(1011,"access token expired",HttpStatus.UNAUTHORIZED),
+
     ACCESS_DENIED(1005,"you do not has permission",HttpStatus.FORBIDDEN),
     TEST_EXCEPTION(6789,"test exception with error code",HttpStatus.ACCEPTED),
     EMAIL_EXISTED(1008,"email is existed",HttpStatus.CONFLICT),
@@ -36,7 +38,9 @@ public enum ErrorCode {
     CLOUDINARY_DELETE_FAILED(2002, "delete image failed", HttpStatus.INTERNAL_SERVER_ERROR),
     NOT_FOUND(4040, "Not found", HttpStatus.NOT_FOUND),
 
+    // websocket
 
+    DECODE_JWT_FAILED(4001, "decode jwt failed", HttpStatus.BAD_REQUEST),
 
 
     //tournament
@@ -90,6 +94,8 @@ public enum ErrorCode {
     //tournamentresign
     REGISTRATION_NOT_FOUND(4079, "Tournament registration not found", HttpStatus.NOT_FOUND),
     TOURNAMENT_FULL(4081, "Tournament has reached maximum entries (main + reserve)", HttpStatus.CONFLICT),
+
+    ADMIN_ACCESS_ONLY(1014, "This login is restricted to administrators only", HttpStatus.FORBIDDEN),
     ;
 
 
