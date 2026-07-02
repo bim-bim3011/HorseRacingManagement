@@ -83,6 +83,22 @@ public class AuthController {
        var result = authService.refreshToken(request);
         return ApiResponse.success(result);
     }
+    @Operation(
+            summary = "Admin Login",
+            description = "Authenticate user and verify ADMIN role. Returns tokens only for admin users."
+    )
+    @PostMapping("/admin/login")
+    ApiResponse<AuthenticationResponse> adminLogin(@RequestBody LoginRequest request, HttpServletResponse response){
+        var result = authService.adminLogin(request);
+
+        Cookie cookie = new Cookie("refreshToken", result.getRefreshToken());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        response.addCookie(cookie);
+
+        return ApiResponse.success(result);
+    }
 
 
 

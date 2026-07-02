@@ -21,10 +21,13 @@ export async function fetchWithAuth(url, options = {}) {
   let token = localStorage.getItem('accessToken');
   
   const headers = {
-    'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {})
   };
+
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const config = {
     ...options,

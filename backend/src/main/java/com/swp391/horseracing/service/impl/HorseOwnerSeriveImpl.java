@@ -43,7 +43,7 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
             throw new AppException(ErrorCode.DUPLICATE_USERNAME);
         }
 
-        var roles = roleRepository.findByRoleName("HORSE_OWNER")
+        var horseOwnerRole = roleRepository.findByRoleName("HORSE_OWNER")
                 .orElseThrow(()->new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         HorseOwner horseOwner = HorseOwner.builder()
@@ -53,7 +53,7 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .status(User.UserStatus.active)
-                .roles(new HashSet<>(Set.of(roles)))
+                .roles(new HashSet<>(Set.of(horseOwnerRole)))
                 .build();
 
           horseOwnerRepository.save(horseOwner);

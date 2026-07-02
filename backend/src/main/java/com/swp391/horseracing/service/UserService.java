@@ -12,4 +12,7 @@ public interface UserService {
 
     SpectatorResponse createSpectator(SpectatorCreationRequest request);
 
+    com.swp391.horseracing.dto.response.UserProfileResponse getMyProfile();
+
+    com.swp391.horseracing.dto.response.UserProfileResponse updateMyProfile(com.swp391.horseracing.dto.request.UpdateUserProfileRequest request);
 }

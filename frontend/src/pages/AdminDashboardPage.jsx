@@ -3,16 +3,21 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import OverviewTab from '../components/admin/OverviewTab';
 import TournamentsTab from '../components/admin/TournamentsTab';
+import RacesTab from '../components/admin/RacesTab';
+import RefereesTab from '../components/admin/RefereesTab';
+import PenaltyRulesTab from '../components/admin/PenaltyRulesTab';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedTournament, setSelectedTournament] = useState(null);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const navigationItems = [
     { id: 'overview', icon: 'dashboard', label: 'System Overview' },
     { id: 'tournaments', icon: 'calendar_today', label: 'Tournament Scheduling' },
     { id: 'approvals', icon: 'fact_check', label: 'Entry Approvals' },
     { id: 'listings', icon: 'pets', label: 'Jockey & Horse Listings' },
-    { id: 'referees', icon: 'assignment_ind', label: 'Referee Assignment' },
+    { id: 'referees', icon: 'assignment_ind', label: 'Referee Management' },
     { id: 'results', icon: 'publish', label: 'Result Publishing' },
     { id: 'predictions', icon: 'online_prediction', label: 'Prediction Management' },
     { id: 'permissions', icon: 'verified_user', label: 'Role Permissions' },
@@ -40,18 +45,45 @@ export default function AdminDashboardPage() {
             <span className="material-symbols-outlined">notifications</span>
             <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface"></span>
           </motion.button>
-          <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.95 }} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
-            <span className="material-symbols-outlined">settings</span>
-          </motion.button>
           <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
             <span className="material-symbols-outlined">help</span>
           </motion.button>
-          <motion.img
-            whileHover={{ scale: 1.05 }}
-            alt="Administrator Profile"
-            className="w-10 h-10 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-colors cursor-pointer"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnXm12wA8D2l4tyX6h3WnbUqmygy8FJN6TuTAvqGkNIcQsfcUA7DVtj480uv1lh3E8FnqvGFg1Z4p64vOEzsmLarL3t_zvY2ZnCR2bETl2D9SendIPRKFu74XVbIF5qhWue9WH_KyIrjE4nkaf_v4iuOMA4gJr0eohaZCg8ABC3c-wpI_M6lWi7GtZqk5beybiqDuEM8_BfSH9aV-fZoHjupTkKfmFi36n8RNvdG8rHD5SJ3ieTDriJ6IIkM1bujZCjzu0aIsVAKut"
-          />
+          
+          <div className="relative">
+            <motion.img
+              whileHover={{ scale: 1.05 }}
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+              alt="Administrator Profile"
+              className="w-10 h-10 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-colors cursor-pointer"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnXm12wA8D2l4tyX6h3WnbUqmygy8FJN6TuTAvqGkNIcQsfcUA7DVtj480uv1lh3E8FnqvGFg1Z4p64vOEzsmLarL3t_zvY2ZnCR2bETl2D9SendIPRKFu74XVbIF5qhWue9WH_KyIrjE4nkaf_v4iuOMA4gJr0eohaZCg8ABC3c-wpI_M6lWi7GtZqk5beybiqDuEM8_BfSH9aV-fZoHjupTkKfmFi36n8RNvdG8rHD5SJ3ieTDriJ6IIkM1bujZCjzu0aIsVAKut"
+            />
+            <AnimatePresence>
+              {isProfileDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50"
+                >
+                  <div className="p-4 border-b border-outline-variant">
+                    <p className="font-interactive-md text-on-surface">Administrator</p>
+                    <p className="font-body-sm text-on-surface-variant text-sm truncate">admin@theeliteclub.com</p>
+                  </div>
+                  <div className="py-2">
+                    <Link to="/profile" className="w-full text-left px-4 py-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 flex items-center gap-2 transition-colors">
+                      <span className="material-symbols-outlined text-[20px]">person</span>
+                      My Profile
+                    </Link>
+                    <button className="w-full text-left px-4 py-2 text-error hover:bg-error-container hover:text-on-error-container flex items-center gap-2 transition-colors cursor-pointer">
+                      <span className="material-symbols-outlined text-[20px]">logout</span>
+                      Logout
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </motion.header>
 
@@ -118,9 +150,36 @@ export default function AdminDashboardPage() {
       <main className="ml-72 mt-16 p-margin-desktop bg-surface-container-lowest min-h-[calc(100vh-4rem)] relative">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && <OverviewTab key="overview" />}
-          {activeTab === 'tournaments' && <TournamentsTab key="tournaments" />}
+          {activeTab === 'tournaments' && (
+            <TournamentsTab 
+              key="tournaments" 
+              onManageRaces={(tournament) => {
+                setSelectedTournament(tournament);
+                setActiveTab('races');
+              }}
+              onManagePenaltyRules={(tournament) => {
+                setSelectedTournament(tournament);
+                setActiveTab('penalty_rules');
+              }}
+            />
+          )}
+          {activeTab === 'races' && (
+            <RacesTab 
+              key="races" 
+              tournament={selectedTournament} 
+              onBack={() => setActiveTab('tournaments')} 
+            />
+          )}
+          {activeTab === 'penalty_rules' && (
+            <PenaltyRulesTab 
+              key="penalty_rules" 
+              tournament={selectedTournament} 
+              onBack={() => setActiveTab('tournaments')} 
+            />
+          )}
+          {activeTab === 'referees' && <RefereesTab key="referees" />}
           {/* Placeholder for other tabs */}
-          {activeTab !== 'overview' && activeTab !== 'tournaments' && (
+          {activeTab !== 'overview' && activeTab !== 'tournaments' && activeTab !== 'races' && activeTab !== 'penalty_rules' && activeTab !== 'referees' && (
             <motion.div
               key="placeholder"
               initial={{ opacity: 0, y: 20 }}

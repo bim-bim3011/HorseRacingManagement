@@ -70,28 +70,6 @@ public class TournamentRegistrationServiceImpl implements TournamentRegistration
         boolean isReserve = false;
         Integer reserveOrder = null;
 
-        int mainCount = tournamentRegistrationRepository
-                .countByTournamentIdAndStatusAndIsReserve(
-                        tournamentId, TournamentRegistration.RegistrationStatus.pending, false)
-                + tournamentRegistrationRepository
-                .countByTournamentIdAndStatusAndIsReserve(
-                        tournamentId, TournamentRegistration.RegistrationStatus.approved, false);
-
-        if (tournament.getMaxMainEntries() != null && mainCount >= tournament.getMaxMainEntries()) {
-            int reserveCount = tournamentRegistrationRepository
-                    .countByTournamentIdAndStatusAndIsReserve(
-                            tournamentId, TournamentRegistration.RegistrationStatus.pending, true)
-                    + tournamentRegistrationRepository
-                    .countByTournamentIdAndStatusAndIsReserve(
-                            tournamentId, TournamentRegistration.RegistrationStatus.approved, true);
-
-            if (tournament.getMaxReserveEntries() != null && reserveCount >= tournament.getMaxReserveEntries()) {
-                throw new AppException(ErrorCode.TOURNAMENT_FULL);
-            }
-
-            isReserve = true;
-            reserveOrder = reserveCount + 1;
-        }
         TournamentRegistration registration = TournamentRegistration.builder()
                 .tournament(tournament)
                 .owner(owner)

@@ -4,6 +4,9 @@ package com.swp391.horseracing.config;
 import com.swp391.horseracing.entity.Role;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.mapper.UserMapper;
+import com.swp391.horseracing.entity.profile.HorseOwner;
+import com.swp391.horseracing.entity.profile.Jockey;
+import java.math.BigDecimal;
 import com.swp391.horseracing.repository.RoleRepository;
 import com.swp391.horseracing.repository.UserRepository;
 import lombok.AccessLevel;
@@ -54,7 +57,56 @@ public class DataInit implements CommandLineRunner {
                     "admin","123456");
         }
 
+            if(!userRepository.existsByUsername("owner3")) {
 
+            Role ownerRole = roleRepository.findByRoleName("HORSE_OWNER")
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .roleName("HORSE_OWNER")
+                                    .build()
+                    ));
+
+            HorseOwner owner = HorseOwner.builder()
+                    .username("owner3")
+                    .email("owner3@gmail.com")
+                    .passwordHash(passwordEncoder.encode("123456"))
+                    .status(User.UserStatus.active)
+                    .roles(Set.of( ownerRole))
+                    .fullName("Horse Owner One")
+                    .phone("0123456789")
+                    .build();
+
+            userRepository.save(owner);
+            log.info("HorseOwner created with username: {} and password: {}", "owner1", "123456");
+        }
+
+        if(!userRepository.existsByUsername("jockey4")) {
+            Role jockeyRole = roleRepository.findByRoleName("JOCKEY")
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .roleName("JOCKEY")
+                                    .build()
+                    ));
+
+            Jockey jockey = Jockey.builder()
+                    .username("jockey4")
+                    .email("jockey1@gmail.com")
+                    .passwordHash(passwordEncoder.encode("123456"))
+                    .status(User.UserStatus.active)
+                    .roles(Set.of(jockeyRole))
+                    .firstName("John")
+                    .lastName("Doe")
+                    .fullName("John Doe")
+                    .gender("Male")
+                    .height(BigDecimal.valueOf(160.5))
+                    .weight(55.0f)
+                    .experienceYears(3)
+                    .jockeyStatus(Jockey.JockeyStatus.approval)
+                    .build();
+
+            userRepository.save(jockey);
+            log.info("Jockey created with username: {} and password: {}", "jockey1", "123456");
+        }
     }
 
 

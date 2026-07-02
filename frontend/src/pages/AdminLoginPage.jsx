@@ -1,21 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { adminLoginApi } from '../api/authApi';
 
 function AdminLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error, clearError } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { login } = useAuth();
   const navigate = useNavigate();
+
+  const clearError = () => setError(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
     try {
-      await login(username, password);
+      const result = await adminLoginApi(username, password);
+      // Save token to localStorage and update AuthContext
+      localStorage.setItem('accessToken', result.accessToken);
+      // Trigger a manual re-render of AuthContext by dispatching token-refreshed event
+      window.dispatchEvent(new CustomEvent('token-refreshed', { detail: result.accessToken }));
       navigate('/admin/dashboard');
-    } catch {
-      // Error is already set in AuthContext
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 

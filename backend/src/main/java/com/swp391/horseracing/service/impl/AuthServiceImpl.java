@@ -149,4 +149,34 @@ public class AuthServiceImpl implements AuthService {
                 .success(true)
                 .build();
     }
+
+    @Override
+    public AuthenticationResponse adminLogin(LoginRequest request) {
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+        Authentication authentication = authenticationManager.authenticate(token);
+
+        User user = (User) authentication.getPrincipal();
+
+        if (user.getStatus().equals(User.UserStatus.inactive)) {
+            throw new AppException(ErrorCode.INACTIVE_ACCOUNT);
+        } else if (user.getStatus().equals(User.UserStatus.banned)) {
+            throw new AppException(ErrorCode.BANNED_ACCOUNT);
+        }
+
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equals(role.getRoleName()));
+        if (!isAdmin) {
+            throw new AppException(ErrorCode.ADMIN_ACCESS_ONLY);
+        }
+
+        var accessPayload = jwtService.generateAccessToken(user);
+        var refreshPayload = jwtService.generateRefreshToken(user);
+
+        return AuthenticationResponse.builder()
+                .authenticated(true)
+                .accessToken(accessPayload.getToken())
+                .refreshToken(refreshPayload.getToken())
+                .build();
+    }
 }

@@ -38,7 +38,9 @@ public enum ErrorCode {
     CLOUDINARY_DELETE_FAILED(2002, "delete image failed", HttpStatus.INTERNAL_SERVER_ERROR),
     NOT_FOUND(4040, "Not found", HttpStatus.NOT_FOUND),
 
+    // websocket
 
+    DECODE_JWT_FAILED(4001, "decode jwt failed", HttpStatus.BAD_REQUEST),
 
 
     //tournament
@@ -92,6 +94,8 @@ public enum ErrorCode {
     //tournamentresign
     REGISTRATION_NOT_FOUND(4079, "Tournament registration not found", HttpStatus.NOT_FOUND),
     TOURNAMENT_FULL(4081, "Tournament has reached maximum entries (main + reserve)", HttpStatus.CONFLICT),
+
+    ADMIN_ACCESS_ONLY(1014, "This login is restricted to administrators only", HttpStatus.FORBIDDEN),
     ;
 
 

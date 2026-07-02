@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { loginApi, logoutApi } from '../api/authApi';
+import { getRolesFromToken } from '../utils/authUtils';
 
 const AuthContext = createContext(null);
 
@@ -11,6 +12,12 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const isAuthenticated = !!accessToken;
+
+  // Derive user roles from JWT scope claim
+  const userRoles = useMemo(() => getRolesFromToken(accessToken), [accessToken]);
+
+  // Convenience function to check if user has a specific role
+  const checkRole = useCallback((role) => userRoles.includes(role), [userRoles]);
 
   // Listen for custom events from fetchWithAuth
   useEffect(() => {
@@ -76,6 +83,8 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     isLoading,
     error,
+    userRoles,
+    hasRole: checkRole,
     login,
     logout,
     clearError,

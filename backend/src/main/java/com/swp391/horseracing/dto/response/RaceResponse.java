@@ -17,5 +17,6 @@ public class RaceResponse {
     private Boolean isFinal;
     private Integer maxEntries;
     private Integer qualifyCount;
+    private Integer distance;
     private Integer tournamentId;
 }

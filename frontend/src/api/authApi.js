@@ -69,3 +69,29 @@ export async function refreshTokenApi() {
 
   return data.result;
 }
+
+/**
+ * Admin login with username and password.
+ * POST /api/auth/admin/login
+ * Only users with ROLE_ADMIN can login through this endpoint.
+ *
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<{ accessToken: string, refreshToken: string, authenticated: boolean }>}
+ */
+export async function adminLoginApi(username, password) {
+  const response = await fetch(`${API_BASE}/auth/admin/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username, password }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Admin login failed');
+  }
+
+  return data.result;
+}

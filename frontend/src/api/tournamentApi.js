@@ -27,7 +27,7 @@ export async function getTournamentById(id) {
 export async function createTournament(tournamentData) {
   const response = await fetchWithAuth(API_BASE, {
     method: 'POST',
-    body: JSON.stringify(tournamentData),
+    body: tournamentData,
   });
   const data = await response.json();
   if (!response.ok || data.code !== 1000) {
@@ -39,7 +39,7 @@ export async function createTournament(tournamentData) {
 export async function updateTournament(id, tournamentData) {
   const response = await fetchWithAuth(`${API_BASE}/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(tournamentData),
+    body: tournamentData,
   });
   const data = await response.json();
   if (!response.ok || data.code !== 1000) {
@@ -55,6 +55,18 @@ export async function deleteTournament(id) {
   const data = await response.json();
   if (!response.ok || data.code !== 1000) {
     throw new Error(data.message || 'Failed to delete tournament');
+  }
+  return data.result;
+}
+
+export async function registerHorseForTournament(tournamentId, horseId) {
+  const response = await fetchWithAuth(`${API_BASE}/${tournamentId}/registrations`, {
+    method: 'POST',
+    body: JSON.stringify({ horseId }),
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to register horse');
   }
   return data.result;
 }

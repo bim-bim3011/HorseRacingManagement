@@ -6,6 +6,9 @@ import {
   updateTournament, 
   deleteTournament 
 } from '../../api/tournamentApi';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format } from 'date-fns';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -36,7 +39,7 @@ const backdropVariants = {
   exit: { opacity: 0 }
 };
 
-export default function TournamentsTab() {
+export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) {
   const [tournaments, setTournaments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,10 +49,18 @@ export default function TournamentsTab() {
   const [editingTournament, setEditingTournament] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    startDate: '',
-    endDate: '',
+    startDate: null,
+    endDate: null,
+    registrationStart: null,
+    registrationEnd: null,
+    prizePool: '',
+    weightLimit: '',
+    minHorseAge: '',
+    maxHorseAge: '',
+    allowedBreed: '',
     regulations: ''
   });
+  const [bannerFile, setBannerFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -74,14 +85,27 @@ export default function TournamentsTab() {
       setEditingTournament(tournament);
       setFormData({
         name: tournament.name || '',
-        startDate: tournament.startDate || '',
-        endDate: tournament.endDate || '',
+        startDate: tournament.startDate ? new Date(tournament.startDate) : null,
+        endDate: tournament.endDate ? new Date(tournament.endDate) : null,
+        registrationStart: tournament.registrationStart ? new Date(tournament.registrationStart) : null,
+        registrationEnd: tournament.registrationEnd ? new Date(tournament.registrationEnd) : null,
+        prizePool: tournament.prizePool || '',
+        weightLimit: tournament.weightLimit || '',
+        minHorseAge: tournament.minHorseAge || '',
+        maxHorseAge: tournament.maxHorseAge || '',
+        allowedBreed: tournament.allowedBreed || '',
         regulations: tournament.regulations || ''
       });
     } else {
       setEditingTournament(null);
-      setFormData({ name: '', startDate: '', endDate: '', regulations: '' });
+      setFormData({ 
+        name: '', startDate: null, endDate: null, 
+        registrationStart: null, registrationEnd: null, prizePool: '',
+        weightLimit: '', minHorseAge: '', maxHorseAge: '', allowedBreed: '',
+        regulations: '' 
+      });
     }
+    setBannerFile(null);
     setIsModalOpen(true);
   };
 
@@ -95,14 +119,34 @@ export default function TournamentsTab() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setBannerFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     try {
+      const submitData = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
+          if (formData[key] instanceof Date) {
+            submitData.append(key, format(formData[key], 'yyyy-MM-dd'));
+          } else {
+            submitData.append(key, formData[key]);
+          }
+        }
+      });
+      if (bannerFile) {
+        submitData.append('banner', bannerFile);
+      }
+
       if (editingTournament) {
-        await updateTournament(editingTournament.id, formData);
+        await updateTournament(editingTournament.id, submitData);
       } else {
-        await createTournament(formData);
+        await createTournament(submitData);
       }
       await fetchTournaments();
       handleCloseModal();
@@ -212,6 +256,20 @@ export default function TournamentsTab() {
                       <td className="py-stack-sm px-stack-md text-right">
                         <div className="flex justify-end gap-2">
                           <button 
+                            onClick={() => onManageRaces(tournament)}
+                            className="p-2 text-tertiary hover:text-on-tertiary hover:bg-tertiary rounded-full transition-colors cursor-pointer flex items-center gap-1"
+                            title="Manage Races"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">flag</span>
+                          </button>
+                          <button 
+                            onClick={() => onManagePenaltyRules(tournament)}
+                            className="p-2 text-error hover:text-on-error hover:bg-error rounded-full transition-colors cursor-pointer flex items-center gap-1"
+                            title="Manage Penalty Rules"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">gavel</span>
+                          </button>
+                          <button 
                             onClick={() => handleOpenModal(tournament)}
                             className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-full transition-colors cursor-pointer"
                             title="Edit"
@@ -282,23 +340,125 @@ export default function TournamentsTab() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="flex flex-col">
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Start Date *</label>
+                      <DatePicker 
+                        selected={formData.startDate} 
+                        onChange={(date) => setFormData(prev => ({...prev, startDate: date}))} 
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Select start date"
+                        className="custom-datepicker-input"
+                        required
+                        wrapperClassName="w-full"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">End Date *</label>
+                      <DatePicker 
+                        selected={formData.endDate} 
+                        onChange={(date) => setFormData(prev => ({...prev, endDate: date}))} 
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Select end date"
+                        className="custom-datepicker-input"
+                        minDate={formData.startDate}
+                        required
+                        wrapperClassName="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Registration Start</label>
+                      <DatePicker 
+                        selected={formData.registrationStart} 
+                        onChange={(date) => setFormData(prev => ({...prev, registrationStart: date}))} 
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Select date"
+                        className="custom-datepicker-input"
+                        wrapperClassName="w-full"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Registration End</label>
+                      <DatePicker 
+                        selected={formData.registrationEnd} 
+                        onChange={(date) => setFormData(prev => ({...prev, registrationEnd: date}))} 
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Select date"
+                        className="custom-datepicker-input"
+                        minDate={formData.registrationStart}
+                        wrapperClassName="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Prize Pool</label>
                       <input 
-                        type="date" 
-                        name="startDate"
-                        value={formData.startDate}
+                        type="number" 
+                        name="prizePool"
+                        value={formData.prizePool}
+                        onChange={handleInputChange}
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="e.g. 50000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Banner Image</label>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Weight Limit (kg) *</label>
+                      <input 
+                        type="number" 
+                        name="weightLimit"
+                        value={formData.weightLimit}
                         onChange={handleInputChange}
                         required
                         className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">End Date *</label>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Allowed Breed *</label>
                       <input 
-                        type="date" 
-                        name="endDate"
-                        value={formData.endDate}
+                        type="text" 
+                        name="allowedBreed"
+                        value={formData.allowedBreed}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Min Horse Age *</label>
+                      <input 
+                        type="number" 
+                        name="minHorseAge"
+                        value={formData.minHorseAge}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Max Horse Age *</label>
+                      <input 
+                        type="number" 
+                        name="maxHorseAge"
+                        value={formData.maxHorseAge}
                         onChange={handleInputChange}
                         required
                         className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"

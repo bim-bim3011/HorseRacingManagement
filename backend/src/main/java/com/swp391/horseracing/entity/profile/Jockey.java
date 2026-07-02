@@ -45,18 +45,18 @@ public class Jockey extends User {
     @Column(name = "certificate_url", length = 500)
     private String certificateUrl;
     @Size(max = 255)
-    @NotNull
+
     @Column(name = "first_name", nullable = false)
     private String firstName;
     @Size(max = 255)
-    @NotNull
+
     @Column(name = "last_name", nullable = false)
     private String lastName;
-    @NotNull
-    @Column(name = "height", nullable = false, precision = 3, scale = 2)
+
+    @Column(name = "height", nullable = false, precision = 5, scale = 2)
     private BigDecimal height;
     @Size(max = 255)
-    @NotNull
+
     @Column(name = "gender", nullable = false)
     private String gender;
     @Column(name = "dob")
@@ -65,11 +65,5 @@ public class Jockey extends User {
     public enum JockeyStatus {
         pending_certification, approval,rejected
     }
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "rank")
-//    private Rank rank;
-//
-//    public enum Rank {
-//        A, B, C
-//    }
+
 }
