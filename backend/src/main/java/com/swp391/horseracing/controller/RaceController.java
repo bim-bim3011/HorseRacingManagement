@@ -2,7 +2,7 @@ package com.swp391.horseracing.controller;
 
 
 import com.swp391.horseracing.dto.request.RaceRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.RaceResponse;
 import com.swp391.horseracing.service.RaceService;
 import io.swagger.v3.oas.annotations.Operation;

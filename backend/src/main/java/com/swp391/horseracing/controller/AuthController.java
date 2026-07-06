@@ -5,9 +5,8 @@ import com.nimbusds.jose.JOSEException;
 import com.swp391.horseracing.dto.request.LoginRequest;
 import com.swp391.horseracing.dto.request.LogoutRequest;
 import com.swp391.horseracing.dto.request.RefreshRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.AuthenticationResponse;
-import com.swp391.horseracing.dto.response.LoginResponse;
 import com.swp391.horseracing.dto.response.LogoutResponse;
 import com.swp391.horseracing.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,11 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -100,6 +95,20 @@ public class AuthController {
         return ApiResponse.success(result);
     }
 
+    @PostMapping("/outbound/authentication")
+    ApiResponse<AuthenticationResponse> outboundAuthenticate(
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ){
+        var result = authService.outboundAuthenticate(code);
 
+        Cookie cookie = new Cookie("refreshToken", result.getRefreshToken());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        response.addCookie(cookie);
+
+        return ApiResponse.success(result);
+    }
 
 }

@@ -3,7 +3,7 @@ package com.swp391.horseracing.controller;
 
 import com.swp391.horseracing.dto.request.UpdateJockeyProfileRequest;
 import com.swp391.horseracing.dto.request.UpdateJockeyRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.JockeyResponse;
 import com.swp391.horseracing.service.JockeyService;
 import lombok.AccessLevel;

@@ -48,6 +48,7 @@ public class SecurityConfig {
     private final String[] TEST_ENDPOINTS= {
 
             "/api/test/**",
+            "/api/payment/**"
 
     };
 

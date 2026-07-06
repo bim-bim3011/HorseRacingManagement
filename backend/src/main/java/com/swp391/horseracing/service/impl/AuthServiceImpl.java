@@ -4,6 +4,7 @@ package com.swp391.horseracing.service.impl;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
+import com.swp391.horseracing.dto.ExchangeTokenRequest;
 import com.swp391.horseracing.dto.JwtInfo;
 import com.swp391.horseracing.dto.request.LoginRequest;
 import com.swp391.horseracing.dto.request.LogoutRequest;
@@ -18,13 +19,18 @@ import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.InvalidatedTokenRepository;
 import com.swp391.horseracing.repository.RedisTokenRepository;
+import com.swp391.horseracing.repository.RoleRepository;
 import com.swp391.horseracing.repository.UserRepository;
+import com.swp391.horseracing.repository.httpclient.OutBoundIdentityClient;
+import com.swp391.horseracing.repository.httpclient.OutBoundUserClient;
 import com.swp391.horseracing.security.JwtService;
 import com.swp391.horseracing.service.AuthService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,6 +39,9 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +53,9 @@ public class AuthServiceImpl implements AuthService {
     AuthenticationManager authenticationManager;
     InvalidatedTokenRepository invalidatedTokenRepository;
     UserRepository userRepository;
+    RoleRepository roleRepository;
+    PasswordEncoder passwordEncoder;
+
 
     RedisTokenRepository redisTokenRepository;
 
@@ -147,6 +159,69 @@ public class AuthServiceImpl implements AuthService {
 
         return LogoutResponse.builder()
                 .success(true)
+                .build();
+    }
+
+
+    OutBoundIdentityClient outBoundIdentityClient;
+    OutBoundUserClient outboundUserClient;
+
+    @NonFinal
+    @Value("${outbound.identity.client-id}")
+    String CLIENT_ID;
+
+    @NonFinal
+    @Value("${outbound.identity.client-secret}")
+    String CLIENT_SECRET;
+
+    @NonFinal
+    @Value("${outbound.identity.redirect-uri}")
+    String REDIRECT_URI;
+
+
+
+    @Override
+    public AuthenticationResponse outboundAuthenticate(String code) {
+
+        var response = outBoundIdentityClient.exchangeToken(ExchangeTokenRequest
+                .builder()
+                        .code(code)
+                        .clientId(CLIENT_ID)
+                        .clientSecret(CLIENT_SECRET)
+                        .redirectUri(REDIRECT_URI)
+                        .grantType("authorization_code")
+                .build());
+
+
+        var userInfo = outboundUserClient.getUserInfo("json",response.getAccessToken());
+
+        log.info("userInfo:{}",userInfo);
+
+
+
+        var user = userRepository.findByEmail(userInfo.getEmail());
+        if (user == null) {
+            user = userRepository.save(User.builder()
+                            .email(userInfo.getEmail())
+                            .status(User.UserStatus.active)
+                            .username(userInfo.getEmail())
+                            .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                            .roles(new HashSet<>(Set.of(
+                                    roleRepository.findByRoleName("SPECTATOR").orElseThrow(
+                                            ()-> new AppException(ErrorCode.ROLE_NOT_FOUND)
+                                    )
+                            )))
+                    .build());
+        }
+
+        var accessType = jwtService.generateAccessToken(user);
+        var refreshType = jwtService.generateRefreshToken(user);
+
+        return AuthenticationResponse
+                .builder()
+                .authenticated(true)
+                .accessToken(accessType.getToken())
+                .refreshToken(refreshType.getToken())
                 .build();
     }
 

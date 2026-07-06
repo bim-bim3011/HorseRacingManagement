@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getGoogleAuthUrl } from '../configuration/configuration';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
@@ -177,6 +178,7 @@ function LoginPage() {
           {/* Google Sign In */}
           <button
             type="button"
+            onClick={() => { window.location.href = getGoogleAuthUrl(); }}
             className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface font-body text-interactive-md font-semibold uppercase rounded py-3 flex items-center justify-center gap-3 hover:bg-surface-container-low transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

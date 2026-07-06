@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationDropdown from '../common/NotificationDropdown';
 import { getAllTournaments } from '../../api/tournamentApi';
+import { getMyProfile } from '../../api/userApi';
 
 function Header() {
   const { isAuthenticated, logout, hasRole } = useAuth();
@@ -27,6 +29,22 @@ function Header() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(null);
+
+    // Fetch balance when authenticated
+    useEffect(() => {
+      const fetchBalance = async () => {
+        try {
+          if (isAuthenticated) {
+            const data = await getMyProfile();
+            setWalletBalance(data.walletBalance);
+          }
+        } catch (error) {
+          console.error("Failed to fetch balance", error);
+        }
+      };
+      fetchBalance();
+    }, [isAuthenticated]);
 
     // Handle click outside to close dropdown
     useEffect(() => {
@@ -62,9 +80,24 @@ function Header() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="relative flex items-center" 
+              className="relative flex items-center gap-3" 
               ref={dropdownRef}
             >
+              {/* Wallet Balance Badge */}
+              <div className="flex items-center bg-surface-container-low border border-outline-variant/30 rounded-full pl-3 pr-1 py-1 gap-3 shadow-sm hover:border-primary/50 transition-colors">
+                <div className="flex flex-col justify-center">
+                  <span className="font-display font-bold text-sm text-primary leading-tight">
+                    {walletBalance != null ? walletBalance.toLocaleString('vi-VN') + ' ₫' : '0 ₫'}
+                  </span>
+                </div>
+                <Link to="/deposit" className="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-on-primary-fixed-variant transition-colors shadow-md no-underline">
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                </Link>
+              </div>
+
+              {/* Notification Bell */}
+              <NotificationDropdown />
+
               <button 
                 onClick={() => setIsOpen(!isOpen)}
                 className={`transition-colors duration-200 cursor-pointer flex items-center ${isOpen ? 'text-primary' : 'text-on-surface hover:text-primary'}`}

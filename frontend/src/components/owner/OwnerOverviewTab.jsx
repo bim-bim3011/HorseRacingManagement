@@ -17,7 +17,7 @@ const itemVariants = {
   },
 };
 
-export default function OwnerOverviewTab() {
+export default function OwnerOverviewTab({ onNavigate }) {
   const stats = [
     { title: 'My Horses', value: '0', icon: 'pets', color: 'text-primary' },
     { title: 'Hired Jockeys', value: '0', icon: 'person', color: 'text-tertiary' },
@@ -71,15 +71,24 @@ export default function OwnerOverviewTab() {
         <motion.div variants={itemVariants} className="bg-surface rounded-xl border border-outline-variant p-stack-md flex flex-col">
           <h3 className="font-headline-md text-headline-md text-on-surface mb-stack-md">Quick Actions</h3>
           <div className="flex flex-col gap-2 flex-grow">
-            <button className="w-full text-left px-4 py-3 bg-surface-container-low hover:bg-primary/10 hover:text-primary transition-colors rounded-lg flex items-center gap-3 font-interactive-md text-on-surface group">
+            <button 
+              onClick={() => onNavigate('horses')}
+              className="w-full text-left px-4 py-3 bg-surface-container-low hover:bg-primary/10 hover:text-primary transition-colors rounded-lg flex items-center gap-3 font-interactive-md text-on-surface group cursor-pointer"
+            >
               <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add_circle</span>
               Register New Horse
             </button>
-            <button className="w-full text-left px-4 py-3 bg-surface-container-low hover:bg-primary/10 hover:text-primary transition-colors rounded-lg flex items-center gap-3 font-interactive-md text-on-surface group">
+            <button 
+              onClick={() => onNavigate('jockeys')}
+              className="w-full text-left px-4 py-3 bg-surface-container-low hover:bg-primary/10 hover:text-primary transition-colors rounded-lg flex items-center gap-3 font-interactive-md text-on-surface group cursor-pointer"
+            >
               <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">person_add</span>
               Hire a Jockey
             </button>
-            <button className="w-full text-left px-4 py-3 bg-surface-container-low hover:bg-primary/10 hover:text-primary transition-colors rounded-lg flex items-center gap-3 font-interactive-md text-on-surface group">
+            <button 
+              onClick={() => onNavigate('schedule')}
+              className="w-full text-left px-4 py-3 bg-surface-container-low hover:bg-primary/10 hover:text-primary transition-colors rounded-lg flex items-center gap-3 font-interactive-md text-on-surface group cursor-pointer"
+            >
               <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">calendar_month</span>
               View Upcoming Tournaments
             </button>

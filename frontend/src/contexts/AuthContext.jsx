@@ -60,6 +60,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
+   * Set auth state directly from an already-obtained token (e.g. Google OAuth).
+   * Does not call any API — the token has already been exchanged on the backend.
+   */
+  const loginWithToken = useCallback((token) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    setAccessToken(token);
+  }, []);
+
+  /**
    * Logout: blacklist token on server, clear localStorage.
    */
   const logout = useCallback(async () => {
@@ -86,6 +95,7 @@ export function AuthProvider({ children }) {
     userRoles,
     hasRole: checkRole,
     login,
+    loginWithToken,
     logout,
     clearError,
   };

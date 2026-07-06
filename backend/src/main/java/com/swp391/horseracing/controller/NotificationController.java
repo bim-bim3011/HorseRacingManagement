@@ -1,6 +1,6 @@
 package com.swp391.horseracing.controller;
 
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.entity.Notification;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.service.NotificationService;

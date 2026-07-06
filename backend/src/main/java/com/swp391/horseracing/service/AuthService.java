@@ -24,4 +24,6 @@ public interface AuthService {
       LogoutResponse  LogoutUsingRedis(LogoutRequest request) throws ParseException;
 
       AuthenticationResponse adminLogin(LoginRequest request);
+
+      AuthenticationResponse outboundAuthenticate(String code);
 }

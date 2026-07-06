@@ -7,6 +7,7 @@ import OwnerHorsesTab from '../components/owner/OwnerHorsesTab';
 import OwnerJockeysTab from '../components/owner/OwnerJockeysTab';
 import OwnerScheduleTab from '../components/owner/OwnerScheduleTab';
 import OwnerResultsTab from '../components/owner/OwnerResultsTab';
+import NotificationDropdown from '../components/common/NotificationDropdown';
 
 export default function OwnerDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -84,9 +85,7 @@ export default function OwnerDashboardPage() {
           className="sticky top-0 w-full h-16 flex justify-end items-center px-margin-desktop z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant"
         >
           <div className="flex items-center gap-gutter">
-            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer relative">
-              <span className="material-symbols-outlined">notifications</span>
-            </motion.button>
+            <NotificationDropdown />
             <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
               <span className="material-symbols-outlined">help</span>
             </motion.button>
@@ -133,7 +132,7 @@ export default function OwnerDashboardPage() {
         {/* Content Canvas */}
         <main className="flex-1 p-margin-desktop bg-surface-container-lowest relative">
           <AnimatePresence mode="wait">
-            {activeTab === 'overview' && <OwnerOverviewTab key="overview" />}
+            {activeTab === 'overview' && <OwnerOverviewTab key="overview" onNavigate={setActiveTab} />}
             {activeTab === 'horses' && <OwnerHorsesTab key="horses" />}
             {activeTab === 'jockeys' && <OwnerJockeysTab key="jockeys" />}
             {activeTab === 'schedule' && <OwnerScheduleTab key="schedule" />}

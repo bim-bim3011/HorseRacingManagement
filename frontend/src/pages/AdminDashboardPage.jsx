@@ -6,6 +6,8 @@ import TournamentsTab from '../components/admin/TournamentsTab';
 import RacesTab from '../components/admin/RacesTab';
 import RefereesTab from '../components/admin/RefereesTab';
 import PenaltyRulesTab from '../components/admin/PenaltyRulesTab';
+import ApprovalsTab from '../components/admin/ApprovalsTab';
+import NotificationDropdown from '../components/common/NotificationDropdown';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -16,6 +18,7 @@ export default function AdminDashboardPage() {
     { id: 'overview', icon: 'dashboard', label: 'System Overview' },
     { id: 'tournaments', icon: 'calendar_today', label: 'Tournament Scheduling' },
     { id: 'approvals', icon: 'fact_check', label: 'Entry Approvals' },
+    { id: 'horse_approvals', icon: 'how_to_reg', label: 'Horse Approvals' },
     { id: 'listings', icon: 'pets', label: 'Jockey & Horse Listings' },
     { id: 'referees', icon: 'assignment_ind', label: 'Referee Management' },
     { id: 'results', icon: 'publish', label: 'Result Publishing' },
@@ -41,22 +44,18 @@ export default function AdminDashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-gutter">
-          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer relative">
-            <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface"></span>
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
-            <span className="material-symbols-outlined">help</span>
-          </motion.button>
-          
+          <NotificationDropdown />
           <div className="relative">
-            <motion.img
-              whileHover={{ scale: 1.05 }}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              alt="Administrator Profile"
-              className="w-10 h-10 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-colors cursor-pointer"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnXm12wA8D2l4tyX6h3WnbUqmygy8FJN6TuTAvqGkNIcQsfcUA7DVtj480uv1lh3E8FnqvGFg1Z4p64vOEzsmLarL3t_zvY2ZnCR2bETl2D9SendIPRKFu74XVbIF5qhWue9WH_KyIrjE4nkaf_v4iuOMA4gJr0eohaZCg8ABC3c-wpI_M6lWi7GtZqk5beybiqDuEM8_BfSH9aV-fZoHjupTkKfmFi36n8RNvdG8rHD5SJ3ieTDriJ6IIkM1bujZCjzu0aIsVAKut"
-            />
+              className={`transition-colors duration-200 cursor-pointer flex items-center ${isProfileDropdownOpen ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
+            >
+              <span className={`material-symbols-outlined text-[24px] transition-transform duration-300 ${isProfileDropdownOpen ? 'scale-110' : 'hover:scale-110'}`}>
+                account_circle
+              </span>
+            </motion.button>
             <AnimatePresence>
               {isProfileDropdownOpen && (
                 <motion.div
@@ -95,15 +94,10 @@ export default function AdminDashboardPage() {
         className="fixed left-0 top-0 h-full w-72 flex flex-col z-40 overflow-y-auto px-unit bg-surface border-r border-outline-variant"
       >
         <div className="py-stack-md px-stack-sm flex items-center gap-stack-sm border-b border-outline-variant mb-stack-md">
-          <div className="flex items-center gap-stack-sm">
-            <motion.div
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.4 }}
-              className="w-10 h-10 bg-primary flex items-center justify-center rounded-DEFAULT shadow-sm cursor-pointer"
-              onClick={() => setActiveTab('overview')}
-            >
-              <div className="w-4 h-4 bg-surface-container-lowest rounded-full"></div>
-            </motion.div>
+          <div className="flex items-center gap-stack-sm w-full">
+            <Link to="/" className="w-10 h-10 bg-primary flex items-center justify-center rounded-DEFAULT shadow-sm cursor-pointer no-underline shrink-0 transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-md group">
+              <span className="material-symbols-outlined text-surface transition-transform duration-300 group-hover:scale-110">home</span>
+            </Link>
             <div className="flex flex-col cursor-pointer" onClick={() => setActiveTab('overview')}>
               <h1 className="font-display-lg text-[20px] leading-none text-on-surface uppercase tracking-wider">The Elite Club</h1>
               <p className="font-label-caps text-label-caps text-on-surface-variant mt-unit">Admin Dashboard</p>
@@ -178,8 +172,9 @@ export default function AdminDashboardPage() {
             />
           )}
           {activeTab === 'referees' && <RefereesTab key="referees" />}
+          {activeTab === 'horse_approvals' && <ApprovalsTab key="horse_approvals" />}
           {/* Placeholder for other tabs */}
-          {activeTab !== 'overview' && activeTab !== 'tournaments' && activeTab !== 'races' && activeTab !== 'penalty_rules' && activeTab !== 'referees' && (
+          {activeTab !== 'overview' && activeTab !== 'tournaments' && activeTab !== 'races' && activeTab !== 'penalty_rules' && activeTab !== 'referees' && activeTab !== 'horse_approvals' && (
             <motion.div
               key="placeholder"
               initial={{ opacity: 0, y: 20 }}

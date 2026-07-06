@@ -1,7 +1,7 @@
 package com.swp391.horseracing.controller;
 
 import com.swp391.horseracing.dto.request.JockeyInvitationRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.JockeyInvitationResponse;
 import com.swp391.horseracing.dto.response.JockeyResponse;
 import com.swp391.horseracing.service.JockeyInvitationService;

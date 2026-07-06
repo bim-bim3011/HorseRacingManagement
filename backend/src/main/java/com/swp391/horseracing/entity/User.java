@@ -43,7 +43,7 @@ public class User extends BaseEntity implements UserDetails {
      String username;
 
     @Size(max = 255)
-    @NotNull
+
     @Column(name = "password_hash", nullable = false)
      String passwordHash;
 
