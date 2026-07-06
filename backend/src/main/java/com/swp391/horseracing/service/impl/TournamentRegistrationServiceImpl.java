@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.Period;
 
 
 @Service
@@ -56,7 +58,8 @@ public class TournamentRegistrationServiceImpl implements TournamentRegistration
             throw new AppException(ErrorCode.HORSE_NOT_ACTIVE);
         }
 
-        if (horse.getAge() < tournament.getMinHorseAge() || horse.getAge() > tournament.getMaxHorseAge()) {
+        int horseAge = Period.between(horse.getDateOfBirth(), LocalDate.now()).getYears();
+        if (horseAge < tournament.getMinHorseAge() || horseAge > tournament.getMaxHorseAge()) {
             throw new AppException(ErrorCode.HORSE_AGE_NOT_QUALIFIED);
         }
 

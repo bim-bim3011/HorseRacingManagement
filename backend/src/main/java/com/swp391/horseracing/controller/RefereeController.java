@@ -4,7 +4,7 @@ package com.swp391.horseracing.controller;
 import com.swp391.horseracing.dto.request.RefereeCreationRequest;
 import com.swp391.horseracing.dto.request.RefereeAssignmentRequest;
 import com.swp391.horseracing.dto.request.UpdateRefereeRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.RefereeAssignmentResponse;
 import com.swp391.horseracing.dto.response.RefereeResponse;
 import com.swp391.horseracing.service.RefereeService;

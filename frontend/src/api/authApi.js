@@ -95,3 +95,26 @@ export async function adminLoginApi(username, password) {
 
   return data.result;
 }
+
+/**
+ * Exchange Google authorization code for access/refresh tokens.
+ * POST /api/auth/outbound/authenticate?code={code}
+ *
+ * @param {string} code - The authorization code from Google redirect
+ * @returns {Promise<{ accessToken: string, refreshToken: string, authenticated: boolean }>}
+ */
+export async function outboundAuthenticateApi(code) {
+  const response = await fetch(`${API_BASE}/auth/outbound/authentication?code=${encodeURIComponent(code)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Google authentication failed');
+  }
+
+  return data.result;
+}

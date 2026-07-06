@@ -2,10 +2,13 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import PageTransition from './components/layout/PageTransition';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import ToastContainer from './components/common/ToastContainer';
 import MainLayout from './layouts/MainLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AuthenticatePage from './pages/AuthenticatePage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
@@ -14,6 +17,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import TournamentDetailPage from './pages/TournamentDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
 import OwnerDashboardPage from './pages/OwnerDashboardPage';
+import DepositPage from './pages/DepositPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -24,9 +28,15 @@ function AnimatedRoutes() {
         <Routes location={location} key={location.pathname}>
           <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
           <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+          <Route path="/authenticate" element={<PageTransition><AuthenticatePage /></PageTransition>} />
           <Route path="/profile" element={
             <ProtectedRoute>
               <PageTransition><UserProfilePage /></PageTransition>
+            </ProtectedRoute>
+          } />
+          <Route path="/deposit" element={
+            <ProtectedRoute>
+              <PageTransition><DepositPage /></PageTransition>
             </ProtectedRoute>
           } />
           <Route path="/admin" element={<PageTransition><AdminLoginPage /></PageTransition>} />
@@ -53,7 +63,10 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AnimatedRoutes />
+        <NotificationProvider>
+          <ToastContainer />
+          <AnimatedRoutes />
+        </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
   );

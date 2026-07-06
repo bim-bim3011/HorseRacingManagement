@@ -33,8 +33,13 @@ public class DataInit implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-
-
+        String[] defaultRoles = {"SPECTATOR", "JOCKEY", "HORSE_OWNER", "ADMIN", "REFEREE"};
+        for (String roleName : defaultRoles) {
+            if (roleRepository.findByRoleName(roleName).isEmpty()) {
+                roleRepository.save(Role.builder().roleName(roleName).build());
+                log.info("Role {} is created", roleName);
+            }
+        }
 
         if(!userRepository.existsByUsername("admin")) {
             Role adminRole = roleRepository.findByRoleName("ADMIN")

@@ -1,7 +1,7 @@
 package com.swp391.horseracing.controller;
 
 import com.swp391.horseracing.dto.request.HorseCreationRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.HorseResponse;
 import com.swp391.horseracing.service.HorseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,65 +22,52 @@ import java.util.List;
 @Tag(name = "Horse", description = "Horse Management API")
 public class HorseController {
     HorseService horseService;
+
     @PostMapping
-    @Operation(
-            summary = "Create Horse",
-            description = "Only Horse Owner can create horse"
-    )
-    public ApiResponse<HorseResponse> create(@RequestBody HorseCreationRequest request) {
-        return ApiResponse.success(horseService.createHorse(request));
+    @Operation(summary = "Create Horse", description = "Only Horse Owner can create horse")
+    public ApiResponse<HorseResponse> create(
+            @RequestPart("horse") HorseCreationRequest request,
+            @RequestPart(value = "certificate", required = false) MultipartFile certificate) {
+        return ApiResponse.success(horseService.createHorse(request, certificate));
     }
+
     @GetMapping("/{id}")
-    @Operation(
-            summary = "Get Horse by ID",
-            description = "Anyone can view horse detail"
-    )
+    @Operation(summary = "Get Horse by ID", description = "Anyone can view horse detail")
     public ApiResponse<HorseResponse> getOne(@PathVariable Integer id) {
         return ApiResponse.success(horseService.getHorse(id));
     }
 
     @PutMapping("/{id}")
-    @Operation(
-            summary = "Update Horse",
-            description = "Only Horse Owner can update their horse"
-    )
+    @Operation(summary = "Update Horse", description = "Only Horse Owner can update their horse")
     public ApiResponse<HorseResponse> update(@PathVariable Integer id,
-                                             @RequestBody HorseCreationRequest request) {
-        return ApiResponse.success(horseService.updateHorse(id, request));
+            @RequestPart("horse") HorseCreationRequest request,
+            @RequestPart(value = "certificate", required = false) MultipartFile certificate) {
+        return ApiResponse.success(horseService.updateHorse(id, request, certificate));
     }
+
     @DeleteMapping("/{id}")
-    @Operation(
-            summary = "Delete Horse",
-            description = "Only Horse Owner can delete their horse"
-    )
+    @Operation(summary = "Delete Horse", description = "Only Horse Owner can delete their horse")
     public ApiResponse<String> delete(@PathVariable Integer id) {
         horseService.deleteHorse(id);
         return ApiResponse.success("Delete successfully!");
     }
+
     @GetMapping("/my-horses")
-    @Operation(
-            summary = "Get My Horses",
-            description = "Horse Owner view their own horses"
-    )
+    @Operation(summary = "Get My Horses", description = "Horse Owner view their own horses")
     public ApiResponse<List<HorseResponse>> getMyHorses() {
         return ApiResponse.success(horseService.getMyHorses());
     }
+
     @PostMapping("/{id}/upload-certificate")
-    @Operation(
-            summary = "Upload Health Certificate",
-            description = "Horse Owner upload health certificate"
-    )
+    @Operation(summary = "Upload Health Certificate", description = "Horse Owner upload health certificate")
     public ApiResponse<String> uploadCertificate(@PathVariable Integer id,
-                                                 @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file) {
         return ApiResponse.success(horseService.uploadCertificate(id, file));
     }
 
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    @Operation(
-            summary = "Approve Horse",
-            description = "Only ADMIN can approve horse"
-    )
+    @Operation(summary = "Approve Horse", description = "Only ADMIN can approve horse")
     public ApiResponse<String> approve(@PathVariable Integer id) {
         horseService.approveHorse(id);
         return ApiResponse.success("Horse approved!");
@@ -88,9 +75,7 @@ public class HorseController {
 
     @PatchMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    @Operation(
-            summary = "Reject Horse",
-            description = "Only ADMIN can reject horse")
+    @Operation(summary = "Reject Horse", description = "Only ADMIN can reject horse")
     public ApiResponse<String> reject(@PathVariable Integer id) {
         horseService.rejectHorse(id);
         return ApiResponse.success("Horse rejected!");

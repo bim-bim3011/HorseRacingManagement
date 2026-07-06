@@ -41,11 +41,20 @@ export default function OwnerHorsesTab() {
   const [editingHorse, setEditingHorse] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
+    horseCode: '',
     breed: '',
-    age: '',
-    healthStatus: 'HEALTHY'
+    gender: 'Stallion',
+    dateOfBirth: '',
+    height: '',
+    weight: '',
+    healthStatus: 'HEALTHY',
+    certificate: null
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleFileChange = (e) => {
+    setFormData(prev => ({ ...prev, certificate: e.target.files[0] }));
+  };
 
   useEffect(() => {
     fetchHorses();
@@ -69,17 +78,26 @@ export default function OwnerHorsesTab() {
       setEditingHorse(horse);
       setFormData({
         name: horse.name || '',
+        horseCode: horse.horseCode || '',
         breed: horse.breed || '',
-        age: horse.age || '',
+        gender: horse.gender || 'Stallion',
+        dateOfBirth: horse.dateOfBirth || '',
+        height: horse.height || '',
+        weight: horse.weight || '',
         healthStatus: horse.healthStatus || 'HEALTHY'
       });
     } else {
       setEditingHorse(null);
       setFormData({
         name: '',
+        horseCode: '',
         breed: '',
-        age: '',
-        healthStatus: 'HEALTHY'
+        gender: 'Stallion',
+        dateOfBirth: '',
+        height: '',
+        weight: '',
+        healthStatus: 'HEALTHY',
+        certificate: null
       });
     }
     setIsModalOpen(true);
@@ -102,10 +120,31 @@ export default function OwnerHorsesTab() {
     e.preventDefault();
     setIsSaving(true);
     try {
+      const payload = new FormData();
+      payload.append('horse', new Blob([JSON.stringify({
+        name: formData.name,
+        horseCode: formData.horseCode,
+        breed: formData.breed,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+        height: formData.height,
+        weight: formData.weight,
+        healthStatus: formData.healthStatus
+      })], { type: 'application/json' }));
+      
+      if (formData.certificate) {
+        payload.append('certificate', formData.certificate);
+      }
+
       if (editingHorse) {
-        await updateHorse(editingHorse.id, formData);
+        await updateHorse(editingHorse.id, payload);
       } else {
-        await createHorse(formData);
+        if (!formData.certificate) {
+          alert('Health certificate is required for new horses.');
+          setIsSaving(false);
+          return;
+        }
+        await createHorse(payload);
       }
       await fetchHorses();
       handleCloseModal();
@@ -172,10 +211,13 @@ export default function OwnerHorsesTab() {
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="border-b-2 border-primary bg-surface text-on-surface-variant">
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">ID</th>
+                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Code</th>
                   <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Name</th>
                   <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Breed</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Age</th>
+                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Gender</th>
+                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">DOB</th>
+                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Height</th>
+                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Weight</th>
                   <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Status</th>
                   <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Health</th>
                   <th className="py-stack-sm px-stack-md font-label-caps text-label-caps text-right">Actions</th>
@@ -197,10 +239,13 @@ export default function OwnerHorsesTab() {
                       transition={{ delay: i * 0.05 }}
                       className="border-b border-outline-variant hover:bg-surface-container-highest transition-colors cursor-default group"
                     >
-                      <td className="py-stack-sm px-stack-md text-on-surface-variant">#{horse.id}</td>
+                      <td className="py-stack-sm px-stack-md text-on-surface-variant">{horse.horseCode || '-'}</td>
                       <td className="py-stack-sm px-stack-md font-interactive-md">{horse.name}</td>
                       <td className="py-stack-sm px-stack-md">{horse.breed || '-'}</td>
-                      <td className="py-stack-sm px-stack-md">{horse.age} yrs</td>
+                      <td className="py-stack-sm px-stack-md">{horse.gender || '-'}</td>
+                      <td className="py-stack-sm px-stack-md">{horse.dateOfBirth || '-'}</td>
+                      <td className="py-stack-sm px-stack-md">{horse.height ? `${horse.height} cm` : '-'}</td>
+                      <td className="py-stack-sm px-stack-md">{horse.weight ? `${horse.weight} kg` : '-'}</td>
                       <td className="py-stack-sm px-stack-md">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-[12px] font-interactive-md 
                           ${horse.status === 'APPROVED' ? 'bg-primary-fixed text-on-primary-fixed' : 
@@ -290,6 +335,34 @@ export default function OwnerHorsesTab() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Horse Code *</label>
+                      <input 
+                        type="text" 
+                        name="horseCode"
+                        value={formData.horseCode}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="e.g. H-001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Gender</label>
+                      <select 
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      >
+                        <option value="Stallion">Stallion</option>
+                        <option value="Mare">Mare</option>
+                        <option value="Gelding">Gelding</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Breed</label>
                       <input 
                         type="text" 
@@ -301,15 +374,44 @@ export default function OwnerHorsesTab() {
                       />
                     </div>
                     <div>
-                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Age *</label>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Date of Birth *</label>
                       <input 
-                        type="number" 
-                        name="age"
-                        value={formData.age}
+                        type="date" 
+                        name="dateOfBirth"
+                        value={formData.dateOfBirth}
                         onChange={handleInputChange}
                         required
-                        min="1"
+                        max={new Date().toISOString().split('T')[0]}
                         className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Height (cm)</label>
+                      <input 
+                        type="number" 
+                        name="height"
+                        value={formData.height}
+                        onChange={handleInputChange}
+                        min="1"
+                        step="0.1"
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="e.g. 165"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Weight (kg)</label>
+                      <input 
+                        type="number" 
+                        name="weight"
+                        value={formData.weight}
+                        onChange={handleInputChange}
+                        min="1"
+                        step="0.1"
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="e.g. 500"
                       />
                     </div>
                   </div>
@@ -326,6 +428,20 @@ export default function OwnerHorsesTab() {
                       <option value="INJURED">Injured</option>
                       <option value="RESTING">Resting</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">
+                      {editingHorse ? 'Update Health Certificate (Leave blank to keep existing)' : 'Health Certificate (PDF/Image) *'}
+                    </label>
+                    <input 
+                      type="file" 
+                      name="certificate"
+                      onChange={handleFileChange}
+                      required={!editingHorse}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                    />
                   </div>
 
                   <div className="pt-4 flex justify-end gap-3 border-t border-outline-variant mt-6">

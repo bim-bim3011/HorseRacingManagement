@@ -6,18 +6,17 @@ import com.swp391.horseracing.entity.tournament.RaceEntry;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import com.swp391.horseracing.entity.BaseEntity;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "horses")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@Builder
-public class Horse {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@SuperBuilder
+public class Horse extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
@@ -35,8 +34,20 @@ public class Horse {
     @Column(name = "health_certificate_url", length = 500)
     private String healthCertificateUrl; // lưu url của giấy khám sk
 
+    @Column(name = "horse_code", length = 50)
+    private String horseCode;
+
+    @Column(length = 20)
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
     @Column
-    private Integer age;  // ← tuổi ngựa để kiểm tra tiêu chuẩn race
+    private Double height;
+
+    @Column
+    private Double weight;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

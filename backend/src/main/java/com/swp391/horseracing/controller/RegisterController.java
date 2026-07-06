@@ -4,7 +4,7 @@ package com.swp391.horseracing.controller;
 import com.swp391.horseracing.dto.request.HorseOwnerCreationRequest;
 import com.swp391.horseracing.dto.request.JockeyCreationRequest;
 import com.swp391.horseracing.dto.request.SpectatorCreationRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.HorseOwnerResponse;
 import com.swp391.horseracing.dto.response.JockeyResponse;
 import com.swp391.horseracing.dto.response.SpectatorResponse;

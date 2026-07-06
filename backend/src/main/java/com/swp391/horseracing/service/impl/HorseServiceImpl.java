@@ -7,11 +7,13 @@ import com.swp391.horseracing.entity.horse.Horse;
 import com.swp391.horseracing.entity.profile.HorseOwner;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
+import com.swp391.horseracing.entity.Notification;
 import com.swp391.horseracing.repository.HorseOwnerRepository;
 import com.swp391.horseracing.repository.HorseRepository;
 import com.swp391.horseracing.repository.UserRepository;
 import com.swp391.horseracing.service.CloudinaryService;
 import com.swp391.horseracing.service.HorseService;
+import com.swp391.horseracing.service.NotificationService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,9 +30,10 @@ public class HorseServiceImpl implements HorseService {
     HorseOwnerRepository horseOwnerRepository;
     UserRepository userRepository;
     CloudinaryService cloudinaryService;
+    NotificationService notificationService;
 
     @Override
-    public HorseResponse createHorse(HorseCreationRequest request) {
+    public HorseResponse createHorse(HorseCreationRequest request, MultipartFile certificate) {
         HorseOwner owner = getCurrentOwner();
 
 
@@ -38,12 +41,22 @@ public class HorseServiceImpl implements HorseService {
             throw new AppException(ErrorCode.HORSE_ALREADY_EXISTS);
         }
 
+        String certificateUrl = null;
+        if (certificate != null && !certificate.isEmpty()) {
+            certificateUrl = cloudinaryService.uploadFile(certificate, "EliteDerbyCloud/Horse");
+        }
+
         Horse horse = Horse.builder()
                 .owner(owner)
                 .name(request.getName())
+                .horseCode(request.getHorseCode())
                 .breed(request.getBreed())
-                .age(request.getAge())
+                .gender(request.getGender())
+                .dateOfBirth(request.getDateOfBirth())
+                .height(request.getHeight())
+                .weight(request.getWeight())
                 .healthStatus(request.getHealthStatus())
+                .healthCertificateUrl(certificateUrl)
                 .build();
 
         horseRepository.save(horse);
@@ -58,7 +71,7 @@ public class HorseServiceImpl implements HorseService {
     }
 
     @Override
-    public HorseResponse updateHorse(Integer id, HorseCreationRequest request) {
+    public HorseResponse updateHorse(Integer id, HorseCreationRequest request, MultipartFile certificate) {
         HorseOwner owner = getCurrentOwner();
 
 
@@ -68,9 +81,18 @@ public class HorseServiceImpl implements HorseService {
 
         validateOwnership(horse, owner);
 
+        if (certificate != null && !certificate.isEmpty()) {
+            String certificateUrl = cloudinaryService.uploadFile(certificate, "EliteDerbyCloud/Horse");
+            horse.setHealthCertificateUrl(certificateUrl);
+        }
+
         horse.setName(request.getName());
+        horse.setHorseCode(request.getHorseCode());
         horse.setBreed(request.getBreed());
-        horse.setAge(request.getAge());
+        horse.setGender(request.getGender());
+        horse.setDateOfBirth(request.getDateOfBirth());
+        horse.setHeight(request.getHeight());
+        horse.setWeight(request.getWeight());
         horse.setHealthStatus(request.getHealthStatus());
 
         return mapToResponse(horseRepository.save(horse));
@@ -126,6 +148,13 @@ public class HorseServiceImpl implements HorseService {
         }
         horse.setStatus(Horse.HorseStatus.active);
         horseRepository.save(horse);
+
+        notificationService.sendNotification(
+            horse.getOwner(),
+            Notification.NotificationType.HORSE_APPROVED,
+            "Horse Approved",
+            "Your horse " + horse.getName() + " has been approved by the Admin and is now active."
+        );
     }
 
     @Override
@@ -134,6 +163,13 @@ public class HorseServiceImpl implements HorseService {
                 .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
         horse.setStatus(Horse.HorseStatus.rejected);
         horseRepository.save(horse);
+
+        notificationService.sendNotification(
+            horse.getOwner(),
+            Notification.NotificationType.HORSE_REJECTED,
+            "Horse Rejected",
+            "Your horse " + horse.getName() + " has been rejected by the Admin."
+        );
     }
     @Override
     public List<HorseResponse> getPendingHorses() {
@@ -146,9 +182,13 @@ public class HorseServiceImpl implements HorseService {
     private HorseResponse mapToResponse(Horse horse) {
         return HorseResponse.builder()
                 .id(horse.getId())
+                .horseCode(horse.getHorseCode())
                 .name(horse.getName())
                 .breed(horse.getBreed())
-                .age(horse.getAge())
+                .gender(horse.getGender())
+                .dateOfBirth(horse.getDateOfBirth())
+                .height(horse.getHeight())
+                .weight(horse.getWeight())
                 .healthStatus(horse.getHealthStatus())
                 .healthCertificateUrl(horse.getHealthCertificateUrl())
                 .status(horse.getStatus().name())

@@ -404,12 +404,12 @@ export default function UserProfilePage() {
                     </div>
                     <p className="font-body text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-2 relative z-10">Available Balance</p>
                     <h3 className="font-display text-5xl font-bold text-primary relative z-10">
-                      ${profile.walletBalance != null ? profile.walletBalance.toLocaleString() : '0.00'}
+                      {profile.walletBalance != null ? profile.walletBalance.toLocaleString('vi-VN') + ' VNĐ' : '0 VNĐ'}
                     </h3>
                   </div>
 
                   <div className="flex gap-4">
-                    <button className="flex-1 bg-primary text-on-primary py-3 rounded-xl font-interactive-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex justify-center items-center gap-2 cursor-pointer">
+                    <button onClick={() => navigate('/deposit')} className="flex-1 bg-primary text-on-primary py-3 rounded-xl font-interactive-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex justify-center items-center gap-2 cursor-pointer">
                       <span className="material-symbols-outlined">add_circle</span> Deposit
                     </button>
                     <button className="flex-1 bg-surface-container-high text-on-surface py-3 rounded-xl font-interactive-md hover:bg-surface-container-highest transition-colors border border-outline-variant shadow-sm flex justify-center items-center gap-2 cursor-pointer">

@@ -1,4 +1,4 @@
-package com.swp391.horseracing.dto.response;
+package com.swp391.horseracing.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;

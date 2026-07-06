@@ -1,7 +1,9 @@
 package com.swp391.horseracing.controller;
 
 
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.request.UpdateUserProfileRequest;
+import com.swp391.horseracing.dto.ApiResponse;
+import com.swp391.horseracing.dto.response.UserProfileResponse;
 import com.swp391.horseracing.dto.response.UserResponse;
 import com.swp391.horseracing.service.UserService;
 import lombok.AccessLevel;
@@ -24,12 +26,12 @@ public class UserController {
     }
 
     @GetMapping("/my-profile")
-    public ApiResponse<com.swp391.horseracing.dto.response.UserProfileResponse> getMyProfile() {
+    public ApiResponse<UserProfileResponse> getMyProfile() {
         return ApiResponse.success(userService.getMyProfile());
     }
 
     @PutMapping("/my-profile")
-    public ApiResponse<com.swp391.horseracing.dto.response.UserProfileResponse> updateMyProfile(@RequestBody com.swp391.horseracing.dto.request.UpdateUserProfileRequest request) {
+    public ApiResponse<UserProfileResponse> updateMyProfile(@RequestBody UpdateUserProfileRequest request) {
         return ApiResponse.success(userService.updateMyProfile(request));
     }
 }

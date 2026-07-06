@@ -16,7 +16,7 @@ export async function getMyHorses() {
 export async function createHorse(horseData) {
   const response = await fetchWithAuth(API_BASE, {
     method: 'POST',
-    body: JSON.stringify(horseData),
+    body: horseData instanceof FormData ? horseData : JSON.stringify(horseData),
   });
   const data = await response.json();
   if (!response.ok || data.code !== 1000) {
@@ -39,7 +39,7 @@ export async function getHorse(id) {
 export async function updateHorse(id, horseData) {
   const response = await fetchWithAuth(`${API_BASE}/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(horseData),
+    body: horseData instanceof FormData ? horseData : JSON.stringify(horseData),
   });
   const data = await response.json();
   if (!response.ok || data.code !== 1000) {
@@ -69,4 +69,37 @@ export async function uploadCertificate(id, formData) {
     throw new Error(data.message || 'Failed to upload certificate');
   }
   return data.result;
+}
+
+export async function getPendingHorses() {
+  const response = await fetchWithAuth(`${API_BASE}/pending`, {
+    method: 'GET',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to fetch pending horses');
+  }
+  return data.result;
+}
+
+export async function approveHorse(id) {
+  const response = await fetchWithAuth(`${API_BASE}/${id}/approve`, {
+    method: 'PATCH',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to approve horse');
+  }
+  return data;
+}
+
+export async function rejectHorse(id) {
+  const response = await fetchWithAuth(`${API_BASE}/${id}/reject`, {
+    method: 'PATCH',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to reject horse');
+  }
+  return data;
 }

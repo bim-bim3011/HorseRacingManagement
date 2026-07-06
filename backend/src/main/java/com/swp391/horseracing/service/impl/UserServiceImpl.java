@@ -3,30 +3,31 @@ package com.swp391.horseracing.service.impl;
 import com.swp391.horseracing.dto.request.SpectatorCreationRequest;
 import com.swp391.horseracing.dto.request.UserCreationRequest;
 import com.swp391.horseracing.dto.response.SpectatorResponse;
+import com.swp391.horseracing.dto.response.UserProfileResponse;
 import com.swp391.horseracing.dto.response.UserResponse;
 import com.swp391.horseracing.entity.Role;
 import com.swp391.horseracing.entity.User;
+import com.swp391.horseracing.entity.betting.Wallet;
+import com.swp391.horseracing.entity.profile.HorseOwner;
+import com.swp391.horseracing.entity.profile.Jockey;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.mapper.UserMapper;
 import com.swp391.horseracing.repository.RoleRepository;
 import com.swp391.horseracing.repository.UserRepository;
+import com.swp391.horseracing.repository.WalletRepository;
 import com.swp391.horseracing.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.springframework.security.core.context.SecurityContextHolder;
-import com.swp391.horseracing.entity.profile.HorseOwner;
-import com.swp391.horseracing.entity.profile.Jockey;
-import com.swp391.horseracing.dto.response.UserProfileResponse;
 
 
 @Service
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService {
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
     RoleRepository roleRepository;
+    WalletRepository walletRepository;
 
 
     @Override
@@ -69,7 +71,14 @@ public class UserServiceImpl implements UserService {
                     .roles(new HashSet<>(Set.of(spectatorRole)))
                     .build();
 
-         userRepository.save(user);
+        userRepository.save(user);
+
+        // Tạo Wallet mặc định cho User mới (balance = 0)
+        Wallet wallet = Wallet.builder()
+                .user(user)
+                .build();
+        walletRepository.save(wallet);
+
         return userMapper.toSpectator(user);
     }
 
