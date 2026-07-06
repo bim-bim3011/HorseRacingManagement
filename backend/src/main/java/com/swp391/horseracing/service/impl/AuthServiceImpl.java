@@ -193,6 +193,8 @@ public class AuthServiceImpl implements AuthService {
                 .build());
 
 
+        String refreshToken = response.getRefreshToken();
+        log.info("refreshToken is {}", refreshToken);
         var userInfo = outboundUserClient.getUserInfo("json",response.getAccessToken());
 
         log.info("userInfo:{}",userInfo);
