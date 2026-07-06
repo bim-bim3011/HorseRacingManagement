@@ -16,8 +16,7 @@ export function getGoogleAuthUrl() {
     redirect_uri: OAuthConfig.redirectUri,
     response_type: 'code',
     scope: 'openid email profile',
-    access_type: 'offline',
-    prompt: 'consent',
+    access_type: 'offline'
   });
 
   return `${OAuthConfig.authUri}?${params.toString()}`;
