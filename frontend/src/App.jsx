@@ -18,6 +18,7 @@ import TournamentDetailPage from './pages/TournamentDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
 import OwnerDashboardPage from './pages/OwnerDashboardPage';
 import DepositPage from './pages/DepositPage';
+import DepositResultPage from './pages/DepositResultPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -37,6 +38,11 @@ function AnimatedRoutes() {
           <Route path="/deposit" element={
             <ProtectedRoute>
               <PageTransition><DepositPage /></PageTransition>
+            </ProtectedRoute>
+          } />
+          <Route path="/deposit-result" element={
+            <ProtectedRoute>
+              <PageTransition><DepositResultPage /></PageTransition>
             </ProtectedRoute>
           } />
           <Route path="/admin" element={<PageTransition><AdminLoginPage /></PageTransition>} />
