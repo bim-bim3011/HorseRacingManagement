@@ -34,8 +34,22 @@ public class PaymentController {
     }
 
     @GetMapping("/vn-pay-callback")
-    public ApiResponse<VNPayResponse> callBackHandler(HttpServletRequest request) {
-        return ApiResponse.success(paymentService.callback(request));
+    public ResponseEntity<Void> callBackHandler(HttpServletRequest request) {
+        String status = request.getParameter("vnp_ResponseCode");
+        String txnRef = request.getParameter("vnp_TxnRef");
+
+        String frontendUrl;
+        if ("24".equals(status)) {
+            frontendUrl = "http://localhost:5173/deposit-result?status=cancelled";
+        } else if ("00".equals(status)) {
+            frontendUrl = "http://localhost:5173/deposit-result?status=success&orderCode=" + (txnRef != null ? txnRef : "");
+        } else {
+            frontendUrl = "http://localhost:5173/deposit-result?status=failed&orderCode=" + (txnRef != null ? txnRef : "");
+        }
+
+        return ResponseEntity.status(302)
+                .header("Location", frontendUrl)
+                .build();
     }
 
 

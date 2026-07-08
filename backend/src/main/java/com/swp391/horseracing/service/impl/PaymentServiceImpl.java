@@ -86,18 +86,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
     }
 
-    @Override
-    public VNPayResponse callback(HttpServletRequest request) {
-        String status = request.getParameter("vnp_ResponseCode");
-        String check = "false";
-        if (status.equals("00")) {
-            check = "true";
-        }
-        return VNPayResponse.builder()
-                .code(status)
-                .message(check)
-                .build();
-    }
+
 
     @Override
     @Transactional
