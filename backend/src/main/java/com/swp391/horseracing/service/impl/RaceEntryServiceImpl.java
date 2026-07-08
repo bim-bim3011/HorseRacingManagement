@@ -122,7 +122,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
 
         entry.setJockey(jockey);
         raceEntryRepository.save(entry);
-        betOddsService.generateOddsForRace(entry.getRace());
+        betOddsService.initOddsForEntry(entry);
     }
 
 
