@@ -178,4 +178,20 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         otpService.clearOtp(request.getEmail());
     }
+
+    @Override
+    public void resendOtp(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        if (user.getStatus() != User.UserStatus.inactive) {
+            throw new AppException(ErrorCode.INVALID_USER_STATUS);
+        }
+
+        String otp = emailService.generateOTP();
+        otpService.saveOtp(user.getEmail(), otp);
+        emailService.sendOtpEmail(user.getEmail(), otp);
+    }
 }

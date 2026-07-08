@@ -70,3 +70,19 @@ export async function verifyAccountApi(email, otp) {
 
   return data.result;
 }
+
+export async function resendOtpApi(email) {
+  const response = await fetch(`${API_BASE}/register/resend-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Resend OTP failed');
+  }
+
+  return data.result;
+}

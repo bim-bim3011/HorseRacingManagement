@@ -6,6 +6,7 @@ import com.swp391.horseracing.dto.request.JockeyCreationRequest;
 import com.swp391.horseracing.dto.request.SpectatorCreationRequest;
 import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.request.VerifyAccountRequest;
+import com.swp391.horseracing.dto.request.ResendOtpRequest;
 import com.swp391.horseracing.dto.response.HorseOwnerResponse;
 import com.swp391.horseracing.dto.response.JockeyResponse;
 import com.swp391.horseracing.dto.response.SpectatorResponse;
@@ -68,5 +69,14 @@ public class RegisterController {
     public ApiResponse<String> verifyAccount(@RequestBody @Valid VerifyAccountRequest request) {
         userService.verifyAccount(request);
         return ApiResponse.success("Tài khoản đã được kích hoạt thành công!");
+    }
+
+    @Operation(
+            summary = "resend OTP for inactive user"
+    )
+    @PostMapping("/resend-otp")
+    public ApiResponse<String> resendOtp(@RequestBody @Valid ResendOtpRequest request) {
+        userService.resendOtp(request.getEmail());
+        return ApiResponse.success("Mã OTP mới đã được gửi đến email của bạn.");
     }
 }
