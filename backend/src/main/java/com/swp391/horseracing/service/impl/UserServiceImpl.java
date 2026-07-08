@@ -16,6 +16,8 @@ import com.swp391.horseracing.mapper.UserMapper;
 import com.swp391.horseracing.repository.RoleRepository;
 import com.swp391.horseracing.repository.UserRepository;
 import com.swp391.horseracing.repository.WalletRepository;
+import com.swp391.horseracing.service.EmailService;
+import com.swp391.horseracing.service.OtpService;
 import com.swp391.horseracing.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,8 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
     RoleRepository roleRepository;
     WalletRepository walletRepository;
+    EmailService emailService;
+    OtpService otpService;
 
 
     @Override
@@ -67,11 +71,16 @@ public class UserServiceImpl implements UserService {
                     .username(request.getUsername())
                     .passwordHash(passwordEncoder.encode(request.getPassword()))
                     .email(request.getEmail())
-                    .status(User.UserStatus.active)
+                    .status(User.UserStatus.inactive)
                     .roles(new HashSet<>(Set.of(spectatorRole)))
                     .build();
 
         userRepository.save(user);
+
+        // Gửi OTP
+        String otp = emailService.generateOTP();
+        otpService.saveOtp(user.getEmail(), otp);
+        emailService.sendOtpEmail(user.getEmail(), otp);
 
         // Tạo Wallet mặc định cho User mới (balance = 0)
         Wallet wallet = Wallet.builder()
@@ -151,5 +160,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return getMyProfile();
+    }
+
+    @Override
+    public void verifyAccount(com.swp391.horseracing.dto.request.VerifyAccountRequest request) {
+        boolean isValid = otpService.verifyOtp(request.getEmail(), request.getOtp());
+        if (!isValid) {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
+
+        User user = userRepository.findByEmail(request.getEmail());
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        user.setStatus(User.UserStatus.active);
+        userRepository.save(user);
+        otpService.clearOtp(request.getEmail());
     }
 }

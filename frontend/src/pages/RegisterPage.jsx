@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { registerSpectatorApi, registerHorseOwnerApi, registerJockeyApi } from '../api/registerApi';
+import { registerSpectatorApi, registerHorseOwnerApi, registerJockeyApi, verifyAccountApi } from '../api/registerApi';
 import { updateJockeyCompetitionProfileApi } from '../api/jockeyApi';
 import { loginApi } from '../api/authApi';
 import { getGoogleAuthUrl } from '../configuration/configuration';
@@ -41,6 +41,10 @@ function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  
+  // OTP State
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const inputRefs = useRef([]);
 
   const clearError = () => setError('');
 
@@ -68,24 +72,66 @@ function RegisterPage() {
     try {
       if (role === 'spectator') {
         await registerSpectatorApi({ username, email, password });
-        setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
+        setStep(1.5);
       } else if (role === 'horseOwner') {
         await registerHorseOwnerApi({ username, email, password, fullName: ownerFullName, phone });
-        setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
+        setStep(1.5);
       } else if (role === 'jockey') {
         const res = await registerJockeyApi({ username, email, password });
         setJockeyId(res.id);
-        
-        // Auto-login to get JWT token before proceeding to profile update
-        await loginApi(username, password);
-        
-        // Proceed to Step 2
-        setStep(2);
+        setStep(1.5);
       }
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (isNaN(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    // Focus next
+    if (value !== '' && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifySubmit = async (e) => {
+    e.preventDefault();
+    clearError();
+    
+    const otpCode = otp.join('');
+    if (otpCode.length < 6) {
+      setError('Please enter the full 6-digit OTP.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyAccountApi(email, otpCode);
+      setSuccess(true);
+      
+      if (role === 'jockey') {
+        // Auto login for jockey to continue profile setup
+        await loginApi(username, password);
+        setTimeout(() => {
+          setSuccess(false);
+          setStep(2);
+        }, 1500);
+      } else {
+        setTimeout(() => navigate('/login'), 2000);
+      }
+    } catch (err) {
+      setError(err.message || 'Verification failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +207,7 @@ function RegisterPage() {
             </span>
             HOME
           </Link>
-          {step > 0 && !success && (
+          {step > 0 && step !== 1.5 && !success && (
             <button 
               onClick={() => step === 2 ? setStep(1) : setStep(0)}
               className="text-on-surface-variant hover:text-primary transition-colors text-sm font-semibold uppercase cursor-pointer"
@@ -174,11 +220,11 @@ function RegisterPage() {
         <div className="text-center mb-8">
           <h1 className="font-display text-display-lg text-primary flex items-center justify-center gap-4 font-bold">
             <span className="h-[1px] w-8 sm:w-12 bg-primary-fixed-dim hidden sm:block"></span>
-            {step === 0 ? 'Select Role' : step === 1 ? 'Register' : 'Jockey Profile'}
+            {step === 0 ? 'Select Role' : step === 1 ? 'Register' : step === 1.5 ? 'Verification' : 'Jockey Profile'}
             <span className="h-[1px] w-8 sm:w-12 bg-primary-fixed-dim hidden sm:block"></span>
           </h1>
           <p className="font-body text-body-md text-on-surface-variant mt-2">
-            {step === 0 ? 'Choose how you want to experience the track.' : step === 1 ? `Create your ${role === 'horseOwner' ? 'Horse Owner' : role} account.` : 'Complete your competition profile.'}
+            {step === 0 ? 'Choose how you want to experience the track.' : step === 1 ? `Create your ${role === 'horseOwner' ? 'Horse Owner' : role} account.` : step === 1.5 ? 'Verify your email address.' : 'Complete your competition profile.'}
           </p>
         </div>
 
@@ -186,7 +232,7 @@ function RegisterPage() {
         {success && (
           <div className="mb-4 p-3 bg-green-50 text-green-800 rounded text-sm font-body flex items-center gap-2 animate-[fadeIn_0.3s_ease-in-out]">
             <span className="material-symbols-outlined text-[18px]">check_circle</span>
-            {step === 2 ? 'Profile updated! Redirecting...' : 'Account created successfully! Redirecting...'}
+            {step === 2 ? 'Profile updated! Redirecting...' : step === 1.5 ? (role === 'jockey' ? 'Verified! Preparing profile setup...' : 'Account activated successfully! Redirecting...') : 'Success!'}
           </div>
         )}
 
@@ -339,6 +385,57 @@ function RegisterPage() {
                     </button>
                   </>
                 )}
+              </form>
+            </motion.div>
+          )}
+
+          {/* STEP 1.5: OTP VERIFICATION */}
+          {step === 1.5 && (
+            <motion.div 
+              key="step1.5"
+              initial="initial"
+              animate="in"
+              exit="out"
+              variants={pageVariants}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="material-symbols-outlined text-primary text-3xl">mark_email_unread</span>
+                </div>
+                <p className="font-body text-body-md text-on-surface">
+                  We've sent a 6-digit code to <span className="font-bold text-primary">{email}</span>.
+                  <br />
+                  Please enter it below to verify your account.
+                </p>
+              </div>
+
+              <form onSubmit={handleVerifySubmit} className="space-y-8">
+                <div className="flex justify-center gap-2 sm:gap-4">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (inputRefs.current[index] = el)}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      disabled={isLoading || success}
+                      className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold bg-surface-container-lowest border-2 border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  ))}
+                </div>
+
+                <button type="submit" disabled={isLoading || success || otp.join('').length < 6} className="w-full bg-primary text-on-primary font-body text-interactive-md font-semibold uppercase rounded py-4 hover:bg-on-primary-fixed-variant active:scale-[0.98] transition-all duration-300 ease-out cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                  {isLoading ? 'VERIFYING...' : 'VERIFY ACCOUNT'}
+                </button>
+                
+                <div className="text-center mt-4">
+                   <p className="text-sm font-body text-on-surface-variant">
+                     Didn't receive the code? Check your spam folder.
+                   </p>
+                </div>
               </form>
             </motion.div>
           )}
