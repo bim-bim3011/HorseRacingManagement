@@ -3,20 +3,23 @@ spring:
     name: horse racing management
 
 
-# EMAIL SENDER
+
+
   mail:
-    from: dangkhanh1130@gmail.com 
     host: smtp.gmail.com
     port: 587
-    username: dangkhanh1130@gmail.com
-    password: gwbecgplqiltlqxt
-
+    username: ${MY_EMAIL}
+    password: ${APP_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 
 
 
@@ -77,9 +80,16 @@ cloudinary:
 payment:
   vnPay:
     url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-    tmnCode: GP96QN61
-    secretKey: GUMW05M4KQ6QLB5T9Y9X48OAWDZO70E7
+    tmnCode: ${VNPAY_TMN_CODE}
+    secretKey: ${VNPAT_SECRET_KEY}
     returnUrl: http://localhost:8080/api/payment/vn-pay-callback
     version: 2.1.0
     command: pay
     orderType: other
+
+  payOS:
+    clientId: ${PAYOS_CLIENT_ID}
+    apiKey: ${PAYOS_API_KEY}
+    checksumKey: ${PAYOS_CHECKSUM_KEY}
+    returnUrl: http://localhost:8080/api/payment/payos/return
+    cancelUrl: http://localhost:8080/api/payment/payos/return?cancelled=true

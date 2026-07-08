@@ -11,7 +11,7 @@ public interface PaymentService {
     VNPayResponse createVnPayPayment(HttpServletRequest request);
 
 
-    VNPayResponse callback(HttpServletRequest request);
+
 
     Map<String, String> ipnHandler(HttpServletRequest request);
 }

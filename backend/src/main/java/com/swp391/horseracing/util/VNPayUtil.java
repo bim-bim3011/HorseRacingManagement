@@ -61,10 +61,10 @@ public class VNPayUtil {
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry ->
                         (encodeKey ? URLEncoder.encode(entry.getKey(),
-                                StandardCharsets.US_ASCII)
+                                StandardCharsets.UTF_8)
                                 : entry.getKey()) + "=" +
                                 URLEncoder.encode(entry.getValue()
-                                        , StandardCharsets.US_ASCII))
+                                        , StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
     }
 }

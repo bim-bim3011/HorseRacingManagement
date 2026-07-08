@@ -15,4 +15,8 @@ public interface UserService {
     com.swp391.horseracing.dto.response.UserProfileResponse getMyProfile();
 
     com.swp391.horseracing.dto.response.UserProfileResponse updateMyProfile(com.swp391.horseracing.dto.request.UpdateUserProfileRequest request);
+    
+    void verifyAccount(com.swp391.horseracing.dto.request.VerifyAccountRequest request);
+    
+    void resendOtp(String email);
 }

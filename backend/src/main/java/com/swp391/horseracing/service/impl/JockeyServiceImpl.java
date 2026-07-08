@@ -13,7 +13,9 @@ import com.swp391.horseracing.mapper.JockeyMapper;
 import com.swp391.horseracing.repository.JockeyRepository;
 import com.swp391.horseracing.repository.RoleRepository;
 import com.swp391.horseracing.service.CloudinaryService;
+import com.swp391.horseracing.service.EmailService;
 import com.swp391.horseracing.service.JockeyService;
+import com.swp391.horseracing.service.OtpService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +40,8 @@ public class JockeyServiceImpl implements JockeyService {
     JockeyRepository jockeyRepository;
     JockeyMapper jockeyMapper;
     CloudinaryService cloudinaryService;
+    EmailService emailService;
+    OtpService otpService;
 
 
     @Override
@@ -59,13 +63,18 @@ public class JockeyServiceImpl implements JockeyService {
                 .email(request.getEmail())
 
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(User.UserStatus.active)
+                .status(User.UserStatus.inactive)
                 .jockeyStatus(Jockey.JockeyStatus.pending_certification)
                 .roles(new HashSet<>(Set.of(jockeyRole)))
 
                 .build();
 
         jockeyRepository.save(jockey);
+
+        // Gửi OTP
+        String otp = emailService.generateOTP();
+        otpService.saveOtp(jockey.getEmail(), otp);
+        emailService.sendOtpEmail(jockey.getEmail(), otp);
 
            return jockeyMapper.toResponse(jockey);
     }

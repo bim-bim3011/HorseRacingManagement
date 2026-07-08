@@ -14,6 +14,7 @@ public enum ErrorCode {
 
      INACTIVE_ACCOUNT(1010,"your account is inactive",HttpStatus.UNAUTHORIZED),
      BANNED_ACCOUNT(1011,"your account is banned",HttpStatus.UNAUTHORIZED),
+     INVALID_OTP(1015, "Invalid or expired OTP", HttpStatus.BAD_REQUEST),
 
     UNAUTHENTICATED(1006,"test exception with error code",HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND(1005,"user not found ",HttpStatus.BAD_REQUEST),

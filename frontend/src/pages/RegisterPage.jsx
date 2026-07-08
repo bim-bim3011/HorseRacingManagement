@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { registerSpectatorApi, registerHorseOwnerApi, registerJockeyApi } from '../api/registerApi';
+import { registerSpectatorApi, registerHorseOwnerApi, registerJockeyApi, verifyAccountApi, resendOtpApi } from '../api/registerApi';
 import { updateJockeyCompetitionProfileApi } from '../api/jockeyApi';
 import { loginApi } from '../api/authApi';
 import { getGoogleAuthUrl } from '../configuration/configuration';
@@ -17,7 +17,7 @@ function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   // Horse Owner specific
   const [ownerFullName, setOwnerFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -42,25 +42,76 @@ function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  const clearError = () => setError('');
+  // OTP State
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const inputRefs = useRef([]);
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
+  // Validation State
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [infoMessage, setInfoMessage] = useState('');
+
+  const clearError = () => { setError(''); setInfoMessage(''); };
+
+  useEffect(() => {
+    let timer;
+    if (step === 1.5 && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setCanResend(true);
+    }
+    return () => clearInterval(timer);
+  }, [step, countdown]);
 
   const handleRoleSelect = (selectedRole) => {
     setRole(selectedRole);
     setStep(1);
     clearError();
+    setCountdown(60);
+    setCanResend(false);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const phoneRegex = /^[0-9]{10,11}$/;
+
+    if (!usernameRegex.test(username)) {
+      errors.username = 'Username must be 3-20 characters (letters, numbers, underscores).';
+    }
+    if (!emailRegex.test(email)) {
+      errors.email = 'Please enter a valid email address.';
+    }
+    if (!passwordRegex.test(password)) {
+      errors.password = 'Password must be at least 8 chars (1 uppercase, 1 lowercase, 1 number, 1 special char).';
+    }
+    if (password !== confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match.';
+    }
+
+    if (role === 'horseOwner') {
+      if (!ownerFullName.trim()) {
+        errors.ownerFullName = 'Full name is required.';
+      }
+      if (!phoneRegex.test(phone)) {
+        errors.phone = 'Please enter a valid phone number (10-11 digits).';
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleBasicSubmit = async (e) => {
     e.preventDefault();
     clearError();
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (!validateForm()) {
       return;
     }
 
@@ -68,24 +119,115 @@ function RegisterPage() {
     try {
       if (role === 'spectator') {
         await registerSpectatorApi({ username, email, password });
-        setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
+        setStep(1.5);
       } else if (role === 'horseOwner') {
         await registerHorseOwnerApi({ username, email, password, fullName: ownerFullName, phone });
-        setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
+        setStep(1.5);
       } else if (role === 'jockey') {
         const res = await registerJockeyApi({ username, email, password });
         setJockeyId(res.id);
-        
-        // Auto-login to get JWT token before proceeding to profile update
-        await loginApi(username, password);
-        
-        // Proceed to Step 2
-        setStep(2);
+        setStep(1.5);
       }
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        // Current empty, move focus to previous
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    } else if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      const newOtp = [...otp];
+      newOtp[index] = e.key;
+      setOtp(newOtp);
+      if (index < 5) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    // This mostly handles mobile inputs where onKeyDown might not fire reliably for virtual keyboards
+    if (isNaN(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1); // Take the last character in case of double input
+    setOtp(newOtp);
+    if (value !== '' && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasteData) {
+      const newOtp = [...otp];
+      for (let i = 0; i < pasteData.length; i++) {
+        newOtp[i] = pasteData[i];
+      }
+      setOtp(newOtp);
+      const nextIndex = Math.min(pasteData.length, 5);
+      inputRefs.current[nextIndex]?.focus();
+    }
+  };
+
+  const handleVerifySubmit = async (e) => {
+    e.preventDefault();
+    clearError();
+
+    const otpCode = otp.join('');
+    if (otpCode.length < 6) {
+      setError('Please enter the full 6-digit OTP.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyAccountApi(email, otpCode);
+      setSuccess(true);
+
+      if (role === 'jockey') {
+        // Auto login for jockey to continue profile setup
+        await loginApi(username, password);
+        setTimeout(() => {
+          setSuccess(false);
+          setStep(2);
+        }, 1500);
+      } else {
+        setTimeout(() => navigate('/login'), 2000);
+      }
+    } catch (err) {
+      setError(err.message || 'Verification failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    
+    setIsLoading(true);
+    clearError();
+    
+    try {
+      await resendOtpApi(email);
+      setInfoMessage('A new 6-digit code has been sent to your email.');
+      setCountdown(60);
+      setCanResend(false);
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +291,7 @@ function RegisterPage() {
 
       {/* Registration Container */}
       <div className="relative z-10 w-full max-w-lg bg-surface-container-lowest rounded-lg border border-outline-variant p-8 shadow-[0_12px_32px_rgba(0,34,34,0.08)] transition-shadow duration-500 hover:shadow-[0_16px_48px_rgba(0,34,34,0.12)]">
-        
+
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <Link
@@ -161,8 +303,8 @@ function RegisterPage() {
             </span>
             HOME
           </Link>
-          {step > 0 && !success && (
-            <button 
+          {step > 0 && step !== 1.5 && !success && (
+            <button
               onClick={() => step === 2 ? setStep(1) : setStep(0)}
               className="text-on-surface-variant hover:text-primary transition-colors text-sm font-semibold uppercase cursor-pointer"
             >
@@ -174,11 +316,11 @@ function RegisterPage() {
         <div className="text-center mb-8">
           <h1 className="font-display text-display-lg text-primary flex items-center justify-center gap-4 font-bold">
             <span className="h-[1px] w-8 sm:w-12 bg-primary-fixed-dim hidden sm:block"></span>
-            {step === 0 ? 'Select Role' : step === 1 ? 'Register' : 'Jockey Profile'}
+            {step === 0 ? 'Select Role' : step === 1 ? 'Register' : step === 1.5 ? 'Verification' : 'Jockey Profile'}
             <span className="h-[1px] w-8 sm:w-12 bg-primary-fixed-dim hidden sm:block"></span>
           </h1>
           <p className="font-body text-body-md text-on-surface-variant mt-2">
-            {step === 0 ? 'Choose how you want to experience the track.' : step === 1 ? `Create your ${role === 'horseOwner' ? 'Horse Owner' : role} account.` : 'Complete your competition profile.'}
+            {step === 0 ? 'Choose how you want to experience the track.' : step === 1 ? `Create your ${role === 'horseOwner' ? 'Horse Owner' : role} account.` : step === 1.5 ? 'Verify your email address.' : 'Complete your competition profile.'}
           </p>
         </div>
 
@@ -186,7 +328,7 @@ function RegisterPage() {
         {success && (
           <div className="mb-4 p-3 bg-green-50 text-green-800 rounded text-sm font-body flex items-center gap-2 animate-[fadeIn_0.3s_ease-in-out]">
             <span className="material-symbols-outlined text-[18px]">check_circle</span>
-            {step === 2 ? 'Profile updated! Redirecting...' : 'Account created successfully! Redirecting...'}
+            {step === 2 ? 'Profile updated! Redirecting...' : step === 1.5 ? (role === 'jockey' ? 'Verified! Preparing profile setup...' : 'Account activated successfully! Redirecting...') : 'Success!'}
           </div>
         )}
 
@@ -203,10 +345,23 @@ function RegisterPage() {
           </div>
         )}
 
+        {infoMessage && (
+          <div className="mb-4 p-3 bg-blue-50 text-blue-800 border border-blue-200 rounded text-sm font-body flex items-center gap-2 animate-[fadeIn_0.3s_ease-in-out]">
+            <span className="material-symbols-outlined text-[18px]">info</span>
+            {infoMessage}
+            <button
+              onClick={() => setInfoMessage('')}
+              className="ml-auto hover:opacity-70 transition-opacity duration-200 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {/* STEP 0: ROLE SELECTION */}
           {step === 0 && (
-            <motion.div 
+            <motion.div
               key="step0"
               initial="initial"
               animate="in"
@@ -224,7 +379,7 @@ function RegisterPage() {
                   <p className="text-on-surface-variant text-sm">Follow races, view results, and enjoy the show.</p>
                 </div>
               </button>
-              
+
               <button onClick={() => handleRoleSelect('jockey')} className="p-4 border-2 border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container flex items-center gap-4 transition-all duration-300 group text-left cursor-pointer">
                 <div className="w-12 h-12 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined">sports_score</span>
@@ -258,7 +413,7 @@ function RegisterPage() {
 
           {/* STEP 1: BASIC INFO */}
           {step === 1 && (
-            <motion.div 
+            <motion.div
               key="step1"
               initial="initial"
               animate="in"
@@ -269,22 +424,26 @@ function RegisterPage() {
               <form onSubmit={handleBasicSubmit} className="space-y-4">
                 <div>
                   <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Username *</label>
-                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading || success} className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-300 placeholder:text-outline/50" placeholder="e.g. Secretariat1973" />
+                  <input type="text" value={username} onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors(prev => ({ ...prev, username: '' })); }} required disabled={isLoading || success} className={`w-full bg-surface-container-lowest border rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 transition-all duration-300 placeholder:text-outline/50 ${fieldErrors.username ? 'border-error focus:ring-error focus:border-error' : 'border-outline-variant focus:ring-primary focus:border-primary'}`} placeholder="e.g. Secretariat1973" />
+                  {fieldErrors.username && <p className="text-error text-xs mt-1 animate-[fadeIn_0.3s]">{fieldErrors.username}</p>}
                 </div>
                 <div>
                   <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Email Address *</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading || success} className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-300 placeholder:text-outline/50" placeholder="name@domain.com" />
+                  <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })); }} required disabled={isLoading || success} className={`w-full bg-surface-container-lowest border rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 transition-all duration-300 placeholder:text-outline/50 ${fieldErrors.email ? 'border-error focus:ring-error focus:border-error' : 'border-outline-variant focus:ring-primary focus:border-primary'}`} placeholder="name@domain.com" />
+                  {fieldErrors.email && <p className="text-error text-xs mt-1 animate-[fadeIn_0.3s]">{fieldErrors.email}</p>}
                 </div>
-                
+
                 {role === 'horseOwner' && (
                   <>
                     <div>
                       <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Full Name *</label>
-                      <input type="text" value={ownerFullName} onChange={(e) => setOwnerFullName(e.target.value)} required disabled={isLoading || success} className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" />
+                      <input type="text" value={ownerFullName} onChange={(e) => { setOwnerFullName(e.target.value); if (fieldErrors.ownerFullName) setFieldErrors(prev => ({ ...prev, ownerFullName: '' })); }} required disabled={isLoading || success} className={`w-full bg-surface-container-lowest border rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 transition-all ${fieldErrors.ownerFullName ? 'border-error focus:ring-error focus:border-error' : 'border-outline-variant focus:ring-primary focus:border-primary'}`} />
+                      {fieldErrors.ownerFullName && <p className="text-error text-xs mt-1 animate-[fadeIn_0.3s]">{fieldErrors.ownerFullName}</p>}
                     </div>
                     <div>
                       <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Phone *</label>
-                      <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={isLoading || success} className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" />
+                      <input type="text" value={phone} onChange={(e) => { setPhone(e.target.value); if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: '' })); }} required disabled={isLoading || success} className={`w-full bg-surface-container-lowest border rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 transition-all ${fieldErrors.phone ? 'border-error focus:ring-error focus:border-error' : 'border-outline-variant focus:ring-primary focus:border-primary'}`} />
+                      {fieldErrors.phone && <p className="text-error text-xs mt-1 animate-[fadeIn_0.3s]">{fieldErrors.phone}</p>}
                     </div>
                   </>
                 )}
@@ -293,20 +452,22 @@ function RegisterPage() {
                   <div>
                     <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Password *</label>
                     <div className="relative">
-                      <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading || success} className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all pr-10" />
+                      <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' })); }} required disabled={isLoading || success} className={`w-full bg-surface-container-lowest border rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 transition-all pr-10 ${fieldErrors.password ? 'border-error focus:ring-error focus:border-error' : 'border-outline-variant focus:ring-primary focus:border-primary'}`} />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary cursor-pointer">
                         <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility' : 'visibility_off'}</span>
                       </button>
                     </div>
+                    {fieldErrors.password && <p className="text-error text-xs mt-1 animate-[fadeIn_0.3s]">{fieldErrors.password}</p>}
                   </div>
                   <div>
                     <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Confirm *</label>
                     <div className="relative">
-                      <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoading || success} className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all pr-10" />
+                      <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: '' })); }} required disabled={isLoading || success} className={`w-full bg-surface-container-lowest border rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-1 transition-all pr-10 ${fieldErrors.confirmPassword ? 'border-error focus:ring-error focus:border-error' : 'border-outline-variant focus:ring-primary focus:border-primary'}`} />
                       <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary cursor-pointer">
                         <span className="material-symbols-outlined text-[20px]">{showConfirmPassword ? 'visibility' : 'visibility_off'}</span>
                       </button>
                     </div>
+                    {fieldErrors.confirmPassword && <p className="text-error text-xs mt-1 animate-[fadeIn_0.3s]">{fieldErrors.confirmPassword}</p>}
                   </div>
                 </div>
 
@@ -343,9 +504,73 @@ function RegisterPage() {
             </motion.div>
           )}
 
+          {/* STEP 1.5: OTP VERIFICATION */}
+          {step === 1.5 && (
+            <motion.div
+              key="step1.5"
+              initial="initial"
+              animate="in"
+              exit="out"
+              variants={pageVariants}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="material-symbols-outlined text-primary text-3xl">mark_email_unread</span>
+                </div>
+                <p className="font-body text-body-md text-on-surface">
+                  We've sent a 6-digit code to <span className="font-bold text-primary">{email}</span>.
+                  <br />
+                  Please enter it below to verify your account.
+                </p>
+              </div>
+
+              <form onSubmit={handleVerifySubmit} className="space-y-8">
+                <div className="flex justify-center gap-2 sm:gap-4">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (inputRefs.current[index] = el)}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={handleOtpPaste}
+                      disabled={isLoading || success}
+                      className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold bg-surface-container-lowest border-2 border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  ))}
+                </div>
+
+                <button type="submit" disabled={isLoading || success || otp.join('').length < 6} className="w-full bg-primary text-on-primary font-body text-interactive-md font-semibold uppercase rounded py-4 hover:bg-on-primary-fixed-variant active:scale-[0.98] transition-all duration-300 ease-out cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                  {isLoading ? 'VERIFYING...' : 'VERIFY ACCOUNT'}
+                </button>
+
+                <div className="text-center mt-4">
+                  <p className="text-sm font-body text-on-surface-variant">
+                    Didn't receive the code?{' '}
+                    {countdown > 0 ? (
+                      <span className="text-outline font-bold">Resend in {countdown}s</span>
+                    ) : (
+                      <button 
+                        type="button" 
+                        onClick={handleResendOtp}
+                        disabled={isLoading}
+                        className="text-primary font-bold hover:underline cursor-pointer disabled:opacity-50 transition-all duration-300"
+                      >
+                        Resend Code
+                      </button>
+                    )}
+                  </p>
+                </div>
+              </form>
+            </motion.div>
+          )}
+
           {/* STEP 2: JOCKEY PROFILE */}
           {step === 2 && (
-            <motion.div 
+            <motion.div
               key="step2"
               initial="initial"
               animate="in"
@@ -398,8 +623,8 @@ function RegisterPage() {
                   </div>
                   <div>
                     <label className="block font-body text-label-caps font-bold text-on-surface-variant mb-1 uppercase">Date of Birth</label>
-                    <DatePicker 
-                      selected={dob ? new Date(dob) : null} 
+                    <DatePicker
+                      selected={dob ? new Date(dob) : null}
                       onChange={(date) => {
                         if (date) {
                           // Format to YYYY-MM-DD
@@ -408,7 +633,7 @@ function RegisterPage() {
                         } else {
                           setDob('');
                         }
-                      }} 
+                      }}
                       dateFormat="yyyy-MM-dd"
                       showYearDropdown
                       scrollableYearDropdown
