@@ -9,7 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bet_odds")
+@Table(name = "bet_odds" ,
+        uniqueConstraints = @UniqueConstraint(name = "uq_entry_bettype", columnNames = {"entry_id", "bet_type"}))
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
@@ -19,8 +20,8 @@ public class BetOdds {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "entry_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entry_id", nullable = false)
     private RaceEntry entry;
 
     /** VD: 3.50 */
@@ -30,4 +31,12 @@ public class BetOdds {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bet_type", nullable = false)
+    private BetType betType;
+
+    public enum BetType {
+        win, place, show
+    }
 }

@@ -27,6 +27,10 @@ public class Bet {
     @JoinColumn(name = "entry_id", nullable = false)
     private RaceEntry entry;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bet_type", nullable = false)
+    private BetOdds.BetType betType;
+
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 

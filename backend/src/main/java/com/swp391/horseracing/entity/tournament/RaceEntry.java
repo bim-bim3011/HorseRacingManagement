@@ -52,8 +52,8 @@ public class RaceEntry {
     @OneToOne(mappedBy = "entry", cascade = CascadeType.ALL)
     private RaceResult result;
 
-    @OneToOne(mappedBy = "entry", cascade = CascadeType.ALL)
-    private BetOdds betOdds;
+    @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL)
+    private List<BetOdds> betOdds;
 
     @OneToMany(mappedBy = "entry")
     private List<Bet> bets;
