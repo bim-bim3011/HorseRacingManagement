@@ -10,7 +10,9 @@ import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.mapper.HorseOwnerMapper;
 import com.swp391.horseracing.repository.HorseOwnerRepository;
 import com.swp391.horseracing.repository.RoleRepository;
+import com.swp391.horseracing.service.EmailService;
 import com.swp391.horseracing.service.HorseOwnerService;
+import com.swp391.horseracing.service.OtpService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,6 +33,8 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
     PasswordEncoder passwordEncoder;
     HorseOwnerMapper horseOwnerMapper;
     RoleRepository roleRepository;
+    EmailService emailService;
+    OtpService otpService;
 
     @Override
     @Transactional
@@ -43,7 +47,7 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
             throw new AppException(ErrorCode.DUPLICATE_USERNAME);
         }
 
-        var roles = roleRepository.findByRoleName("HORSE_OWNER")
+        var horseOwnerRole = roleRepository.findByRoleName("HORSE_OWNER")
                 .orElseThrow(()->new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         HorseOwner horseOwner = HorseOwner.builder()
@@ -52,11 +56,16 @@ public class HorseOwnerSeriveImpl implements HorseOwnerService {
                 .phone(request.getPhone())
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(User.UserStatus.active)
-                .roles(new HashSet<>(Set.of(roles)))
+                .status(User.UserStatus.inactive)
+                .roles(new HashSet<>(Set.of(horseOwnerRole)))
                 .build();
 
           horseOwnerRepository.save(horseOwner);
+
+          // Gửi OTP
+          String otp = emailService.generateOTP();
+          otpService.saveOtp(horseOwner.getEmail(), otp);
+          emailService.sendOtpEmail(horseOwner.getEmail(), otp);
 
         return horseOwnerMapper.toRepsonse(horseOwner);
     }

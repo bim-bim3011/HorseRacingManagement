@@ -1,5 +1,6 @@
 package com.swp391.horseracing.entity.tournament;
 
+import com.swp391.horseracing.entity.BaseEntity;
 import com.swp391.horseracing.entity.result.Ranking;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,11 +13,9 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class Tournament {
+public class Tournament extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+
 
     @Column(nullable = false, length = 255)
     private String name;
@@ -31,8 +30,7 @@ public class Tournament {
     @Builder.Default
     private TournamentStatus status = TournamentStatus.upcoming;
 
-    @Column
-    private Integer distance;
+
     @Column(name = "weight_limit")
     private Float weightLimit;
 
@@ -45,11 +43,6 @@ public class Tournament {
     @Column(name = "allowed_breed", length = 100)
     private String allowedBreed;
 
-    @Column(name = "max_main_entries")
-    private Integer maxMainEntries;
-
-    @Column(name = "max_reserve_entries")
-    private Integer maxReserveEntries;
 
 
 
@@ -61,6 +54,18 @@ public class Tournament {
 
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL)
     private List<Ranking> rankings;
+
+    @Column(name = "registration_start")
+    private LocalDate registrationStart;
+
+    @Column(name = "registration_end")
+    private LocalDate registrationEnd;
+
+    @Column(name = "prize_pool")
+    private Double prizePool;
+
+    @Column(name = "banner_url")
+    private String bannerUrl;
 
     public enum TournamentStatus {
         upcoming, ongoing, completed

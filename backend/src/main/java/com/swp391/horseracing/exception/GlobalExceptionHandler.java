@@ -1,6 +1,6 @@
 package com.swp391.horseracing.exception;
 
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;

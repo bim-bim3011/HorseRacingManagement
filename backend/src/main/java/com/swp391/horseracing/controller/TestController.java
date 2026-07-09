@@ -1,7 +1,7 @@
 package com.swp391.horseracing.controller;
 
 
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import lombok.AccessLevel;

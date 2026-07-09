@@ -13,7 +13,9 @@ import com.swp391.horseracing.mapper.JockeyMapper;
 import com.swp391.horseracing.repository.JockeyRepository;
 import com.swp391.horseracing.repository.RoleRepository;
 import com.swp391.horseracing.service.CloudinaryService;
+import com.swp391.horseracing.service.EmailService;
 import com.swp391.horseracing.service.JockeyService;
+import com.swp391.horseracing.service.OtpService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +40,8 @@ public class JockeyServiceImpl implements JockeyService {
     JockeyRepository jockeyRepository;
     JockeyMapper jockeyMapper;
     CloudinaryService cloudinaryService;
+    EmailService emailService;
+    OtpService otpService;
 
 
     @Override
@@ -51,26 +55,26 @@ public class JockeyServiceImpl implements JockeyService {
            }
 
 
-           var roles = roleRepository.findByRoleName("JOCKEY")
+           var jockeyRole = roleRepository.findByRoleName("JOCKEY")
                    .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         Jockey jockey = Jockey.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .fullName(request.getFullName())
+
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(User.UserStatus.active)
+                .status(User.UserStatus.inactive)
                 .jockeyStatus(Jockey.JockeyStatus.pending_certification)
-                .roles(new HashSet<>(Set.of(roles)))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .height(request.getHeight())
-                .weight(request.getWeight())
-                .gender(request.getGender())
-                .dob(request.getDob())
+                .roles(new HashSet<>(Set.of(jockeyRole)))
+
                 .build();
 
         jockeyRepository.save(jockey);
+
+        // Gửi OTP
+        String otp = emailService.generateOTP();
+        otpService.saveOtp(jockey.getEmail(), otp);
+        emailService.sendOtpEmail(jockey.getEmail(), otp);
 
            return jockeyMapper.toResponse(jockey);
     }
@@ -141,6 +145,26 @@ public class JockeyServiceImpl implements JockeyService {
 
         if (request.getWeight() != null) {
             jockey.setWeight(request.getWeight());
+        }
+
+        if (request.getFirstName() != null) {
+            jockey.setFirstName(request.getFirstName());
+        }
+
+        if (request.getLastName() != null) {
+            jockey.setLastName(request.getLastName());
+        }
+
+        if (request.getHeight() != null) {
+            jockey.setHeight(request.getHeight());
+        }
+
+        if (request.getGender() != null) {
+            jockey.setGender(request.getGender());
+        }
+
+        if (request.getDob() != null) {
+            jockey.setDob(request.getDob());
         }
 
         MultipartFile file = request.getFile();

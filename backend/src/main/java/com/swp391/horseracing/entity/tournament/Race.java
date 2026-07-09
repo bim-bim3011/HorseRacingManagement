@@ -36,6 +36,8 @@ public class Race {
     private LocalDateTime endedAt;
 
 
+    @Column(name = "distance")
+    private Integer distance;
 
     @Column(name = "round_order")
     private Integer roundOrder;           // thứ tự vòng: 1=vòng loại, 2=tứ kết...

@@ -14,6 +14,7 @@ public enum ErrorCode {
 
      INACTIVE_ACCOUNT(1010,"your account is inactive",HttpStatus.UNAUTHORIZED),
      BANNED_ACCOUNT(1011,"your account is banned",HttpStatus.UNAUTHORIZED),
+     INVALID_OTP(1015, "Invalid or expired OTP", HttpStatus.BAD_REQUEST),
 
     UNAUTHENTICATED(1006,"test exception with error code",HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND(1005,"user not found ",HttpStatus.BAD_REQUEST),
@@ -26,6 +27,8 @@ public enum ErrorCode {
     DUPLICATE_USERNAME(1008,"username already exists",HttpStatus.BAD_REQUEST),
     DUPLICATE_EMAIL(1009,"email already exists",HttpStatus.BAD_REQUEST),
 
+    ACCESS_TOKEN_EXPIRED(1011,"access token expired",HttpStatus.UNAUTHORIZED),
+
     ACCESS_DENIED(1005,"you do not has permission",HttpStatus.FORBIDDEN),
     TEST_EXCEPTION(6789,"test exception with error code",HttpStatus.ACCEPTED),
     EMAIL_EXISTED(1008,"email is existed",HttpStatus.CONFLICT),
@@ -36,7 +39,9 @@ public enum ErrorCode {
     CLOUDINARY_DELETE_FAILED(2002, "delete image failed", HttpStatus.INTERNAL_SERVER_ERROR),
     NOT_FOUND(4040, "Not found", HttpStatus.NOT_FOUND),
 
+    // websocket
 
+    DECODE_JWT_FAILED(4001, "decode jwt failed", HttpStatus.BAD_REQUEST),
 
 
     //tournament
@@ -90,6 +95,7 @@ public enum ErrorCode {
     //tournamentresign
     REGISTRATION_NOT_FOUND(4079, "Tournament registration not found", HttpStatus.NOT_FOUND),
     TOURNAMENT_FULL(4081, "Tournament has reached maximum entries (main + reserve)", HttpStatus.CONFLICT),
+
     //wellet
     WALLET_NOT_FOUND(4083, "Wallet not found", HttpStatus.NOT_FOUND),
     INSUFFICIENT_BALANCE(4084, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
@@ -100,7 +106,13 @@ public enum ErrorCode {
     //withdrawalService
     WITHDRAWAL_NOT_FOUND(4088, "Withdrawal request not found", HttpStatus.NOT_FOUND),
     WITHDRAWAL_NOT_APPROVED(4089, "Withdrawal must be approved before marking as transferred", HttpStatus.BAD_REQUEST),
+   ADMIN_ACCESS_ONLY(1014, "This login is restricted to administrators only", HttpStatus.FORBIDDEN),
+
     ;
+   
+  
+
+
 
 
 

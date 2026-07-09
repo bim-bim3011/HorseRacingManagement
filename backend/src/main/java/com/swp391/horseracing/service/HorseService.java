@@ -7,9 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface HorseService {
-    HorseResponse createHorse(HorseCreationRequest request);
+    HorseResponse createHorse(HorseCreationRequest request, MultipartFile certificate);
     HorseResponse getHorse(Integer id);
-    HorseResponse updateHorse(Integer id, HorseCreationRequest request);
+    HorseResponse updateHorse(Integer id, HorseCreationRequest request, MultipartFile certificate);
     void deleteHorse(Integer id);
     List<HorseResponse> getMyHorses();
     String uploadCertificate(Integer id, MultipartFile file);

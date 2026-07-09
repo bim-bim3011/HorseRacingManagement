@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationDropdown from '../common/NotificationDropdown';
+import { getAllTournaments } from '../../api/tournamentApi';
+import { getMyProfile } from '../../api/userApi';
 
 function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, hasRole } = useAuth();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -26,6 +29,22 @@ function Header() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(null);
+
+    // Fetch balance when authenticated
+    useEffect(() => {
+      const fetchBalance = async () => {
+        try {
+          if (isAuthenticated) {
+            const data = await getMyProfile();
+            setWalletBalance(data.walletBalance);
+          }
+        } catch (error) {
+          console.error("Failed to fetch balance", error);
+        }
+      };
+      fetchBalance();
+    }, [isAuthenticated]);
 
     // Handle click outside to close dropdown
     useEffect(() => {
@@ -61,9 +80,24 @@ function Header() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="relative flex items-center" 
+              className="relative flex items-center gap-3" 
               ref={dropdownRef}
             >
+              {/* Wallet Balance Badge */}
+              <div className="flex items-center bg-surface-container-low border border-outline-variant/30 rounded-full pl-3 pr-1 py-1 gap-3 shadow-sm hover:border-primary/50 transition-colors">
+                <div className="flex flex-col justify-center">
+                  <span className="font-display font-bold text-sm text-primary leading-tight">
+                    {walletBalance != null ? walletBalance.toLocaleString('vi-VN') + ' ₫' : '0 ₫'}
+                  </span>
+                </div>
+                <Link to="/deposit" className="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-on-primary-fixed-variant transition-colors shadow-md no-underline">
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                </Link>
+              </div>
+
+              {/* Notification Bell */}
+              <NotificationDropdown />
+
               <button 
                 onClick={() => setIsOpen(!isOpen)}
                 className={`transition-colors duration-200 cursor-pointer flex items-center ${isOpen ? 'text-primary' : 'text-on-surface hover:text-primary'}`}
@@ -87,7 +121,7 @@ function Header() {
                       <p className="font-body text-label-caps font-bold text-on-surface-variant uppercase tracking-wider">Account</p>
                     </div>
                     <Link
-                      to="#"
+                      to="/profile"
                       onClick={() => setIsOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 font-body text-body-md text-on-surface hover:bg-surface-container-low hover:text-primary transition-colors no-underline"
                     >
@@ -102,6 +136,16 @@ function Header() {
                       <span className="material-symbols-outlined text-[20px]">settings</span>
                       Settings
                     </Link>
+                    {hasRole('ROLE_HORSE_OWNER') && (
+                      <Link
+                        to="/owner/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 font-body text-body-md text-primary font-bold hover:bg-primary/10 transition-colors no-underline"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">dashboard</span>
+                        My Stable
+                      </Link>
+                    )}
                     <div className="border-t border-outline-variant/20 my-1"></div>
                     <button
                        onClick={performLogout}
@@ -166,6 +210,105 @@ function Header() {
     </Link>
   );
 
+  const TournamentsDropdown = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const [tournaments, setTournaments] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const currentYear = new Date().getFullYear();
+
+    useEffect(() => {
+      const fetchTournaments = async () => {
+        try {
+          setLoading(true);
+          const data = await getAllTournaments();
+          const thisYearTournaments = (data || []).filter(t => {
+             const tYear = new Date(t.startDate).getFullYear();
+             return tYear === currentYear;
+          });
+          setTournaments(thisYearTournaments);
+        } catch (error) {
+          console.error("Failed to fetch tournaments:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      if (isOpen && tournaments.length === 0) {
+        fetchTournaments();
+      }
+    }, [isOpen, tournaments.length, currentYear]);
+
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+        }
+      };
+      if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [isOpen]);
+
+    return (
+      <div className="relative flex items-center h-full" ref={dropdownRef}>
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className={`font-body text-label-caps font-bold transition-colors duration-200 tracking-[0.15em] uppercase whitespace-nowrap flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 m-0 ${isOpen ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
+        >
+          Tournaments
+          <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`}>
+            expand_more
+          </span>
+        </button>
+        
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute left-0 top-[180%] mt-2 w-72 bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] py-2 z-50 backdrop-blur-md"
+            >
+              <div className="px-4 py-2 mb-1 border-b border-outline-variant/20">
+                <p className="font-body text-label-caps font-bold text-on-surface-variant uppercase tracking-wider">Upcoming in {currentYear}</p>
+              </div>
+              <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                {loading ? (
+                  <div className="flex justify-center items-center py-4">
+                    <svg className="animate-spin h-6 w-6 text-primary" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  </div>
+                ) : tournaments.length > 0 ? (
+                  tournaments.map(tournament => (
+                    <Link
+                      key={tournament.id}
+                      to={`/tournaments/${tournament.id}`}
+                      onClick={() => setIsOpen(false)}
+                      className="block px-4 py-3 hover:bg-surface-container-low transition-colors no-underline group"
+                    >
+                      <p className="font-body text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors mb-1 truncate">{tournament.name}</p>
+                      <p className="font-body text-label-sm text-on-surface-variant truncate">
+                        {new Date(tournament.startDate).toLocaleDateString()} - {new Date(tournament.endDate).toLocaleDateString()}
+                      </p>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="px-4 py-3 text-sm text-on-surface-variant font-body">No upcoming tournaments</p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
   return (
     <header className={`w-full sticky z-50 transition-all duration-500 ease-in-out ${isScrolled ? '-top-20 bg-surface/95 backdrop-blur-md shadow-md border-b border-outline-variant/50' : 'top-0 bg-surface border-b border-outline-variant'}`}>
       
@@ -177,11 +320,7 @@ function Header() {
           <div className="flex items-center gap-6">
             <AuthActions scrolled={false} />
             <div className="flex items-center gap-4 text-on-surface">
-              <button className="hover:text-primary transition-colors duration-200 group cursor-pointer flex items-center">
-                <span className="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">
-                  search
-                </span>
-              </button>
+              {/* Removed search icon */}
             </div>
           </div>
         </div>
@@ -197,10 +336,8 @@ function Header() {
                <Brand scrolled={true} />
             </div>
             
-            <nav className="flex items-center gap-6 md:gap-8 overflow-x-auto no-scrollbar">
-              <Link to="#" className="font-body text-label-caps font-bold text-on-surface-variant hover:text-primary transition-colors duration-200 tracking-[0.15em] uppercase no-underline whitespace-nowrap">
-                Festivals
-              </Link>
+            <nav className="flex items-center gap-6 md:gap-8">
+              <TournamentsDropdown />
               <Link to="#" className="font-body text-label-caps font-bold text-on-surface-variant hover:text-primary transition-colors duration-200 tracking-[0.15em] uppercase no-underline whitespace-nowrap">
                 Races
               </Link>
@@ -213,11 +350,7 @@ function Header() {
           {/* Right Side: Auth + Search (if scrolled) */}
           <div className={`flex items-center gap-6 transition-all duration-500 ease-in-out ${isScrolled ? 'max-w-[400px] opacity-100 overflow-visible' : 'max-w-0 opacity-0 overflow-hidden pointer-events-none'}`}>
              <AuthActions scrolled={true} />
-             <button className="hover:text-primary transition-colors duration-200 group cursor-pointer text-on-surface flex items-center">
-                <span className="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">
-                  search
-                </span>
-              </button>
+             {/* Removed search icon */}
           </div>
 
         </div>

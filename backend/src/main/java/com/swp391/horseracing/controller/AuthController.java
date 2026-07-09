@@ -5,9 +5,8 @@ import com.nimbusds.jose.JOSEException;
 import com.swp391.horseracing.dto.request.LoginRequest;
 import com.swp391.horseracing.dto.request.LogoutRequest;
 import com.swp391.horseracing.dto.request.RefreshRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.AuthenticationResponse;
-import com.swp391.horseracing.dto.response.LoginResponse;
 import com.swp391.horseracing.dto.response.LogoutResponse;
 import com.swp391.horseracing.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,10 +14,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.text.ParseException;
 
@@ -36,8 +35,10 @@ public class AuthController {
             description = "check valid user and generate Access Token, Refresh Token"
     )
     @PostMapping("/login")
-    ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request){
+    ApiResponse<AuthenticationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response){
         var result = authService.login(request);
+        
+        setRefreshTokenCookie(response, result.getRefreshToken(), 7 * 24 * 60 * 60);
 
         return ApiResponse.success(result);
     }
@@ -49,9 +50,12 @@ public class AuthController {
             description = "persist AccessToken into black-list token"
     )
     @PostMapping("/logout")
-    ApiResponse<LogoutResponse> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+    ApiResponse<LogoutResponse> logout(@RequestBody LogoutRequest request, HttpServletResponse response) throws ParseException, JOSEException {
 
-        var result = authService.logout(request);
+        var result = authService.LogoutUsingRedis(request);
+        
+        setRefreshTokenCookie(response, "", 0);
+        
         return ApiResponse.success(result);
     }
 
@@ -62,11 +66,48 @@ public class AuthController {
             description = "provide refresh token to get new access token"
     )
     @PostMapping("/refresh")
-    ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+    ApiResponse<AuthenticationResponse> refresh(@CookieValue(name = "refreshToken") String refreshToken, HttpServletResponse response) throws ParseException, JOSEException {
+       RefreshRequest request = new RefreshRequest(refreshToken);
        var result = authService.refreshToken(request);
+       
+       setRefreshTokenCookie(response, result.getRefreshToken(), 7 * 24 * 60 * 60);
+       
+       return ApiResponse.success(result);
+    }
+    @Operation(
+            summary = "Admin Login",
+            description = "Authenticate user and verify ADMIN role. Returns tokens only for admin users."
+    )
+    @PostMapping("/admin/login")
+    ApiResponse<AuthenticationResponse> adminLogin(@RequestBody LoginRequest request, HttpServletResponse response){
+        var result = authService.adminLogin(request);
+
+        setRefreshTokenCookie(response, result.getRefreshToken(), 7 * 24 * 60 * 60);
+
         return ApiResponse.success(result);
     }
 
+    @PostMapping("/outbound/authentication")
+    ApiResponse<AuthenticationResponse> outboundAuthenticate(
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ){
+        var result = authService.outboundAuthenticate(code);
 
+        setRefreshTokenCookie(response, result.getRefreshToken(), 7 * 24 * 60 * 60);
+
+        return ApiResponse.success(result);
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken, int maxAge) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(maxAge)
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
 
 }

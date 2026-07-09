@@ -2,7 +2,7 @@ package com.swp391.horseracing.controller;
 
 
 import com.swp391.horseracing.dto.request.RaceRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.response.RaceResponse;
 import com.swp391.horseracing.service.RaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,7 +65,7 @@ public class RaceController {
     @PatchMapping("/{id}/activate")
     @Operation(
             summary = "Activate Race",
-            description = "Tournament must have penalty rules and standards (weight, age, breed, distance). Race must have round order, max entries, qualify count, and at least 1 referee assigned"
+            description = "Tournament must have penalty rules and standards (weight, age, breed). Race must have round order, max entries, qualify count, and at least 1 referee assigned"
     )
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ApiResponse<String> activate(@PathVariable Integer tournamentId,

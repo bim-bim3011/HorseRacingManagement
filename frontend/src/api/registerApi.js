@@ -22,3 +22,67 @@ export async function registerSpectatorApi({ username, email, password }) {
 
   return data.result;
 }
+
+export async function registerHorseOwnerApi({ username, email, password, fullName, phone }) {
+  const response = await fetch(`${API_BASE}/register/horse-owner`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password, fullName, phone }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Registration failed');
+  }
+
+  return data.result;
+}
+
+export async function registerJockeyApi({ username, email, password }) {
+  const response = await fetch(`${API_BASE}/register/jockey`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Registration failed');
+  }
+
+  return data.result;
+}
+
+export async function verifyAccountApi(email, otp) {
+  const response = await fetch(`${API_BASE}/register/verify-account`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'OTP Verification failed');
+  }
+
+  return data.result;
+}
+
+export async function resendOtpApi(email) {
+  const response = await fetch(`${API_BASE}/register/resend-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Resend OTP failed');
+  }
+
+  return data.result;
+}
