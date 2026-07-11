@@ -1,11 +1,13 @@
 package com.swp391.horseracing.dto.request;
 
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class TournamentRegistrationRequest {
-    @NotNull(message = "Horse ID is required")
-    private Integer horseId;
+    @NotEmpty(message = "Horse list cannot be empty")
+    private List<Integer> horseIds;
 }

@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import WithdrawalModal from '../components/common/WithdrawalModal';
+import { createWithdrawalRequest, getMyWithdrawalRequests } from '../api/withdrawalApi';
 
 export default function UserProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -15,12 +17,55 @@ export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Withdrawal States
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawalHistory, setWithdrawalHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [banksList, setBanksList] = useState([]);
+
   const navigate = useNavigate();
   const { logout } = useAuth();
 
   useEffect(() => {
     fetchProfile();
+    fetchBanksList();
   }, []);
+
+  const fetchBanksList = async () => {
+    try {
+      const response = await fetch('https://api.vietqr.io/v2/banks');
+      const data = await response.json();
+      if (data.code === '00') {
+        setBanksList(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch banks:', err);
+    }
+  };
+
+  const getBankDisplayName = (binCode) => {
+    if (!banksList || banksList.length === 0) return binCode;
+    const bank = banksList.find(b => b.bin === binCode);
+    return bank ? bank.shortName : binCode;
+  };
+
+  useEffect(() => {
+    if (activeTab === 'wallet') {
+      fetchWithdrawalHistory();
+    }
+  }, [activeTab]);
+
+  const fetchWithdrawalHistory = async () => {
+    try {
+      setLoadingHistory(true);
+      const data = await getMyWithdrawalRequests();
+      setWithdrawalHistory(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -39,6 +84,16 @@ export default function UserProfilePage() {
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  const handleWithdrawSubmit = async (formData) => {
+    // The modal will catch any errors thrown here
+    await createWithdrawalRequest(formData);
+    setIsWithdrawModalOpen(false);
+    // Refresh profile to get updated balance
+    fetchProfile();
+    // Refresh history
+    fetchWithdrawalHistory();
   };
 
   const handleSave = async () => {
@@ -408,14 +463,78 @@ export default function UserProfilePage() {
                     </h3>
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 mb-8">
                     <button onClick={() => navigate('/deposit')} className="flex-1 bg-primary text-on-primary py-3 rounded-xl font-interactive-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex justify-center items-center gap-2 cursor-pointer">
                       <span className="material-symbols-outlined">add_circle</span> Deposit
                     </button>
-                    <button className="flex-1 bg-surface-container-high text-on-surface py-3 rounded-xl font-interactive-md hover:bg-surface-container-highest transition-colors border border-outline-variant shadow-sm flex justify-center items-center gap-2 cursor-pointer">
+                    <button 
+                      onClick={() => setIsWithdrawModalOpen(true)}
+                      className="flex-1 bg-surface-container-high text-on-surface py-3 rounded-xl font-interactive-md hover:bg-surface-container-highest transition-colors border border-outline-variant shadow-sm flex justify-center items-center gap-2 cursor-pointer"
+                    >
                       <span className="material-symbols-outlined">payments</span> Withdraw
                     </button>
                   </div>
+
+                  {/* Withdrawal History */}
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-on-surface mb-4">Withdrawal History</h3>
+                    <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left font-body">
+                          <thead className="bg-surface-container-low text-on-surface-variant text-sm border-b border-outline-variant">
+                            <tr>
+                              <th className="px-4 py-3 font-interactive-md">Date</th>
+                              <th className="px-4 py-3 font-interactive-md">Amount</th>
+                              <th className="px-4 py-3 font-interactive-md">Bank Info</th>
+                              <th className="px-4 py-3 font-interactive-md">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-outline-variant">
+                            {loadingHistory ? (
+                              <tr>
+                                <td colSpan="4" className="text-center py-8 text-on-surface-variant">Loading history...</td>
+                              </tr>
+                            ) : withdrawalHistory.length === 0 ? (
+                              <tr>
+                                <td colSpan="4" className="text-center py-8 text-on-surface-variant">No withdrawal requests found.</td>
+                              </tr>
+                            ) : (
+                              withdrawalHistory.map((item) => (
+                                <tr key={item.id} className="hover:bg-surface-container-lowest transition-colors">
+                                  <td className="px-4 py-3 text-sm text-on-surface whitespace-nowrap">
+                                    {new Date(item.requestedAt).toLocaleDateString()}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm font-bold text-on-surface">
+                                    {item.amount.toLocaleString()} VNĐ
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-on-surface-variant">
+                                    {getBankDisplayName(item.bankName)} - {item.bankAccount}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                      item.status.toUpperCase() === 'PENDING' ? 'bg-secondary-container text-on-secondary-container' :
+                                      item.status.toUpperCase() === 'APPROVED' ? 'bg-primary-container text-on-primary-container' :
+                                      (item.status.toUpperCase() === 'COMPLETED' || item.status.toUpperCase() === 'TRANSFERRED') ? 'bg-green-100 text-green-800' :
+                                      'bg-error-container text-on-error-container'
+                                    }`}>
+                                      {item.status.toUpperCase()}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <WithdrawalModal 
+                    isOpen={isWithdrawModalOpen}
+                    onClose={() => setIsWithdrawModalOpen(false)}
+                    userBalance={profile.walletBalance || 0}
+                    onSubmit={handleWithdrawSubmit}
+                  />
                 </motion.div>
               )}
 

@@ -28,7 +28,7 @@ public class TournamentRegistrationController {
     @PreAuthorize("hasAuthority('SCOPE_ROLE_HORSE_OWNER')")
     @Operation(summary = "Register Horse to Tournament",
             description = "Horse Owner register horse into an ongoing tournament")
-    public ApiResponse<TournamentRegistrationResponse> register(@PathVariable Integer tournamentId,
+    public ApiResponse<List<TournamentRegistrationResponse>> register(@PathVariable Integer tournamentId,
                                                                 @RequestBody TournamentRegistrationRequest request) {
         return ApiResponse.success(tournamentRegistrationService.register(tournamentId, request));
     }
@@ -46,15 +46,15 @@ public class TournamentRegistrationController {
     @Operation(summary = "Get My Registrations",
             description = "Horse Owner view their own tournament registrations")
     public ApiResponse<List<TournamentRegistrationResponse>> getMyRegistrations(@PathVariable Integer tournamentId) {
-        return ApiResponse.success(tournamentRegistrationService.getMyRegistrations());
+        return ApiResponse.success(tournamentRegistrationService.getMyRegistrations(tournamentId));
     }
 
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(summary = "Approve Registration",
-            description = "Only ADMIN can approve a registration, which auto-creates a race entry in round 1")
+            description = "Only ADMIN can approve a registration")
     public ApiResponse<String> approve(@PathVariable Integer tournamentId, @PathVariable Integer id) {
-        tournamentRegistrationService.approveRegistration(id);
+        tournamentRegistrationService.approveRegistration(tournamentId, id);
         return ApiResponse.success("Registration approved!");
     }
 
@@ -63,7 +63,7 @@ public class TournamentRegistrationController {
     @Operation(summary = "Reject Registration",
             description = "Only ADMIN can reject a registration")
     public ApiResponse<String> reject(@PathVariable Integer tournamentId, @PathVariable Integer id) {
-        tournamentRegistrationService.rejectRegistration(id);
+        tournamentRegistrationService.rejectRegistration(tournamentId, id);
         return ApiResponse.success("Registration rejected!");
     }
 }

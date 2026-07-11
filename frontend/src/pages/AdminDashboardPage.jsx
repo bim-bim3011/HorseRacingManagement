@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import OverviewTab from '../components/admin/OverviewTab';
 import TournamentsTab from '../components/admin/TournamentsTab';
-import RacesTab from '../components/admin/RacesTab';
 import RefereesTab from '../components/admin/RefereesTab';
-import PenaltyRulesTab from '../components/admin/PenaltyRulesTab';
 import ApprovalsTab from '../components/admin/ApprovalsTab';
+import TournamentManagementView from '../components/admin/TournamentManagementView';
+import WithdrawalsTab from '../components/admin/WithdrawalsTab';
 import NotificationDropdown from '../components/common/NotificationDropdown';
 
 export default function AdminDashboardPage() {
@@ -22,6 +22,7 @@ export default function AdminDashboardPage() {
     { id: 'listings', icon: 'pets', label: 'Jockey & Horse Listings' },
     { id: 'referees', icon: 'assignment_ind', label: 'Referee Management' },
     { id: 'results', icon: 'publish', label: 'Result Publishing' },
+    { id: 'withdrawals', icon: 'payments', label: 'Withdrawal Approvals' },
     { id: 'predictions', icon: 'online_prediction', label: 'Prediction Management' },
     { id: 'permissions', icon: 'verified_user', label: 'Role Permissions' },
     { id: 'accounts', icon: 'manage_accounts', label: 'Account Management' }
@@ -147,34 +148,24 @@ export default function AdminDashboardPage() {
           {activeTab === 'tournaments' && (
             <TournamentsTab 
               key="tournaments" 
-              onManageRaces={(tournament) => {
+              onManage={(tournament) => {
                 setSelectedTournament(tournament);
-                setActiveTab('races');
+                setActiveTab('tournament_detail');
               }}
-              onManagePenaltyRules={(tournament) => {
-                setSelectedTournament(tournament);
-                setActiveTab('penalty_rules');
-              }}
-            />
-          )}
-          {activeTab === 'races' && (
-            <RacesTab 
-              key="races" 
-              tournament={selectedTournament} 
-              onBack={() => setActiveTab('tournaments')} 
-            />
-          )}
-          {activeTab === 'penalty_rules' && (
-            <PenaltyRulesTab 
-              key="penalty_rules" 
-              tournament={selectedTournament} 
-              onBack={() => setActiveTab('tournaments')} 
             />
           )}
           {activeTab === 'referees' && <RefereesTab key="referees" />}
           {activeTab === 'horse_approvals' && <ApprovalsTab key="horse_approvals" />}
+          {activeTab === 'tournament_detail' && (
+            <TournamentManagementView
+              key="tournament_detail"
+              tournament={selectedTournament}
+              onBack={() => setActiveTab('tournaments')}
+            />
+          )}
+          {activeTab === 'withdrawals' && <WithdrawalsTab key="withdrawals" />}
           {/* Placeholder for other tabs */}
-          {activeTab !== 'overview' && activeTab !== 'tournaments' && activeTab !== 'races' && activeTab !== 'penalty_rules' && activeTab !== 'referees' && activeTab !== 'horse_approvals' && (
+          {activeTab !== 'overview' && activeTab !== 'withdrawals' && activeTab !== 'tournaments' && activeTab !== 'referees' && activeTab !== 'horse_approvals' && activeTab !== 'tournament_detail' && (
             <motion.div
               key="placeholder"
               initial={{ opacity: 0, y: 20 }}

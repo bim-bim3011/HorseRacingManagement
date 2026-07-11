@@ -12,6 +12,7 @@ public class TournamentRegistrationResponse {
     private Integer horseId;
     private String horseName;
     private String status;
+    private String paymentStatus;
     private Boolean isReserve;
     private Integer reserveOrder;
 }

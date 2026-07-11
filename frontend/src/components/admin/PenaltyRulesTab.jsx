@@ -149,17 +149,19 @@ export default function PenaltyRulesTab({ tournament, onBack }) {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex justify-between items-end border-b border-outline-variant pb-stack-sm">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <button 
-              onClick={onBack}
-              className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant flex items-center justify-center cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-            </button>
-            <span className="font-label-caps text-label-caps text-primary uppercase">{tournament.name}</span>
-          </div>
+          {onBack && (
+            <div className="flex items-center gap-2 mb-2">
+              <button 
+                onClick={onBack}
+                className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant flex items-center justify-center cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <span className="font-label-caps text-label-caps text-primary uppercase">{tournament.name}</span>
+            </div>
+          )}
           <h2 className="font-display-lg text-display-lg text-on-surface">Penalty Rules</h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-unit">Manage violation types and penalties for this tournament.</p>
+          {onBack && <p className="font-body-lg text-body-lg text-on-surface-variant mt-unit">Manage violation types and penalties for this tournament.</p>}
         </div>
         <div className="flex gap-stack-sm">
           <motion.button 

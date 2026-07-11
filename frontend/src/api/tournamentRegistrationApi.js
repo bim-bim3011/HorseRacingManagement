@@ -2,10 +2,19 @@ import { fetchWithAuth } from '../utils/fetchWithAuth';
 
 const API_BASE = '/api/tournaments';
 
-export async function getMyRegistrations(tournamentId = 0) { // The backend endpoint seems to expect tournamentId in path but it's not strictly used for /my-registrations in standard REST if it returns all, wait let's look at the controller. 
-  // Wait, the controller says `@GetMapping("/my-registrations")` inside `@RequestMapping("/api/tournaments/{tournamentId}/registrations")`
-  // That means we need tournamentId. But typically we might want all registrations across tournaments. Let's assume we pass 0 or a specific ID.
+export async function getMyRegistrations(tournamentId) {
   const response = await fetchWithAuth(`${API_BASE}/${tournamentId}/registrations/my-registrations`, {
+    method: 'GET',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to fetch registrations');
+  }
+  return data.result;
+}
+
+export async function getRegistrationsByTournament(tournamentId) {
+  const response = await fetchWithAuth(`${API_BASE}/${tournamentId}/registrations`, {
     method: 'GET',
   });
   const data = await response.json();
@@ -26,3 +35,26 @@ export async function registerHorse(tournamentId, horseId) {
   }
   return data.result;
 }
+
+export async function approveRegistration(tournamentId, registrationId) {
+  const response = await fetchWithAuth(`${API_BASE}/${tournamentId}/registrations/${registrationId}/approve`, {
+    method: 'PATCH',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to approve registration');
+  }
+  return data.result;
+}
+
+export async function rejectRegistration(tournamentId, registrationId) {
+  const response = await fetchWithAuth(`${API_BASE}/${tournamentId}/registrations/${registrationId}/reject`, {
+    method: 'PATCH',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to reject registration');
+  }
+  return data.result;
+}
+

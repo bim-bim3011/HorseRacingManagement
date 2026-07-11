@@ -183,15 +183,17 @@ export default function RacesTab({ tournament, onBack }) {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex justify-between items-end border-b border-outline-variant pb-stack-sm">
         <div className="flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary rounded-full transition-colors cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[24px]">arrow_back</span>
-          </button>
+          {onBack && (
+            <button 
+              onClick={onBack}
+              className="p-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary rounded-full transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+            </button>
+          )}
           <div>
             <h2 className="font-display-lg text-display-lg text-on-surface">Race Management</h2>
-            <p className="font-body-lg text-body-lg text-primary font-bold mt-unit">{tournament.name}</p>
+            {onBack && <p className="font-body-lg text-body-lg text-primary font-bold mt-unit">{tournament.name}</p>}
           </div>
         </div>
         <div className="flex gap-stack-sm">

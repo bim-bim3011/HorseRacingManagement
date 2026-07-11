@@ -39,7 +39,7 @@ const backdropVariants = {
   exit: { opacity: 0 }
 };
 
-export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) {
+export default function TournamentsTab({ onManage }) {
   const [tournaments, setTournaments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,6 +54,8 @@ export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) 
     registrationStart: null,
     registrationEnd: null,
     prizePool: '',
+    registrationFee: '',
+    maxParticipants: '',
     weightLimit: '',
     minHorseAge: '',
     maxHorseAge: '',
@@ -90,6 +92,8 @@ export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) 
         registrationStart: tournament.registrationStart ? new Date(tournament.registrationStart) : null,
         registrationEnd: tournament.registrationEnd ? new Date(tournament.registrationEnd) : null,
         prizePool: tournament.prizePool || '',
+        registrationFee: tournament.registrationFee || '',
+        maxParticipants: tournament.maxParticipants || '',
         weightLimit: tournament.weightLimit || '',
         minHorseAge: tournament.minHorseAge || '',
         maxHorseAge: tournament.maxHorseAge || '',
@@ -101,6 +105,7 @@ export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) 
       setFormData({ 
         name: '', startDate: null, endDate: null, 
         registrationStart: null, registrationEnd: null, prizePool: '',
+        registrationFee: '', maxParticipants: '',
         weightLimit: '', minHorseAge: '', maxHorseAge: '', allowedBreed: '',
         regulations: '' 
       });
@@ -256,18 +261,12 @@ export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) 
                       <td className="py-stack-sm px-stack-md text-right">
                         <div className="flex justify-end gap-2">
                           <button 
-                            onClick={() => onManageRaces(tournament)}
-                            className="p-2 text-tertiary hover:text-on-tertiary hover:bg-tertiary rounded-full transition-colors cursor-pointer flex items-center gap-1"
-                            title="Manage Races"
+                            onClick={() => onManage(tournament)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-on-primary rounded-lg transition-colors font-interactive-md text-sm cursor-pointer border border-primary/20"
+                            title="Manage Tournament"
                           >
-                            <span className="material-symbols-outlined text-[18px]">flag</span>
-                          </button>
-                          <button 
-                            onClick={() => onManagePenaltyRules(tournament)}
-                            className="p-2 text-error hover:text-on-error hover:bg-error rounded-full transition-colors cursor-pointer flex items-center gap-1"
-                            title="Manage Penalty Rules"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">gavel</span>
+                            <span className="material-symbols-outlined text-[18px]">settings</span>
+                            Manage
                           </button>
                           <button 
                             onClick={() => handleOpenModal(tournament)}
@@ -412,6 +411,33 @@ export default function TournamentsTab({ onManageRaces, onManagePenaltyRules }) 
                         accept="image/*"
                         onChange={handleFileChange}
                         className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Registration Fee *</label>
+                      <input 
+                        type="number" 
+                        name="registrationFee"
+                        value={formData.registrationFee}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="e.g. 500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Max Participants *</label>
+                      <input 
+                        type="number" 
+                        name="maxParticipants"
+                        value={formData.maxParticipants}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="e.g. 100"
                       />
                     </div>
                   </div>

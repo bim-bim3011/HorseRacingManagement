@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -26,10 +27,13 @@ public class TournamentRequest {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate registrationEnd;
 
-    private Double prizePool;
+    private BigDecimal prizePool;
 
+    @NotNull(message = "Registration fee is required")
+    private BigDecimal registrationFee;
 
-
+    @NotNull(message = "Max participants is required")
+    private Integer maxParticipants;
     @NotNull(message = "Weight limit is required")
     private Float weightLimit;
 

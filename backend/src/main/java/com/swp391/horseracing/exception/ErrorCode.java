@@ -95,6 +95,7 @@ public enum ErrorCode {
     //tournamentresign
     REGISTRATION_NOT_FOUND(4079, "Tournament registration not found", HttpStatus.NOT_FOUND),
     TOURNAMENT_FULL(4081, "Tournament has reached maximum entries (main + reserve)", HttpStatus.CONFLICT),
+    REGISTRATION_NOT_OPEN(4090, "Tournament registration is not open at this time", HttpStatus.BAD_REQUEST),
 
     //wellet
     WALLET_NOT_FOUND(4083, "Wallet not found", HttpStatus.NOT_FOUND),
