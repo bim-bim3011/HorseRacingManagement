@@ -59,10 +59,10 @@ export async function deleteTournament(id) {
   return data.result;
 }
 
-export async function registerHorseForTournament(tournamentId, horseId) {
+export async function registerHorseForTournament(tournamentId, horseIds) {
   const response = await fetchWithAuth(`${API_BASE}/${tournamentId}/registrations`, {
     method: 'POST',
-    body: JSON.stringify({ horseId }),
+    body: JSON.stringify({ horseIds }),
   });
   const data = await response.json();
   if (!response.ok || data.code !== 1000) {

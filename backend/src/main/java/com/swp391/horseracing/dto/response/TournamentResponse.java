@@ -3,6 +3,7 @@ package com.swp391.horseracing.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -19,6 +20,8 @@ public class TournamentResponse {
     private String allowedBreed;
     private LocalDate registrationStart;
     private LocalDate registrationEnd;
-    private Double prizePool;
+    private BigDecimal prizePool;
+    private BigDecimal registrationFee;
+    private Integer maxParticipants;
     private String bannerUrl;
 }

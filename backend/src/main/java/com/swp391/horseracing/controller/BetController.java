@@ -1,8 +1,8 @@
 package com.swp391.horseracing.controller;
 
 
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.request.PlaceBetRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.BetResponse;
 import com.swp391.horseracing.service.BetService;
 import io.swagger.v3.oas.annotations.Operation;

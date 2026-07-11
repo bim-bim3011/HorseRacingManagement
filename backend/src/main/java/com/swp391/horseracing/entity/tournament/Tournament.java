@@ -5,6 +5,7 @@ import com.swp391.horseracing.entity.result.Ranking;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -61,8 +62,14 @@ public class Tournament extends BaseEntity {
     @Column(name = "registration_end")
     private LocalDate registrationEnd;
 
-    @Column(name = "prize_pool")
-    private Double prizePool;
+    @Column(name = "prize_pool", precision = 15, scale = 2)
+    private BigDecimal prizePool;
+
+    @Column(name = "registration_fee", precision = 15, scale = 2)
+    private BigDecimal registrationFee;
+
+    @Column(name = "max_participants")
+    private Integer maxParticipants;
 
     @Column(name = "banner_url")
     private String bannerUrl;

@@ -13,6 +13,10 @@ public interface TournamentRegistrationRepository extends JpaRepository<Tourname
 
     List<TournamentRegistration> findByHorseId(Integer horseId);
 
+    List<TournamentRegistration> findByTournamentIdAndOwnerId(Integer tournamentId, Integer ownerId);
+
+    boolean existsByIdAndTournamentId(Integer id, Integer tournamentId);
+
     int countByTournamentIdAndStatusAndIsReserve(Integer tournamentId, TournamentRegistration.RegistrationStatus status, Boolean isReserve);
 
     Optional<TournamentRegistration> findFirstByTournamentIdAndStatusAndIsReserveOrderByReserveOrderAsc(

@@ -1,9 +1,9 @@
 package com.swp391.horseracing.controller;
 
 
+import com.swp391.horseracing.dto.ApiResponse;
 import com.swp391.horseracing.dto.request.WithdrawalCreationRequest;
 import com.swp391.horseracing.dto.request.WithdrawalReviewRequest;
-import com.swp391.horseracing.dto.response.ApiResponse;
 import com.swp391.horseracing.dto.response.WithdrawalResponse;
 import com.swp391.horseracing.service.WithdrawalService;
 import io.swagger.v3.oas.annotations.Operation;

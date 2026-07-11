@@ -23,7 +23,7 @@ public class WalletTransaction {
     private Wallet wallet;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private TransactionType type;
 
     @Column(nullable = false, precision = 15, scale = 2)
@@ -48,6 +48,6 @@ public class WalletTransaction {
     private LocalDateTime createdAt;
 
     public enum TransactionType {
-        deposit, withdrawal, bet_place, bet_win, bet_refund, prize
+        deposit, withdrawal, bet_place, bet_win, bet_refund, prize, registration_fee, registration_refund
     }
 }

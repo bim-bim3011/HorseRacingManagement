@@ -51,6 +51,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .registrationStart(request.getRegistrationStart())
                 .registrationEnd(request.getRegistrationEnd())
                 .prizePool(request.getPrizePool())
+                .registrationFee(request.getRegistrationFee())
+                .maxParticipants(request.getMaxParticipants())
                 .build();
 
         if (banner != null && !banner.isEmpty()) {
@@ -84,6 +86,8 @@ public class TournamentServiceImpl implements TournamentService {
         tournament.setRegistrationStart(request.getRegistrationStart());
         tournament.setRegistrationEnd(request.getRegistrationEnd());
         tournament.setPrizePool(request.getPrizePool());
+        tournament.setRegistrationFee(request.getRegistrationFee());
+        tournament.setMaxParticipants(request.getMaxParticipants());
 
         if (banner != null && !banner.isEmpty()) {
             String url = cloudinaryService.uploadFile(banner, "EliteDerbyCloud/Tournament");
@@ -123,6 +127,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .registrationStart(tournament.getRegistrationStart())
                 .registrationEnd(tournament.getRegistrationEnd())
                 .prizePool(tournament.getPrizePool())
+                .registrationFee(tournament.getRegistrationFee())
+                .maxParticipants(tournament.getMaxParticipants())
                 .bannerUrl(tournament.getBannerUrl())
                 .build();
     }
