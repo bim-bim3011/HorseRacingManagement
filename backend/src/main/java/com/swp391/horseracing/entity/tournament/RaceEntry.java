@@ -61,6 +61,9 @@ public class RaceEntry {
     @OneToMany(mappedBy = "entry")
     private List<Violation> violations;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     public enum EntryStatus {
          approved, rejected
     }

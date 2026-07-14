@@ -1,6 +1,7 @@
 package com.swp391.horseracing.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swp391.horseracing.dto.response.NotificationResponse;
 import com.swp391.horseracing.entity.Notification;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.repository.NotificationRepository;
@@ -66,9 +67,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<Notification> getUserNotifications(Integer userId, int page, int size) {
+    public org.springframework.data.domain.Page<NotificationResponse> getUserNotifications(Integer userId, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
-        return notificationRepository.findByUserId(userId, pageable);
+        org.springframework.data.domain.Page<Notification> entities = notificationRepository.findByUserId(userId, pageable);
+        return entities.map(n -> NotificationResponse.builder()
+                .id(n.getId())
+                .title(n.getTitle())
+                .content(n.getContent())
+                .type(n.getType() != null ? n.getType().name() : null)
+                .isRead(n.getIsRead())
+                .createdAt(n.getCreatedAt())
+                .build());
     }
 
     @Override

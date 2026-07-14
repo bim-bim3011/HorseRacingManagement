@@ -233,6 +233,7 @@ public class RefereeServiceImpl implements RefereeService {
         return RefereeAssignmentResponse.builder()
                 .id(assignment.getId())
                 .raceId(assignment.getRace().getId())
+                .tournamentId(assignment.getRace().getTournament().getId())
                 .raceName(assignment.getRace().getName())
                 .refereeId(assignment.getReferee().getId())
                 .refereeName(assignment.getReferee().getFullName())

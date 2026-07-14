@@ -8,8 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Notification {
 
@@ -53,12 +55,10 @@ public class Notification {
         RACE_RESULT_PUBLISHED,
         WITHDRAW_REQUEST_APPROVED,
         WITHDRAW_REQUEST_REJECTED,
-        
+
         // Cũ (giữ lại và viết hoa)
         PREDICTION_WON,
         PREDICTION_LOST,
         SYSTEM
     }
 }
-
-

@@ -73,8 +73,17 @@ public class Race {
     @OneToOne(mappedBy = "race", cascade = CascadeType.ALL)
     private RaceReport report;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "betting_status")
+    @Builder.Default
+    private BettingStatus bettingStatus = BettingStatus.pending;
+
     public enum RaceStatus {
-        scheduled, checking, racing, finished, cancelled
+        scheduled, checking, ready_to_run, racing, finished, cancelled
+    }
+
+    public enum BettingStatus {
+        pending, open, closed, suspended
     }
 }
 

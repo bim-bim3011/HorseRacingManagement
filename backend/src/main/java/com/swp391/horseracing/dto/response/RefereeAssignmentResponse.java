@@ -8,6 +8,7 @@ import lombok.Getter;
 public class RefereeAssignmentResponse {
     private Integer id;
     private Integer raceId;
+    private Integer tournamentId;
     private String raceName;
     private Integer refereeId;
     private String refereeName;

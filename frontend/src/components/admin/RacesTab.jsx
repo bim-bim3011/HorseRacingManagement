@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  getAllRaces, 
-  createRace, 
-  updateRace, 
+import {
+  getAllRaces,
+  createRace,
+  updateRace,
   deleteRace,
   activateRace
 } from '../../api/raceApi';
@@ -11,6 +11,9 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 import RefereeAssignmentModal from './RefereeAssignmentModal';
+import HorseAssignmentModal from './HorseAssignmentModal';
+import BettingConfigModal from './BettingConfigModal';
+import { getEntriesByRace } from '../../api/raceEntryApi';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -49,7 +52,7 @@ export default function RacesTab({ tournament, onBack }) {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRace, setEditingRace] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     raceDatetime: null,
@@ -59,9 +62,11 @@ export default function RacesTab({ tournament, onBack }) {
     qualifyCount: '',
     distance: ''
   });
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [assigningRace, setAssigningRace] = useState(null);
+  const [assigningHorsesForRace, setAssigningHorsesForRace] = useState(null);
+  const [configuringBetRace, setConfiguringBetRace] = useState(null);
 
   useEffect(() => {
     if (tournament && tournament.id) {
@@ -96,12 +101,12 @@ export default function RacesTab({ tournament, onBack }) {
       });
     } else {
       setEditingRace(null);
-      setFormData({ 
-        name: '', 
-        raceDatetime: null, 
-        roundOrder: '', 
-        isFinal: false, 
-        maxEntries: '', 
+      setFormData({
+        name: '',
+        raceDatetime: null,
+        roundOrder: '',
+        isFinal: false,
+        maxEntries: '',
         qualifyCount: '',
         distance: ''
       });
@@ -116,9 +121,9 @@ export default function RacesTab({ tournament, onBack }) {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -170,10 +175,23 @@ export default function RacesTab({ tournament, onBack }) {
     }
   };
 
+  const handleOpenBetting = async (race) => {
+    try {
+      const entries = await getEntriesByRace(race.id);
+      if (!entries || entries.length === 0) {
+        alert('Phải assign ngựa trước rồi mới cấu hình tỷ lệ đặt cược!');
+        return;
+      }
+      setConfiguringBetRace(race);
+    } catch (err) {
+      alert(err.message || 'Lỗi khi kiểm tra ngựa của chặng đua');
+    }
+  };
+
   if (!tournament) return null;
 
   return (
-    <motion.div 
+    <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -184,7 +202,7 @@ export default function RacesTab({ tournament, onBack }) {
       <motion.div variants={itemVariants} className="flex justify-between items-end border-b border-outline-variant pb-stack-sm">
         <div className="flex items-center gap-4">
           {onBack && (
-            <button 
+            <button
               onClick={onBack}
               className="p-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary rounded-full transition-colors cursor-pointer"
             >
@@ -197,7 +215,7 @@ export default function RacesTab({ tournament, onBack }) {
           </div>
         </div>
         <div className="flex gap-stack-sm">
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleOpenModal()}
@@ -251,7 +269,7 @@ export default function RacesTab({ tournament, onBack }) {
                   </tr>
                 ) : (
                   races.map((race, i) => (
-                    <motion.tr 
+                    <motion.tr
                       key={race.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -271,9 +289,9 @@ export default function RacesTab({ tournament, onBack }) {
                       </td>
                       <td className="py-stack-sm px-stack-md">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-[12px] font-interactive-md capitalize
-                          ${race.status === 'SCHEDULED' || race.status === 'scheduled' ? 'bg-primary/20 text-primary' : 
-                            race.status === 'CHECKING' || race.status === 'checking' ? 'bg-secondary/20 text-secondary' : 
-                            'bg-surface-container border border-outline-variant'}`}
+                          ${race.status === 'SCHEDULED' || race.status === 'scheduled' ? 'bg-primary/20 text-primary' :
+                            race.status === 'CHECKING' || race.status === 'checking' ? 'bg-secondary/20 text-secondary' :
+                              'bg-surface-container border border-outline-variant'}`}
                         >
                           {race.status || 'UNKNOWN'}
                         </span>
@@ -282,29 +300,54 @@ export default function RacesTab({ tournament, onBack }) {
                       <td className="py-stack-sm px-stack-md text-right">
                         <div className="flex justify-end gap-2">
                           {(race.status === 'SCHEDULED' || race.status === 'scheduled') && (
-                            <button 
-                              onClick={() => handleActivate(race.id)}
-                              className="p-2 text-secondary hover:text-on-secondary hover:bg-secondary rounded-full transition-colors cursor-pointer"
-                              title="Activate Race"
+                            <>
+                              <button
+                                onClick={() => handleActivate(race.id)}
+                                className="p-2 text-secondary hover:text-on-secondary hover:bg-secondary rounded-full transition-colors cursor-pointer"
+                                title="Activate Race"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">play_circle</span>
+                              </button>
+                              <button
+                                onClick={() => setAssigningHorsesForRace(race)}
+                                className="p-2 text-primary hover:text-on-primary hover:bg-primary rounded-full transition-colors cursor-pointer"
+                                title="Assign Horses"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">pets</span>
+                              </button>
+                            </>
+                          )}
+                          {(race.status === 'SCHEDULED' || race.status === 'scheduled' || race.status === 'CHECKING' || race.status === 'checking') && (
+                            <button
+                              onClick={() => handleOpenBetting(race)}
+                              className="p-2 text-amber-500 hover:text-white hover:bg-amber-500 rounded-full transition-colors cursor-pointer"
+                              title="Manage Betting"
                             >
-                              <span className="material-symbols-outlined text-[18px]">play_circle</span>
+                              <span className="material-symbols-outlined text-[18px]">monetization_on</span>
                             </button>
                           )}
-                          <button 
+                          <button
                             onClick={() => setAssigningRace(race)}
                             className="p-2 text-on-surface-variant hover:text-tertiary hover:bg-tertiary/10 rounded-full transition-colors cursor-pointer"
                             title="Assign Referees"
                           >
                             <span className="material-symbols-outlined text-[18px]">group_add</span>
                           </button>
-                          <button 
+                          <button
+                            onClick={() => window.location.href = `/live-race/${tournament.id}/${race.id}`}
+                            className="p-2 text-indigo-500 hover:text-white hover:bg-indigo-500 rounded-full transition-colors cursor-pointer"
+                            title="Simulator Console"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">sports_esports</span>
+                          </button>
+                          <button
                             onClick={() => handleOpenModal(race)}
                             className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-full transition-colors cursor-pointer"
                             title="Edit"
                           >
                             <span className="material-symbols-outlined text-[18px]">edit</span>
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(race.id)}
                             className="p-2 text-on-surface-variant hover:text-error hover:bg-error-container rounded-full transition-colors cursor-pointer"
                             title="Delete"
@@ -326,7 +369,7 @@ export default function RacesTab({ tournament, onBack }) {
       <AnimatePresence>
         {isModalOpen && (
           <>
-            <motion.div 
+            <motion.div
               variants={backdropVariants}
               initial="hidden"
               animate="visible"
@@ -334,7 +377,7 @@ export default function RacesTab({ tournament, onBack }) {
               onClick={handleCloseModal}
               className="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100]"
             />
-            <motion.div 
+            <motion.div
               variants={modalVariants}
               initial="hidden"
               animate="visible"
@@ -350,12 +393,12 @@ export default function RacesTab({ tournament, onBack }) {
                     <span className="material-symbols-outlined">close</span>
                   </button>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} className="p-stack-md flex-grow overflow-y-auto space-y-4">
                   <div>
                     <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Race Name *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
@@ -364,12 +407,12 @@ export default function RacesTab({ tournament, onBack }) {
                       placeholder="e.g. Qualifier Heat 1"
                     />
                   </div>
-                  
+
                   <div className="flex flex-col">
                     <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Race Date & Time *</label>
-                    <DatePicker 
-                      selected={formData.raceDatetime} 
-                      onChange={(date) => setFormData(prev => ({...prev, raceDatetime: date}))} 
+                    <DatePicker
+                      selected={formData.raceDatetime}
+                      onChange={(date) => setFormData(prev => ({ ...prev, raceDatetime: date }))}
                       showTimeSelect
                       timeFormat="HH:mm"
                       timeIntervals={15}
@@ -384,8 +427,8 @@ export default function RacesTab({ tournament, onBack }) {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Round Order *</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="roundOrder"
                         value={formData.roundOrder}
                         onChange={handleInputChange}
@@ -396,8 +439,8 @@ export default function RacesTab({ tournament, onBack }) {
                     </div>
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Distance (meters) *</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="distance"
                         value={formData.distance}
                         onChange={handleInputChange}
@@ -411,8 +454,8 @@ export default function RacesTab({ tournament, onBack }) {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Max Entries</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="maxEntries"
                         value={formData.maxEntries}
                         onChange={handleInputChange}
@@ -422,8 +465,8 @@ export default function RacesTab({ tournament, onBack }) {
                     </div>
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Qualify Count</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="qualifyCount"
                         value={formData.qualifyCount}
                         onChange={handleInputChange}
@@ -432,10 +475,10 @@ export default function RacesTab({ tournament, onBack }) {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 pt-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       id="isFinal"
                       name="isFinal"
                       checked={formData.isFinal}
@@ -448,15 +491,15 @@ export default function RacesTab({ tournament, onBack }) {
                   </div>
 
                   <div className="pt-4 flex justify-end gap-3 border-t border-outline-variant mt-6">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleCloseModal}
                       className="px-4 py-2 font-interactive-md text-interactive-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={isSaving}
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary font-interactive-md text-interactive-md rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                     >
@@ -473,9 +516,29 @@ export default function RacesTab({ tournament, onBack }) {
 
       <AnimatePresence>
         {assigningRace && (
-          <RefereeAssignmentModal 
-            race={assigningRace} 
-            onClose={() => setAssigningRace(null)} 
+          <RefereeAssignmentModal
+            race={assigningRace}
+            onClose={() => setAssigningRace(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {assigningHorsesForRace && (
+          <HorseAssignmentModal
+            race={assigningHorsesForRace}
+            tournament={tournament}
+            onClose={() => setAssigningHorsesForRace(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {configuringBetRace && (
+          <BettingConfigModal
+            race={configuringBetRace}
+            onClose={() => setConfiguringBetRace(null)}
+            onUpdated={fetchRaces}
           />
         )}
       </AnimatePresence>

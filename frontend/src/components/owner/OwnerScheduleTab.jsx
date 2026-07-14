@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getMyHorseEntries } from '../../api/raceEntryApi';
+import InviteJockeyModal from './InviteJockeyModal';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -16,6 +17,9 @@ export default function OwnerScheduleTab() {
   const [entries, setEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Modal state
+  const [selectedEntryForInvite, setSelectedEntryForInvite] = useState(null);
 
   useEffect(() => {
     fetchEntries();
@@ -82,7 +86,17 @@ export default function OwnerScheduleTab() {
                         <p className="font-interactive-md">{entry.horseName}</p>
                       </td>
                       <td className="py-stack-sm px-stack-md">
-                        {entry.jockeyName ? <p>{entry.jockeyName}</p> : <p className="text-on-surface-variant italic">No jockey assigned</p>}
+                        {entry.jockeyName ? (
+                          <p className="font-interactive-md">{entry.jockeyName}</p>
+                        ) : (
+                          <button
+                            onClick={() => setSelectedEntryForInvite(entry)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-on-primary rounded-lg font-interactive-sm transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">person_add</span>
+                            Invite Jockey
+                          </button>
+                        )}
                       </td>
                       <td className="py-stack-sm px-stack-md">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[12px] bg-primary-fixed text-on-primary-fixed font-interactive-md">
@@ -98,6 +112,18 @@ export default function OwnerScheduleTab() {
           )}
         </div>
       </motion.div>
+
+      {selectedEntryForInvite && (
+        <InviteJockeyModal
+          raceId={selectedEntryForInvite.raceId}
+          horseId={selectedEntryForInvite.horseId}
+          onClose={() => setSelectedEntryForInvite(null)}
+          onSuccess={() => {
+            setSelectedEntryForInvite(null);
+            fetchEntries(); // Refresh list
+          }}
+        />
+      )}
     </motion.div>
   );
 }

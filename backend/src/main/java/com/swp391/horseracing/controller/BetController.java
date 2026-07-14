@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class BetController {
     @PostMapping
     @Operation(summary = "Place Bet",
             description = "Authenticated user places a bet on a horse (win/place/show)")
-    public ApiResponse<BetResponse> placeBet(@RequestBody PlaceBetRequest request) {
+    public ApiResponse<BetResponse> placeBet(@Valid @RequestBody PlaceBetRequest request) {
         return ApiResponse.success(betService.placeBet(request));
     }
 

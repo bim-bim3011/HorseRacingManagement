@@ -79,8 +79,8 @@ public class RefereeController {
     }
 
     @GetMapping("/{refereeId}/assignments")
-    @Operation(summary = "Get referee assignments", description = "Only ADMIN can view assignments by referee")
-    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @Operation(summary = "Get referee assignments", description = "Only ADMIN and REFEREE can view assignments by referee")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN') or hasAuthority('SCOPE_ROLE_REFEREE')")
     public ApiResponse<List<RefereeAssignmentResponse>> getAssignmentsByReferee(@PathVariable Integer refereeId) {
         return ApiResponse.success(refereeService.getAssignmentsByReferee(refereeId));
     }

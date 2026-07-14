@@ -23,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
@@ -35,32 +34,29 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends BaseEntity implements UserDetails {
 
-
-
     @Size(max = 50)
     @NotNull
     @Column(name = "username", nullable = false, length = 50)
-     String username;
+    String username;
 
     @Size(max = 255)
 
     @Column(name = "password_hash", nullable = false)
-     String passwordHash;
+    String passwordHash;
 
     @Size(max = 100)
     @NotNull
     @Column(name = "email", nullable = false, length = 100)
-     String email;
+    String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     UserStatus status = UserStatus.active;
 
-
-
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = {@JoinColumn(name = "user_id")}, inverseJoinColumns = {@JoinColumn(name = "role_id")})
-     Set<Role> roles = new LinkedHashSet<>();
+    @JoinTable(name = "user_roles", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = {
+            @JoinColumn(name = "role_id") })
+    Set<Role> roles = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Wallet wallet;
@@ -76,8 +72,6 @@ public class User extends BaseEntity implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<WithdrawalRequest> withdrawalRequests;
-
-
 
     @Override
     public @Nullable String getPassword() {
@@ -108,6 +102,7 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
     public enum UserStatus {
         active, inactive, banned
     }

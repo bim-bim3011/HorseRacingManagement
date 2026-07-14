@@ -102,6 +102,14 @@ export function NotificationProvider({ children }) {
     setLatestToast(null);
   }, []);
 
+  const showToast = useCallback((title, content) => {
+    const newNotif = { id: Date.now().toString(), title, content };
+    setLatestToast(newNotif);
+    setTimeout(() => {
+      setLatestToast(prev => (prev?.id === newNotif.id ? null : prev));
+    }, 5000);
+  }, []);
+
   const handleMarkAsRead = async (id) => {
     try {
       await markAsRead(id);
@@ -129,6 +137,7 @@ export function NotificationProvider({ children }) {
     unreadCount,
     latestToast,
     clearToast,
+    showToast,
     markAsRead: handleMarkAsRead,
     markAllAsRead: handleMarkAllAsRead,
     reloadNotifications: loadInitialData

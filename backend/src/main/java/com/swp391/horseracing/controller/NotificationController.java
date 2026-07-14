@@ -1,7 +1,7 @@
 package com.swp391.horseracing.controller;
 
 import com.swp391.horseracing.dto.ApiResponse;
-import com.swp391.horseracing.entity.Notification;
+import com.swp391.horseracing.dto.response.NotificationResponse;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.service.NotificationService;
 import lombok.AccessLevel;
@@ -30,13 +30,13 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ApiResponse<Page<Notification>> getMyNotifications(
+    public ApiResponse<Page<NotificationResponse>> getMyNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
             
         Integer userId = getCurrentUserId();
-        Page<Notification> notifications = notificationService.getUserNotifications(userId, page, size);
-        return ApiResponse.<Page<Notification>>builder()
+        Page<NotificationResponse> notifications = notificationService.getUserNotifications(userId, page, size);
+        return ApiResponse.<Page<NotificationResponse>>builder()
                 .result(notifications)
                 .build();
     }

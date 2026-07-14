@@ -71,3 +71,14 @@ export async function activateRace(tournamentId, raceId) {
   }
   return data.result;
 }
+
+export async function markReadyForRace(tournamentId, raceId) {
+  const response = await fetchWithAuth(`${getApiBase(tournamentId)}/${raceId}/ready`, {
+    method: 'PATCH',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to mark race as ready');
+  }
+  return data.result;
+}

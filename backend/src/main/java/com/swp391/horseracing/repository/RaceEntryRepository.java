@@ -14,6 +14,8 @@ public interface RaceEntryRepository extends JpaRepository<RaceEntry , Integer> 
 
     List<RaceEntry> findByHorseId(Integer horseId);
 
+    List<RaceEntry> findByJockeyId(Integer jockeyId);
+
     List<RaceEntry> findByStatus(RaceEntry.EntryStatus status);
 
     int countByRaceIdAndStatus(Integer raceId, RaceEntry.EntryStatus status);

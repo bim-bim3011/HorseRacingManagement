@@ -1,6 +1,5 @@
 package com.swp391.horseracing.entity.result;
 
-import com.swp391.horseracing.entity.profile.Referee;
 import com.swp391.horseracing.entity.tournament.RaceEntry;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,8 +28,5 @@ public class RaceResult {
     @Column(name = "finish_time")
     private LocalTime finishTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "confirmed_by", nullable = false)
-    private Referee confirmedBy;
 }
 

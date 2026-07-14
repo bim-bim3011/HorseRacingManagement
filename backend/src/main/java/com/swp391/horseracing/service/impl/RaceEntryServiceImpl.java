@@ -1,6 +1,7 @@
 package com.swp391.horseracing.service.impl;
 
 
+//import com.swp391.horseracing.dto.response.RaceEntryResponse;
 import com.swp391.horseracing.dto.response.RaceEntryResponse;
 import com.swp391.horseracing.entity.User;
 import com.swp391.horseracing.entity.horse.Horse;
@@ -14,6 +15,8 @@ import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.*;
 import com.swp391.horseracing.service.BetOddsService;
+import com.swp391.horseracing.service.NotificationService;
+import com.swp391.horseracing.entity.Notification;
 import com.swp391.horseracing.service.RaceEntryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +41,8 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     UserRepository userRepository;
     TournamentRegistrationRepository tournamentRegistrationRepository;
     BetOddsService betOddsService;
+    RaceRepository raceRepository;
+    NotificationService notificationService;
     @Override
     public void createEntryForRegistration(Race race, TournamentRegistration registration) {
         if (raceEntryRepository.existsByRaceIdAndHorseId(race.getId(), registration.getHorse().getId())) {
@@ -69,6 +74,18 @@ public class RaceEntryServiceImpl implements RaceEntryService {
 
         return horses.stream()
                 .flatMap(horse -> raceEntryRepository.findByHorseId(horse.getId()).stream())
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<RaceEntryResponse> getMyJockeyEntries() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        return raceEntryRepository.findByJockeyId(user.getId())
+                .stream()
                 .map(this::mapToResponse)
                 .toList();
     }
@@ -125,6 +142,70 @@ public class RaceEntryServiceImpl implements RaceEntryService {
         betOddsService.initOddsForEntry(entry);
     }
 
+    @Override
+    public RaceEntryResponse manuallyAssignHorse(Integer raceId, Integer horseId) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (race.getStatus() != Race.RaceStatus.scheduled) {
+            throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
+        }
+
+        Integer currentEntriesCount = raceEntryRepository.findByRaceId(raceId).size();
+        if (race.getMaxEntries() != null && currentEntriesCount >= race.getMaxEntries()) {
+            throw new AppException(ErrorCode.RACE_FULL);
+        }
+
+        if (raceEntryRepository.existsByRaceIdAndHorseId(raceId, horseId)) {
+            throw new AppException(ErrorCode.HORSE_ALREADY_REGISTERED);
+        }
+
+        TournamentRegistration registration = tournamentRegistrationRepository
+                .findByTournamentIdAndHorseIdAndStatus(race.getTournament().getId(), horseId, TournamentRegistration.RegistrationStatus.approved)
+                .orElseThrow(() -> new AppException(ErrorCode.REGISTRATION_NOT_FOUND));
+
+        List<Integer> usedLanes = raceEntryRepository.findByRaceId(raceId)
+                .stream()
+                .map(RaceEntry::getLaneNumber)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        Integer lane = assignRandomLane(race.getMaxEntries(), usedLanes);
+
+        RaceEntry entry = RaceEntry.builder()
+                .race(race)
+                .horse(registration.getHorse())
+                .laneNumber(lane)
+                .status(RaceEntry.EntryStatus.approved)
+                .build();
+
+        RaceEntry saved = raceEntryRepository.save(entry);
+        betOddsService.initOddsForEntry(saved);
+        
+        return mapToResponse(saved);
+    }
+
+
+    @Override
+    public RaceEntryResponse rejectEntry(Integer entryId, com.swp391.horseracing.dto.request.RejectEntryRequest request) {
+        RaceEntry entry = raceEntryRepository.findById(entryId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
+
+        entry.setStatus(RaceEntry.EntryStatus.rejected);
+        entry.setRejectionReason(request.getRejectionReason());
+        
+        RaceEntry saved = raceEntryRepository.save(entry);
+        
+        // Gửi thông báo cho chủ ngựa
+        if (entry.getHorse() != null && entry.getHorse().getOwner() != null) {
+            String title = "Ngựa bị loại khỏi cuộc đua";
+            String content = String.format("Ngựa %s của bạn đã bị Trọng tài loại khỏi cuộc đua %s. Lý do: %s", 
+                entry.getHorse().getName(), entry.getRace().getName(), request.getRejectionReason());
+            notificationService.sendNotification(entry.getHorse().getOwner(), Notification.NotificationType.HORSE_REJECTED, title, content);
+        }
+
+        return mapToResponse(saved);
+    }
 
     private Integer assignRandomLane(Integer maxLane, List<Integer> usedLanes) {
         if (maxLane == null) {
@@ -162,6 +243,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
                 .jockeyName(entry.getJockey() != null ? entry.getJockey().getFullName() : null)
                 .laneNumber(entry.getLaneNumber())
                 .status(entry.getStatus().name())
+                .rejectionReason(entry.getRejectionReason())
                 .build();
     }
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getGoogleAuthUrl } from '../configuration/configuration';
+import { getRolesFromToken } from '../utils/authUtils';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
@@ -13,8 +14,13 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(username, password);
-      navigate('/');
+      const result = await login(username, password);
+      const roles = getRolesFromToken(result.accessToken);
+      if (roles.includes('ROLE_REFEREE')) {
+        navigate('/referee/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch {
       // Error is already set in AuthContext
     }
