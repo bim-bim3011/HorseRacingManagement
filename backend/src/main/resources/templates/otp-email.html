@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận đăng ký tài khoản</title>
+    <style>
+        body { 
+            font-family: "Hanken Grotesk", sans-serif; 
+            background-color: #fcf9f8; 
+            color: #1c1b1b;
+            margin: 0; 
+            padding: 0; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 40px auto; 
+            background-color: #ffffff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+            border: 1px solid #d1c5b4;
+        }
+        .header { 
+            background-color: #775a19; /* Primary */
+            padding: 24px; 
+            text-align: center; 
+            color: #ffffff; 
+        }
+        .header h1 { 
+            margin: 0; 
+            font-family: "Playfair Display", serif;
+            font-size: 28px; 
+            font-weight: 600;
+        }
+        .content { 
+            padding: 32px; 
+            text-align: center; 
+        }
+        .content h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 24px;
+            color: #1c1b1b;
+            margin-top: 0;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #4e4639; /* On Surface Variant */
+        }
+        .otp-box { 
+            background-color: #f0eded; /* Surface container */
+            border: 2px dashed #7f7667; /* Outline */
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 24px auto; 
+            width: 60%; 
+            font-size: 36px; 
+            font-weight: 700; 
+            letter-spacing: 8px; 
+            color: #775a19; /* Primary */
+        }
+        .warning-text {
+            color: #ba1a1a; /* Error color */
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .footer { 
+            background-color: #f6f3f2; 
+            padding: 20px; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #7f7667;
+            border-top: 1px solid #eae7e7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>THE ELITE CLUB</h1>
+        </div>
+        <div class="content">
+            <h2>Confirm your acount</h2>
+            <p>Welcome to our club! To complete the registration process,
+                please use the OTP code below to verify your email address.</p>
+            
+            <div class="otp-box" th:text="${otp}">123456</div>
+            
+            <p class="warning-text">This verification code will expire in 5 minutes.
+                Please do not share this code with anyone.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 Horse Racing Management. All rights reserved.</p>
+            <p>This is an automated email; please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>
