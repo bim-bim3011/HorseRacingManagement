@@ -15,4 +15,5 @@ public class RaceEntryResponse {
     private String jockeyName;
     private Integer laneNumber;
     private String status;
+    private String rejectionReason;
 }

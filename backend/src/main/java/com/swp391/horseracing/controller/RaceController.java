@@ -74,5 +74,13 @@ public class RaceController {
         return ApiResponse.success("Race activated!");
     }
 
+    @PatchMapping("/{id}/ready")
+    @Operation(summary = "Mark Ready for Race", description = "Referee marks checking phase as completed")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_REFEREE') or hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ApiResponse<String> markReadyForRace(@PathVariable Integer tournamentId,
+                                        @PathVariable Integer id) {
+        raceService.markReadyForRace(tournamentId, id);
+        return ApiResponse.success("Race marked as ready to run!");
+    }
 
 }

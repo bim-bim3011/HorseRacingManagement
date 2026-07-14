@@ -13,6 +13,7 @@ public class RaceResponse {
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private String status;
+    private String bettingStatus;
     private Integer roundOrder;
     private Boolean isFinal;
     private Integer maxEntries;

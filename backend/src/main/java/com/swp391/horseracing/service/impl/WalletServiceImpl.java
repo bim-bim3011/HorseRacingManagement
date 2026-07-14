@@ -31,7 +31,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public void deduct(Integer userId, BigDecimal amount, WalletTransaction.TransactionType type, String refType, Integer refId, String note) {
-        Wallet wallet = getWalletByUserId(userId);
+        Wallet wallet = walletRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
 
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
@@ -56,7 +57,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public void credit(Integer userId, BigDecimal amount, WalletTransaction.TransactionType type, String refType, Integer refId, String note) {
-        Wallet wallet = getWalletByUserId(userId);
+        Wallet wallet = walletRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
 
         BigDecimal newBalance = wallet.getBalance().add(amount);
         wallet.setBalance(newBalance);

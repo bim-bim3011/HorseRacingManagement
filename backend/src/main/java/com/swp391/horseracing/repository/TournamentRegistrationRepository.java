@@ -22,5 +22,7 @@ public interface TournamentRegistrationRepository extends JpaRepository<Tourname
     Optional<TournamentRegistration> findFirstByTournamentIdAndStatusAndIsReserveOrderByReserveOrderAsc(
             Integer tournamentId, TournamentRegistration.RegistrationStatus status, Boolean isReserve);
 
+    Optional<TournamentRegistration> findByTournamentIdAndHorseIdAndStatus(
+            Integer tournamentId, Integer horseId, TournamentRegistration.RegistrationStatus status);
 
 }

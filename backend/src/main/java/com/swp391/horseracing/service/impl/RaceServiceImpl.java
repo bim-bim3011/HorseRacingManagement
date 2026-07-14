@@ -132,6 +132,25 @@ public class RaceServiceImpl implements RaceService {
         tournamentRepository.save(tournament);
     }
 
+    @Override
+    public void markReadyForRace(Integer tournamentId, Integer raceId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (!race.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
+            
+        if (race.getStatus() != Race.RaceStatus.checking) {
+            throw new AppException(ErrorCode.RACE_NOT_AVAILABLE); // Needs to be in checking to move to ready
+        }
+        
+        race.setStatus(Race.RaceStatus.ready_to_run);
+        raceRepository.save(race);
+    }
+
 
     private RaceResponse mapToResponse(Race race) {
         return RaceResponse.builder()
@@ -141,6 +160,7 @@ public class RaceServiceImpl implements RaceService {
                 .startedAt(race.getStartedAt())
                 .endedAt(race.getEndedAt())
                 .status(race.getStatus().name())
+                .bettingStatus(race.getBettingStatus() != null ? race.getBettingStatus().name() : Race.BettingStatus.pending.name())
                 .roundOrder(race.getRoundOrder())
                 .isFinal(race.getIsFinal())
                 .maxEntries(race.getMaxEntries())

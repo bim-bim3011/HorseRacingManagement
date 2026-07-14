@@ -146,6 +146,26 @@ function Header() {
                         My Stable
                       </Link>
                     )}
+                    {hasRole('ROLE_JOCKEY') && (
+                      <Link
+                        to="/jockey/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 font-body text-body-md text-primary font-bold hover:bg-primary/10 transition-colors no-underline"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">sports_score</span>
+                        Jockey Dashboard
+                      </Link>
+                    )}
+                    {hasRole('ROLE_REFEREE') && (
+                      <Link
+                        to="/referee/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 font-body text-body-md text-primary font-bold hover:bg-primary/10 transition-colors no-underline"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">gavel</span>
+                        Referee Dashboard
+                      </Link>
+                    )}
                     <div className="border-t border-outline-variant/20 my-1"></div>
                     <button
                        onClick={performLogout}
@@ -338,9 +358,6 @@ function Header() {
             
             <nav className="flex items-center gap-6 md:gap-8">
               <TournamentsDropdown />
-              <Link to="#" className="font-body text-label-caps font-bold text-on-surface-variant hover:text-primary transition-colors duration-200 tracking-[0.15em] uppercase no-underline whitespace-nowrap">
-                Races
-              </Link>
               <Link to="#" className="font-body text-label-caps font-bold text-on-surface-variant hover:text-primary transition-colors duration-200 tracking-[0.15em] uppercase no-underline whitespace-nowrap">
                 Results
               </Link>

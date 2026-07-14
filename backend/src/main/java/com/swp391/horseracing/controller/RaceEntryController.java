@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.swp391.horseracing.dto.request.RaceEntryRequest;
 import java.util.List;
 
 @RestController
@@ -31,6 +32,14 @@ public class RaceEntryController {
         return ApiResponse.success(raceEntryService.getMyHorseEntries());
     }
 
+    @GetMapping("/jockey-entries")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_JOCKEY')")
+    @Operation(summary = "Get My Jockey Entries",
+            description = "Jockey view their assigned race entries")
+    public ApiResponse<List<RaceEntryResponse>> getMyJockeyEntries() {
+        return ApiResponse.success(raceEntryService.getMyJockeyEntries());
+    }
+
     @PatchMapping("/{id}/replace-with-reserve")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     @Operation(summary = "Replace with Reserve", description = "Only ADMIN can replace a main entry with the next available reserve horse")
@@ -39,10 +48,22 @@ public class RaceEntryController {
         return ApiResponse.success("Replaced with reserve horse!");
     }
     @GetMapping("/race/{raceId}")
-    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    @Operation(summary = "Get Entries by Race", description = "Only ADMIN can view all entries of a specific race")
+    @Operation(summary = "Get Entries by Race", description = "View all entries of a specific race")
     public ApiResponse<List<RaceEntryResponse>> getByRace(@PathVariable Integer raceId) {
         return ApiResponse.success(raceEntryService.getEntriesByRace(raceId));
     }
 
+    @PostMapping("/race/{raceId}/assign")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @Operation(summary = "Assign Horse to Race", description = "Only ADMIN can manually assign a horse to a scheduled race")
+    public ApiResponse<RaceEntryResponse> manuallyAssignHorse(@PathVariable Integer raceId, @RequestBody RaceEntryRequest request) {
+        return ApiResponse.success(raceEntryService.manuallyAssignHorse(raceId, request.getHorseId()));
+    }
+
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_REFEREE')")
+    @Operation(summary = "Reject Race Entry", description = "Referee can reject a horse during the checking phase")
+    public ApiResponse<RaceEntryResponse> rejectEntry(@PathVariable Integer id, @jakarta.validation.Valid @RequestBody com.swp391.horseracing.dto.request.RejectEntryRequest request) {
+        return ApiResponse.success(raceEntryService.rejectEntry(id, request));
+    }
 }

@@ -32,9 +32,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         // prefix cho cac kenh ma server se day thong bao xuong client
         registry.enableSimpleBroker("/topic", "/queue");
-        
-        // Prefix cho các tin nhắn từ client gửi lên server (nếu có)
-        // prefix cho cac tin nhan ttu client gui len server
+
         registry.setApplicationDestinationPrefixes("/app");
         
 

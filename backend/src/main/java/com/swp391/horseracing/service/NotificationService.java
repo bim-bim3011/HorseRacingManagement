@@ -1,5 +1,6 @@
 package com.swp391.horseracing.service;
 
+import com.swp391.horseracing.dto.response.NotificationResponse;
 import com.swp391.horseracing.entity.Notification;
 import com.swp391.horseracing.entity.User;
 
@@ -15,7 +16,7 @@ public interface NotificationService {
     void sendNotification(User user, Notification.NotificationType type, String title, String content);
 
     // Dành cho REST API
-    org.springframework.data.domain.Page<Notification> getUserNotifications(Integer userId, int page, int size);
+    org.springframework.data.domain.Page<NotificationResponse> getUserNotifications(Integer userId, int page, int size);
     
     void markAsRead(Integer notificationId, Integer userId);
     

@@ -108,7 +108,9 @@ public enum ErrorCode {
     WITHDRAWAL_NOT_FOUND(4088, "Withdrawal request not found", HttpStatus.NOT_FOUND),
     WITHDRAWAL_NOT_APPROVED(4089, "Withdrawal must be approved before marking as transferred", HttpStatus.BAD_REQUEST),
    ADMIN_ACCESS_ONLY(1014, "This login is restricted to administrators only", HttpStatus.FORBIDDEN),
-
+    BETTING_NOT_OPEN(4087, "Betting is not open for this race", HttpStatus.BAD_REQUEST),
+    INVALID_BET_AMOUNT(4088, "Bet amount must be greater than zero", HttpStatus.BAD_REQUEST),
+    RACE_RESULT_NOT_FOUND(4091, "Race result not found for this entry", HttpStatus.BAD_REQUEST),
     ;
    
   

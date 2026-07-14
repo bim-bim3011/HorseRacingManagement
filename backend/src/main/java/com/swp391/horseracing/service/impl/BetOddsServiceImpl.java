@@ -9,6 +9,7 @@ import com.swp391.horseracing.exception.AppException;
 import com.swp391.horseracing.exception.ErrorCode;
 import com.swp391.horseracing.repository.BetOddsRepository;
 import com.swp391.horseracing.repository.RaceEntryRepository;
+import com.swp391.horseracing.repository.RaceRepository;
 import com.swp391.horseracing.service.BetOddsService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import java.util.List;
 public class BetOddsServiceImpl implements BetOddsService {
     BetOddsRepository betOddsRepository;
     RaceEntryRepository raceEntryRepository;
+    RaceRepository raceRepository;
 
 
     @Override
@@ -53,6 +55,22 @@ public class BetOddsServiceImpl implements BetOddsService {
         setOdds(entry, BetOdds.BetType.show, request.getShowOdds());
     }
 
+    @Override
+    public void updateBatchOdds(Integer raceId, List<com.swp391.horseracing.dto.request.EntryBetOddsRequest> requests) {
+        for (var req : requests) {
+            RaceEntry entry = raceEntryRepository.findById(req.getEntryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
+
+            if (!entry.getRace().getId().equals(raceId)) {
+                throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // Assuming we don't have a specific error for this, we can use generic or just skip
+            }
+
+            setOdds(entry, BetOdds.BetType.win, req.getWinOdds());
+            setOdds(entry, BetOdds.BetType.place, req.getPlaceOdds());
+            setOdds(entry, BetOdds.BetType.show, req.getShowOdds());
+        }
+    }
+
     private void setOdds(RaceEntry entry, BetOdds.BetType type, BigDecimal odds) {
         BetOdds betOdds = betOddsRepository.findByEntryIdAndBetType(entry.getId(), type)
                 .orElse(BetOdds.builder()
@@ -78,5 +96,33 @@ public class BetOddsServiceImpl implements BetOddsService {
                 .betType(betOdds.getBetType().name())
                 .odds(betOdds.getOdds())
                 .build();
+    }
+
+    @Override
+    public void initOddsForRace(Integer raceId) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION)); // Or a RACE_NOT_FOUND if exists
+        
+        List<RaceEntry> entries = raceEntryRepository.findByRaceId(raceId);
+        for (RaceEntry entry : entries) {
+            initOddsForEntry(entry);
+        }
+    }
+
+    @Override
+    public void toggleBettingStatus(Integer raceId, Race.BettingStatus status) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
+        
+        race.setBettingStatus(status);
+        raceRepository.save(race);
+    }
+
+    @Override
+    public List<BetOddsResponse> getOddsByEntry(Integer entryId) {
+        return betOddsRepository.findByEntryId(entryId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 }

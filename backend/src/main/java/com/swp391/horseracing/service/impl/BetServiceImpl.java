@@ -25,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import com.swp391.horseracing.entity.result.RaceResult;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +49,8 @@ public class BetServiceImpl implements BetService {
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_ENTRY_NOT_FOUND));
 
         Race race = entry.getRace();
-        if (race.getStatus() != Race.RaceStatus.checking) {
-            throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
+        if (race.getBettingStatus() != Race.BettingStatus.open) {
+            throw new AppException(ErrorCode.BETTING_NOT_OPEN);
         }
 
         BetOdds.BetType betType;
@@ -62,6 +64,9 @@ public class BetServiceImpl implements BetService {
                 .orElseThrow(() -> new AppException(ErrorCode.BET_ODDS_NOT_FOUND));
 
         BigDecimal amount = request.getAmount();
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new AppException(ErrorCode.INVALID_BET_AMOUNT);
+        }
         BigDecimal oddsSnapshot = betOdds.getOdds();
         BigDecimal potentialPayout = amount.multiply(oddsSnapshot);
 
@@ -91,8 +96,43 @@ public class BetServiceImpl implements BetService {
     }
 
     @Override
+    @Transactional
     public void settleBetsForRace(Integer raceId) {
+        List<Bet> pendingBets = betRepository.findByEntry_Race_IdAndStatus(raceId, Bet.BetStatus.pending);
 
+        for (Bet bet : pendingBets) {
+            RaceResult result = bet.getEntry().getResult();
+            if (result == null) {
+                throw new AppException(ErrorCode.RACE_RESULT_NOT_FOUND);
+            }
+
+            int position = result.getPosition();
+            boolean isWon = false;
+
+            switch (bet.getBetType()) {
+                case win:
+                    isWon = (position == 1);
+                    break;
+                case place:
+                    isWon = (position <= 2);
+                    break;
+                case show:
+                    isWon = (position <= 3);
+                    break;
+            }
+
+            if (isWon) {
+                bet.setStatus(Bet.BetStatus.won);
+                bet.setActualPayout(bet.getPotentialPayout());
+                 walletService.credit(bet.getUser().getId(), bet.getActualPayout(), WalletTransaction.TransactionType.bet_win, "bet", bet.getId(), "Won bet on " + bet.getEntry().getHorse().getName());
+            } else {
+                bet.setStatus(Bet.BetStatus.lost);
+                bet.setActualPayout(BigDecimal.ZERO);
+            }
+            
+            bet.setSettledAt(LocalDateTime.now());
+            betRepository.save(bet);
+        }
     }
     private User getCurrentUser() {
         String username = SecurityContextHolder.getContext()

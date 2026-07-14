@@ -12,6 +12,7 @@ public interface RaceService {
     void deleteRace(Integer tournamentId, Integer id);
     List<RaceResponse> getAllRaces(Integer tournamentId);
     void activateRace(Integer tournamentId, Integer raceId);
+    void markReadyForRace(Integer tournamentId, Integer raceId);
 
 
 }

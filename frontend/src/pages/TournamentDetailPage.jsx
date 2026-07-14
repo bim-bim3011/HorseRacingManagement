@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTournamentById, registerHorseForTournament } from '../api/tournamentApi';
+import { getAllRaces } from '../api/raceApi';
+import { getAllPenaltyRules } from '../api/penaltyRuleApi';
 import { getMyRegistrations } from '../api/tournamentRegistrationApi';
 import { getMyHorses } from '../api/horseApi';
 import { useAuth } from '../contexts/AuthContext';
@@ -53,6 +55,21 @@ export default function TournamentDetailPage() {
       setLoading(true);
       setError('');
       const data = await getTournamentById(id);
+      
+      try {
+        const racesData = await getAllRaces(id);
+        data.races = racesData;
+      } catch (raceErr) {
+        console.error('Failed to load races', raceErr);
+      }
+      
+      try {
+        const rulesData = await getAllPenaltyRules(id);
+        data.penaltyRules = rulesData;
+      } catch (ruleErr) {
+        console.error('Failed to load penalty rules', ruleErr);
+      }
+      
       setTournament(data);
     } catch (err) {
       console.error(err);
@@ -236,9 +253,30 @@ export default function TournamentDetailPage() {
                                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">calendar_month</span> {new Date(race.startTime).toLocaleString()}</span>
                                 </div>
                               </div>
-                              <span className="px-3 py-1 bg-surface-container text-on-surface-variant text-xs font-bold uppercase rounded-md border border-outline-variant">
-                                {race.status || 'SCHEDULED'}
-                              </span>
+                              <div className="flex items-center gap-3">
+                                {(() => {
+                                  const status = race.status || 'SCHEDULED';
+                                  const statusStyle = 
+                                    status === 'RUNNING' ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_8px_rgba(239,68,68,0.3)] animate-pulse' :
+                                    status === 'FINISHED' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                    status === 'PAUSED' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                                    'bg-surface-variant/30 text-on-surface-variant border-outline-variant';
+                                  
+                                  return (
+                                    <span className={`px-3 py-1 text-xs font-bold uppercase rounded-md border transition-all duration-300 ${statusStyle}`}>
+                                      {status === 'RUNNING' && <span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-2 animate-ping"></span>}
+                                      {status}
+                                    </span>
+                                  );
+                                })()}
+                                <button 
+                                  onClick={() => navigate(`/races/${tournament.id}/${race.id}`)}
+                                  className="flex items-center gap-1 bg-primary text-on-primary px-3 py-1 rounded-md text-xs font-bold uppercase hover:bg-on-primary-fixed-variant hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">visibility</span>
+                                  View Details
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>

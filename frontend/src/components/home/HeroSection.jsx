@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 function HeroSection() {
   return (
     <section className="w-full flex flex-col md:flex-row h-auto md:h-[614px] min-h-[500px]">
@@ -25,9 +27,9 @@ function HeroSection() {
           unparalleled precision.
         </p>
 
-        <button className="font-body text-interactive-md font-semibold border border-primary text-primary px-8 py-3 hover:bg-primary hover:text-on-primary transition-all duration-300 uppercase tracking-widest bg-surface cursor-pointer">
+        <Link to="/tournaments" className="font-body text-interactive-md font-semibold border border-primary text-primary px-8 py-3 hover:bg-primary hover:text-on-primary transition-all duration-300 uppercase tracking-widest bg-surface cursor-pointer no-underline inline-block">
           Explore Platform
-        </button>
+        </Link>
       </div>
 
       {/* Right: Atmospheric Image */}

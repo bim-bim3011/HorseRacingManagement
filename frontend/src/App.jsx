@@ -17,8 +17,12 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import TournamentDetailPage from './pages/TournamentDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
 import OwnerDashboardPage from './pages/OwnerDashboardPage';
+import JockeyDashboardPage from './pages/JockeyDashboardPage';
+import RefereeDashboardPage from './pages/RefereeDashboardPage';
 import DepositPage from './pages/DepositPage';
 import DepositResultPage from './pages/DepositResultPage';
+import LiveRacePage from './pages/LiveRacePage';
+import RaceDetailPage from './pages/RaceDetailPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -56,8 +60,16 @@ function AnimatedRoutes() {
               <PageTransition><OwnerDashboardPage /></PageTransition>
             </RoleBasedRoute>
           } />
+          <Route path="/jockey/dashboard" element={
+            <RoleBasedRoute allowedRoles={["ROLE_JOCKEY"]}>
+              <PageTransition><JockeyDashboardPage /></PageTransition>
+            </RoleBasedRoute>
+          } />
+
           <Route path="/unauthorized" element={<PageTransition><UnauthorizedPage /></PageTransition>} />
           <Route path="/tournaments/:id" element={<PageTransition><TournamentDetailPage /></PageTransition>} />
+          <Route path="/races/:tournamentId/:raceId" element={<PageTransition><RaceDetailPage /></PageTransition>} />
+          <Route path="/live-race/:tournamentId/:raceId" element={<PageTransition><LiveRacePage /></PageTransition>} />
           <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
         </Routes>
       </AnimatePresence>
@@ -71,7 +83,14 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <ToastContainer />
-          <AnimatedRoutes />
+          <Routes>
+            <Route path="/referee/dashboard" element={
+              <RoleBasedRoute allowedRoles={["ROLE_REFEREE"]}>
+                <RefereeDashboardPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/*" element={<AnimatedRoutes />} />
+          </Routes>
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>

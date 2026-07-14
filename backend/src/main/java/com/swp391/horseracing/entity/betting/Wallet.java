@@ -11,8 +11,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "wallets")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Wallet {
 
@@ -29,7 +31,8 @@ public class Wallet {
     private BigDecimal balance = BigDecimal.ZERO;
 
     /**
-     * Optimistic locking – tránh race condition khi nhiều request cùng thay đổi số dư.
+     * Optimistic locking – tránh race condition khi nhiều request cùng thay đổi số
+     * dư.
      */
     @Version
     @Column(nullable = false)
