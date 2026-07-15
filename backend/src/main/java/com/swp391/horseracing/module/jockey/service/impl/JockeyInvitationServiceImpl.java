@@ -28,6 +28,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -48,7 +53,7 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
         Race race = raceRepository.findById(request.getRaceId())
                 .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
-        if (race.getStatus() != Race.RaceStatus.checking) {
+        if (race.getStatus() != Race.RaceStatus.scheduled && race.getStatus() != Race.RaceStatus.checking) {
             throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
         }
 
@@ -190,6 +195,17 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
                 .map(this::mapToJockeyResponse)
                 .toList();
     }
+
+    @Override
+    public Page<JockeyResponse> getAvailableJockeysPaginated(String keyword, String gender, Integer minExperience, Float maxWeight, String sortBy, String sortDir, int page, int size) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        return jockeyRepository.findAvailableJockeysWithFilters(Jockey.JockeyStatus.approval, keyword, gender, minExperience, maxWeight, pageable)
+                .map(this::mapToJockeyResponse);
+    }
     private HorseOwner getCurrentOwner() {
         String username = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
@@ -215,7 +231,7 @@ public class JockeyInvitationServiceImpl implements JockeyInvitationService {
                 .fullName(jockey.getFullName())
                 .weight(jockey.getWeight())
                 .experienceYears(jockey.getExperienceYears())
-
+                .height(jockey.getHeight())
                 .build();
     }
 }

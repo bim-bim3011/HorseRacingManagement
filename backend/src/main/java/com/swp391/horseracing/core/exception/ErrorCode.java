@@ -56,6 +56,7 @@ public enum ErrorCode {
     RACE_MISSING_STANDARDS(4009, "Race missing standards", HttpStatus.BAD_REQUEST),
     RACE_MISSING_REFEREES(4064, "Race must have at least 1 referee assigned before activation", HttpStatus.BAD_REQUEST),
     CAN_ONLY_REGISTER_FIRST_ROUND(4071, "Horse can only be registered to the first round of the tournament", HttpStatus.BAD_REQUEST),
+    RACE_NOT_IN_CHECKING_STATUS(4072, "Race must be in 'checking' status to be marked as ready", HttpStatus.BAD_REQUEST),
 
     HORSE_ALREADY_EXISTS(4011, "Horse already exists", HttpStatus.CONFLICT),
     NOT_HORSE_OWNER(4012, "User is not a horse owner", HttpStatus.FORBIDDEN),

@@ -32,6 +32,23 @@ public class JockeyInvitationController {
         return ApiResponse.success(jockeyInvitationService.getAvailableJockeys());
     }
 
+    @GetMapping("/available-jockeys/paginated")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_HORSE_OWNER')")
+    @Operation(
+            summary = "Get Available Jockeys Paginated",
+            description = "Only Horse Owner can view list of approved jockeys with pagination")
+    public ApiResponse<org.springframework.data.domain.Page<JockeyResponse>> getAvailableJockeysPaginated(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) Integer minExperience,
+            @RequestParam(required = false) Float maxWeight,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        return ApiResponse.success(jockeyInvitationService.getAvailableJockeysPaginated(keyword, gender, minExperience, maxWeight, sortBy, sortDir, page, size));
+    }
+
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_ROLE_HORSE_OWNER')")
     @Operation(

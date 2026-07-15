@@ -13,4 +13,5 @@ public interface JockeyInvitationService {
     void acceptInvitation(Integer id);
     void declineInvitation(Integer id);
     List<JockeyResponse> getAvailableJockeys();
+    org.springframework.data.domain.Page<JockeyResponse> getAvailableJockeysPaginated(String keyword, String gender, Integer minExperience, Float maxWeight, String sortBy, String sortDir, int page, int size);
 }

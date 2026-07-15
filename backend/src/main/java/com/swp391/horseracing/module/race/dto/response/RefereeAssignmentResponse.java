@@ -14,4 +14,5 @@ public class RefereeAssignmentResponse {
     private String refereeName;
     private String refereeEmail;
     private String licenseNumber;
+    private String raceStatus;
 }

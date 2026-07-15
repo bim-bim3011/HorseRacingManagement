@@ -456,14 +456,22 @@ export default function TournamentsTab({ onManage }) {
                     </div>
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Allowed Breed *</label>
-                      <input 
-                        type="text" 
+                      <select 
                         name="allowedBreed"
                         value={formData.allowedBreed}
                         onChange={handleInputChange}
                         required
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                      />
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300 ease-in-out cursor-pointer"
+                      >
+                        <option value="" disabled>Select a breed</option>
+                        <option value="Thoroughbred">Thoroughbred</option>
+                        <option value="Quarter Horse">Quarter Horse</option>
+                        <option value="Standardbred">Standardbred</option>
+                        <option value="Arabian">Arabian</option>
+                        <option value="Appaloosa">Appaloosa</option>
+                        <option value="Paint">Paint</option>
+                        <option value="Any">Any (All breeds allowed)</option>
+                      </select>
                     </div>
                   </div>
 

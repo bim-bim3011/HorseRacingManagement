@@ -7,6 +7,9 @@ import com.swp391.horseracing.module.horse.repository.HorseOwnerRepository;
 import com.swp391.horseracing.module.horse.repository.HorseRepository;
 import com.swp391.horseracing.module.race.dto.response.RaceEntryResponse;
 import com.swp391.horseracing.module.race.repository.RaceEntryRepository;
+import com.swp391.horseracing.module.race.repository.RaceRepository;
+import com.swp391.horseracing.module.jockey.repository.JockeyInvitationRepository;
+import com.swp391.horseracing.module.jockey.entity.tournament.JockeyInvitation;
 import com.swp391.horseracing.module.tournament.repository.TournamentRegistrationRepository;
 import com.swp391.horseracing.module.user.entity.User;
 import com.swp391.horseracing.module.horse.entity.horse.Horse;
@@ -32,7 +35,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -46,8 +48,9 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     UserRepository userRepository;
     TournamentRegistrationRepository tournamentRegistrationRepository;
     BetOddsService betOddsService;
-    RaceEntryRepository raceRepository;
+    RaceRepository raceRepository;
     NotificationService notificationService;
+    JockeyInvitationRepository jockeyInvitationRepository;
     @Override
     public void createEntryForRegistration(Race race, TournamentRegistration registration) {
         if (raceEntryRepository.existsByRaceIdAndHorseId(race.getId(), registration.getHorse().getId())) {
@@ -60,7 +63,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        Integer lane = assignRandomLane(race.getMaxEntries(), usedLanes);
+        Integer lane = assignSequentialLane(race.getMaxEntries(), usedLanes);
 
         RaceEntry entry = RaceEntry.builder()
                 .race(race)
@@ -150,7 +153,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     @Override
     public RaceEntryResponse manuallyAssignHorse(Integer raceId, Integer horseId) {
         Race race = raceRepository.findById(raceId)
-                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND)).getRace();
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
         if (race.getStatus() != Race.RaceStatus.scheduled) {
             throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
@@ -175,7 +178,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        Integer lane = assignRandomLane(race.getMaxEntries(), usedLanes);
+        Integer lane = assignSequentialLane(race.getMaxEntries(), usedLanes);
 
         RaceEntry entry = RaceEntry.builder()
                 .race(race)
@@ -212,7 +215,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
         return mapToResponse(saved);
     }
 
-    private Integer assignRandomLane(Integer maxLane, List<Integer> usedLanes) {
+    private Integer assignSequentialLane(Integer maxLane, List<Integer> usedLanes) {
         if (maxLane == null) {
             throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
         }
@@ -226,7 +229,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
             throw new AppException(ErrorCode.RACE_FULL);
         }
 
-        return availableLanes.get(new Random().nextInt(availableLanes.size()));
+        return availableLanes.get(0);
     }
     private HorseOwner getCurrentOwner() {
         String username = SecurityContextHolder.getContext()
@@ -238,6 +241,12 @@ public class RaceEntryServiceImpl implements RaceEntryService {
     }
 
     private RaceEntryResponse mapToResponse(RaceEntry entry) {
+        boolean hasPending = jockeyInvitationRepository.existsByRaceIdAndHorseIdAndStatus(
+                entry.getRace().getId(),
+                entry.getHorse().getId(),
+                JockeyInvitation.InvitationStatus.pending
+        );
+
         return RaceEntryResponse.builder()
                 .id(entry.getId())
                 .raceId(entry.getRace().getId())
@@ -249,6 +258,7 @@ public class RaceEntryServiceImpl implements RaceEntryService {
                 .laneNumber(entry.getLaneNumber())
                 .status(entry.getStatus().name())
                 .rejectionReason(entry.getRejectionReason())
+                .hasPendingInvitation(hasPending)
                 .build();
     }
 }

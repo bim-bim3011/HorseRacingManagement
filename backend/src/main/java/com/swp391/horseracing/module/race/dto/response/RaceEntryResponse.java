@@ -16,4 +16,5 @@ public class RaceEntryResponse {
     private Integer laneNumber;
     private String status;
     private String rejectionReason;
+    private Boolean hasPendingInvitation;
 }

@@ -146,7 +146,7 @@ public class RaceServiceImpl implements RaceService {
             throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
             
         if (race.getStatus() != Race.RaceStatus.checking) {
-            throw new AppException(ErrorCode.RACE_NOT_AVAILABLE); // Needs to be in checking to move to ready
+            throw new AppException(ErrorCode.RACE_NOT_IN_CHECKING_STATUS); // Needs to be in checking to move to ready
         }
         
         race.setStatus(Race.RaceStatus.ready_to_run);

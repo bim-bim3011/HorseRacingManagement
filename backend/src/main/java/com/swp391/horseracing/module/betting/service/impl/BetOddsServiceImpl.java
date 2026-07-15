@@ -87,6 +87,7 @@ public class BetOddsServiceImpl implements BetOddsService {
     public List<BetOddsResponse> getOddsByRace(Integer raceId) {
         return betOddsRepository.findByEntry_Race_Id(raceId)
                 .stream()
+                .filter(odds -> odds.getEntry().getStatus() != RaceEntry.EntryStatus.rejected)
                 .map(this::mapToResponse)
                 .toList();
     }
@@ -106,7 +107,9 @@ public class BetOddsServiceImpl implements BetOddsService {
         
         List<RaceEntry> entries = raceEntryRepository.findByRaceId(raceId);
         for (RaceEntry entry : entries) {
-            initOddsForEntry(entry);
+            if (entry.getStatus() != RaceEntry.EntryStatus.rejected) {
+                initOddsForEntry(entry);
+            }
         }
     }
 

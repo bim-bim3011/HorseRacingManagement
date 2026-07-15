@@ -13,6 +13,18 @@ export async function getMyHorses() {
   return data.result;
 }
 
+export async function getMyHorsesPaginated(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetchWithAuth(`${API_BASE}/my-horses/paginated${query ? `?${query}` : ''}`, {
+    method: 'GET',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to fetch horses');
+  }
+  return data.result;
+}
+
 export async function createHorse(horseData) {
   const response = await fetchWithAuth(API_BASE, {
     method: 'POST',
@@ -102,4 +114,15 @@ export async function rejectHorse(id) {
     throw new Error(data.message || 'Failed to reject horse');
   }
   return data;
+}
+
+export async function getHorseProfile(id) {
+  const response = await fetchWithAuth(`${API_BASE}/${id}/profile`, {
+    method: 'GET',
+  });
+  const data = await response.json();
+  if (!response.ok || data.code !== 1000) {
+    throw new Error(data.message || 'Failed to fetch horse profile');
+  }
+  return data.result;
 }

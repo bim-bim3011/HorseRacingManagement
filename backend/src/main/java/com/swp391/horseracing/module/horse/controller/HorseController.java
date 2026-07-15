@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import com.swp391.horseracing.module.horse.entity.horse.Horse.HorseStatus;
 
 @RestController
 @RequestMapping("/api/horses")
@@ -58,6 +60,19 @@ public class HorseController {
         return ApiResponse.success(horseService.getMyHorses());
     }
 
+    @GetMapping("/my-horses/paginated")
+    @Operation(summary = "Get My Horses Paginated", description = "Horse Owner view their own horses with pagination and filters")
+    public ApiResponse<Page<HorseResponse>> getMyHorsesPaginated(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) HorseStatus status,
+            @RequestParam(required = false) String gender,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        return ApiResponse.success(horseService.getMyHorses(keyword, status, gender, page, size, sortBy, sortDir));
+    }
+
     @PostMapping("/{id}/upload-certificate")
     @Operation(summary = "Upload Health Certificate", description = "Horse Owner upload health certificate")
     public ApiResponse<String> uploadCertificate(@PathVariable Integer id,
@@ -86,5 +101,11 @@ public class HorseController {
     @Operation(summary = "Get Pending Horses", description = "Admin view list of horses waiting for approval")
     public ApiResponse<List<HorseResponse>> getPendingHorses() {
         return ApiResponse.success(horseService.getPendingHorses());
+    }
+
+    @GetMapping("/{id}/profile")
+    @Operation(summary = "Get Horse Profile", description = "Get detailed profile of a horse including race history and statistics")
+    public ApiResponse<com.swp391.horseracing.module.horse.dto.response.HorseProfileResponse> getHorseProfile(@PathVariable Integer id) {
+        return ApiResponse.success(horseService.getHorseProfile(id));
     }
 }

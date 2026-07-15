@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { getEntriesByRace, rejectRaceEntry } from '../../api/raceEntryApi';
 import { markReadyForRace } from '../../api/raceApi';
 import { raceSimulatorApi } from '../../api/raceSimulatorApi';
@@ -148,10 +149,13 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
         <h3 className="font-display text-title-lg text-on-surface font-bold">Horse Checklist</h3>
         <button 
           onClick={handleMarkAsReady}
-          disabled={isSubmitting}
-          className="bg-primary text-on-primary px-6 py-2 rounded font-body text-label-md font-bold uppercase hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm disabled:opacity-50"
+          disabled={isSubmitting || selectedRace.raceStatus !== 'checking'}
+          className="bg-primary text-on-primary px-6 py-2 rounded font-body text-label-md font-bold uppercase hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          title={selectedRace.raceStatus !== 'checking' ? 'Race must be in checking phase to mark as ready' : ''}
         >
-          Mark as Ready
+          {selectedRace.raceStatus === 'scheduled' ? 'Waiting for Admin' : 
+           selectedRace.raceStatus === 'ready_to_run' ? 'Already Ready' : 
+           'Mark as Ready'}
         </button>
       </div>
 
@@ -177,9 +181,9 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
                       <span className="text-lg font-bold text-primary">{entry.laneNumber}</span>
                     </div>
                     <div>
-                      <h4 className={`font-display text-title-md font-bold ${isRejected ? 'text-on-surface-variant line-through' : 'text-on-surface'}`}>
+                      <Link to={`/horses/${entry.horseId}`} className={`font-display text-title-md font-bold hover:text-primary transition-colors ${isRejected ? 'text-on-surface-variant line-through hover:text-error' : 'text-on-surface'}`}>
                         {entry.horseName}
-                      </h4>
+                      </Link>
                       <p className="font-body text-body-sm text-on-surface-variant flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">person</span>
                         {entry.jockeyName || 'No Jockey Assigned'}

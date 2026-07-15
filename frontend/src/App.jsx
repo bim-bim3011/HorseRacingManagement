@@ -23,6 +23,7 @@ import DepositPage from './pages/DepositPage';
 import DepositResultPage from './pages/DepositResultPage';
 import LiveRacePage from './pages/LiveRacePage';
 import RaceDetailPage from './pages/RaceDetailPage';
+import HorseProfilePage from './pages/HorseProfilePage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -70,6 +71,7 @@ function AnimatedRoutes() {
           <Route path="/tournaments/:id" element={<PageTransition><TournamentDetailPage /></PageTransition>} />
           <Route path="/races/:tournamentId/:raceId" element={<PageTransition><RaceDetailPage /></PageTransition>} />
           <Route path="/live-race/:tournamentId/:raceId" element={<PageTransition><LiveRacePage /></PageTransition>} />
+          <Route path="/horses/:id" element={<PageTransition><HorseProfilePage /></PageTransition>} />
           <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
         </Routes>
       </AnimatePresence>

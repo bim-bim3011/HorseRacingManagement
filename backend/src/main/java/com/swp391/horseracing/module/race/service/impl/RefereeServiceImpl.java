@@ -239,6 +239,7 @@ public class RefereeServiceImpl implements RefereeService {
                 .refereeName(assignment.getReferee().getFullName())
                 .refereeEmail(assignment.getReferee().getEmail())
                 .licenseNumber(assignment.getReferee().getLicenseNumber())
+                .raceStatus(assignment.getRace().getStatus().name())
                 .build();
     }
 }

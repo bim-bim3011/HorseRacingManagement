@@ -30,6 +30,12 @@ public class RedisMessageSubscriber implements MessageListener {
 
             // Doc message tu redis (gia su minh gui json co chua userId vaf content)
             String jsonMessage = new String(message.getBody());
+            
+            // Xử lý trường hợp bị serialize 2 lần thành chuỗi JSON (GenericJackson2JsonRedisSerializer)
+            if (jsonMessage.startsWith("\"") && jsonMessage.endsWith("\"")) {
+                jsonMessage = objectMapper.readValue(jsonMessage, String.class);
+            }
+            
             Map<String, Object> notificationData = objectMapper.readValue(jsonMessage, Map.class);
             
             String userId = String.valueOf(notificationData.get("userId"));
