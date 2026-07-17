@@ -518,7 +518,31 @@ export default function TournamentDetailPage() {
                         ) : (
                           <div className="overflow-y-auto pr-2 custom-scrollbar h-[380px] space-y-3">
                             {myHorses.map(horse => {
+                              const isAlreadyRegistered = myRegistrations?.some(reg => reg.horseId === horse.id);
                               const isSelected = selectedHorses.includes(horse.id);
+
+                              if (isAlreadyRegistered) {
+                                return (
+                                  <div
+                                    key={horse.id}
+                                    className="flex items-center justify-between p-4 rounded-xl border border-outline-variant bg-surface-container-lowest opacity-60 cursor-not-allowed"
+                                  >
+                                    <div className="flex items-center gap-4">
+                                      <div className="w-5 h-5 rounded-md flex items-center justify-center border border-outline-variant bg-surface-variant">
+                                        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">block</span>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-bold text-on-surface-variant">{horse.name}</h4>
+                                        <p className="text-xs text-on-surface-variant mt-0.5">Age: {horse.age} • Breed: {horse.breed}</p>
+                                      </div>
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-md border bg-surface-variant text-on-surface-variant border-outline-variant">
+                                      Registered
+                                    </span>
+                                  </div>
+                                );
+                              }
+
                               return (
                                 <div
                                   key={horse.id}

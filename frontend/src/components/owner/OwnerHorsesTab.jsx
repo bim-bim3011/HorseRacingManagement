@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getMyHorses, createHorse, updateHorse, deleteHorse } from '../../api/horseApi';
+import { getMyHorsesPaginated, createHorse, updateHorse, deleteHorse } from '../../api/horseApi';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -36,6 +36,16 @@ export default function OwnerHorsesTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Pagination & Filter States
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [sortBy, setSortBy] = useState('id');
+  const [sortDir, setSortDir] = useState('desc');
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHorse, setEditingHorse] = useState(null);
@@ -58,19 +68,34 @@ export default function OwnerHorsesTab() {
 
   useEffect(() => {
     fetchHorses();
-  }, []);
+  }, [currentPage, searchQuery, statusFilter, genderFilter, sortBy, sortDir]);
 
   const fetchHorses = async () => {
     setIsLoading(true);
     try {
-      const data = await getMyHorses();
-      setHorses(data || []);
+      const data = await getMyHorsesPaginated({
+        page: currentPage,
+        size: 10,
+        keyword: searchQuery,
+        status: statusFilter,
+        gender: genderFilter,
+        sortBy,
+        sortDir
+      });
+      setHorses(data.content || []);
+      setTotalPages(data.totalPages || 0);
       setError(null);
     } catch (err) {
       setError(err.message || 'Failed to load horses');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
+    setCurrentPage(0);
   };
 
   const handleOpenModal = (horse = null) => {
@@ -174,7 +199,7 @@ export default function OwnerHorsesTab() {
       className="max-w-[1280px] mx-auto space-y-stack-lg"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex justify-between items-end border-b border-outline-variant pb-stack-sm">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-outline-variant pb-stack-sm gap-4">
         <div>
           <h2 className="font-display-lg text-display-lg text-on-surface">My Horses</h2>
           <p className="font-body-lg text-body-lg text-on-surface-variant mt-unit">Manage your racing horses, view status and details.</p>
@@ -183,7 +208,7 @@ export default function OwnerHorsesTab() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-unit px-4 py-2 bg-primary text-on-primary font-interactive-md text-interactive-md rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm cursor-pointer"
+          className="flex items-center gap-unit px-4 py-2 bg-primary text-on-primary font-interactive-md text-interactive-md rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm cursor-pointer whitespace-nowrap"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           Register Horse
@@ -196,11 +221,62 @@ export default function OwnerHorsesTab() {
         </motion.div>
       )}
 
+      {/* Toolbar */}
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row gap-4 bg-surface-container-lowest p-4 rounded-xl border border-outline-variant">
+        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+          <div className="relative flex-1">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input 
+              type="text" 
+              placeholder="Search horse by name..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full bg-surface-container border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-on-surface font-interactive-md focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+          <button type="submit" className="px-4 py-2 bg-secondary text-on-secondary rounded-lg font-interactive-md hover:bg-secondary-fixed-dim transition-colors">
+            Search
+          </button>
+        </form>
+
+        <div className="flex flex-wrap gap-3">
+          <select 
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(0); }}
+            className="bg-surface-container border border-outline-variant text-on-surface rounded-lg px-3 py-2 font-interactive-sm focus:outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="rejected">Rejected</option>
+            <option value="banned">Banned</option>
+          </select>
+
+          <select 
+            value={genderFilter}
+            onChange={(e) => { setGenderFilter(e.target.value); setCurrentPage(0); }}
+            className="bg-surface-container border border-outline-variant text-on-surface rounded-lg px-3 py-2 font-interactive-sm focus:outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="">All Genders</option>
+            <option value="Stallion">Stallion</option>
+            <option value="Mare">Mare</option>
+            <option value="Gelding">Gelding</option>
+          </select>
+
+          <select 
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value); setCurrentPage(0); }}
+            className="bg-surface-container border border-outline-variant text-on-surface rounded-lg px-3 py-2 font-interactive-sm focus:outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="id">Sort by Default</option>
+            <option value="name">Sort by Name</option>
+            <option value="dateOfBirth">Sort by Age</option>
+          </select>
+        </div>
+      </motion.div>
+
       {/* Main Table */}
       <motion.div variants={itemVariants} className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="px-stack-md py-stack-sm border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
-          <h3 className="font-headline-md text-headline-md text-on-surface">Registered Horses</h3>
-        </div>
         <div className="w-full overflow-x-auto">
           {isLoading ? (
             <div className="p-8 text-center text-on-surface-variant">
@@ -208,84 +284,112 @@ export default function OwnerHorsesTab() {
               <p className="mt-2 font-interactive-md">Loading your horses...</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b-2 border-primary bg-surface text-on-surface-variant">
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Code</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Name</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Breed</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Gender</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">DOB</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Height</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Weight</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Status</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps">Health</th>
-                  <th className="py-stack-sm px-stack-md font-label-caps text-label-caps text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="font-body-md text-body-md text-on-surface">
-                {horses.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="py-8 text-center text-on-surface-variant font-interactive-md">
-                      You haven't registered any horses yet.
-                    </td>
+            <>
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="border-b-2 border-primary bg-surface-container-low text-on-surface-variant">
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Code</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Name</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Breed</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Gender</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">DOB</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Height</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Weight</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Status</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap">Health</th>
+                    <th className="py-stack-sm px-stack-md font-label-caps text-label-caps whitespace-nowrap text-right">Actions</th>
                   </tr>
-                ) : (
-                  horses.map((horse, i) => (
-                    <motion.tr 
-                      key={horse.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="border-b border-outline-variant hover:bg-surface-container-highest transition-colors cursor-default group"
-                    >
-                      <td className="py-stack-sm px-stack-md text-on-surface-variant">{horse.horseCode || '-'}</td>
-                      <td className="py-stack-sm px-stack-md font-interactive-md">{horse.name}</td>
-                      <td className="py-stack-sm px-stack-md">{horse.breed || '-'}</td>
-                      <td className="py-stack-sm px-stack-md">{horse.gender || '-'}</td>
-                      <td className="py-stack-sm px-stack-md">{horse.dateOfBirth || '-'}</td>
-                      <td className="py-stack-sm px-stack-md">{horse.height ? `${horse.height} cm` : '-'}</td>
-                      <td className="py-stack-sm px-stack-md">{horse.weight ? `${horse.weight} kg` : '-'}</td>
-                      <td className="py-stack-sm px-stack-md">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-[12px] font-interactive-md 
-                          ${horse.status === 'APPROVED' ? 'bg-primary-fixed text-on-primary-fixed' : 
-                            horse.status === 'PENDING' ? 'bg-secondary-fixed text-on-secondary-fixed' : 
-                            'bg-error-container text-on-error-container'}`}
-                        >
-                          {horse.status}
-                        </span>
+                </thead>
+                <tbody className="font-body-md text-body-md text-on-surface">
+                  {horses.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="py-12 text-center text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[48px] opacity-30 mb-2">sentiment_dissatisfied</span>
+                        <p className="font-interactive-md">No horses found matching your criteria.</p>
                       </td>
-                      <td className="py-stack-sm px-stack-md">
-                        <span className="inline-flex items-center gap-1 font-interactive-md">
-                          <span className={`material-symbols-outlined text-[16px] ${horse.healthStatus === 'HEALTHY' ? 'text-primary' : 'text-error'}`}>
-                            {horse.healthStatus === 'HEALTHY' ? 'health_and_safety' : 'warning'}
+                    </tr>
+                  ) : (
+                    horses.map((horse, i) => (
+                      <motion.tr 
+                        key={horse.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="border-b border-outline-variant hover:bg-surface-container-highest transition-colors cursor-default group"
+                      >
+                        <td className="py-stack-sm px-stack-md text-on-surface-variant font-mono">{horse.horseCode || '-'}</td>
+                        <td className="py-stack-sm px-stack-md font-bold text-on-surface">{horse.name}</td>
+                        <td className="py-stack-sm px-stack-md">{horse.breed || '-'}</td>
+                        <td className="py-stack-sm px-stack-md">{horse.gender || '-'}</td>
+                        <td className="py-stack-sm px-stack-md">{horse.dateOfBirth || '-'}</td>
+                        <td className="py-stack-sm px-stack-md">{horse.height ? `${horse.height} cm` : '-'}</td>
+                        <td className="py-stack-sm px-stack-md">{horse.weight ? `${horse.weight} kg` : '-'}</td>
+                        <td className="py-stack-sm px-stack-md">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[12px] font-bold uppercase tracking-wider
+                            ${horse.status === 'APPROVED' || horse.status === 'active' ? 'bg-primary-fixed text-on-primary-fixed' : 
+                              horse.status === 'PENDING' || horse.status === 'inactive' ? 'bg-secondary-fixed text-on-secondary-fixed' : 
+                              'bg-error-container text-on-error-container'}`}
+                          >
+                            {horse.status}
                           </span>
-                          {horse.healthStatus}
-                        </span>
-                      </td>
-                      <td className="py-stack-sm px-stack-md text-right">
-                        <div className="flex justify-end gap-2">
-                          <button 
-                            onClick={() => handleOpenModal(horse)}
-                            className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-full transition-colors cursor-pointer"
-                            title="Edit"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">edit</span>
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(horse.id)}
-                            className="p-2 text-on-surface-variant hover:text-error hover:bg-error-container rounded-full transition-colors cursor-pointer"
-                            title="Delete"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="py-stack-sm px-stack-md">
+                          <span className="inline-flex items-center gap-1 font-interactive-sm font-medium">
+                            <span className={`material-symbols-outlined text-[16px] ${horse.healthStatus === 'HEALTHY' ? 'text-primary' : 'text-error'}`}>
+                              {horse.healthStatus === 'HEALTHY' ? 'health_and_safety' : 'warning'}
+                            </span>
+                            {horse.healthStatus}
+                          </span>
+                        </td>
+                        <td className="py-stack-sm px-stack-md text-right">
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => handleOpenModal(horse)}
+                              className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container rounded-md transition-colors"
+                              title="Edit"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(horse.id)}
+                              className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container rounded-md transition-colors"
+                              title="Delete"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-outline-variant bg-surface-container-lowest">
+                  <span className="text-sm text-on-surface-variant">
+                    Page <span className="font-bold text-on-surface">{currentPage + 1}</span> of <span className="font-bold text-on-surface">{totalPages}</span>
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                      disabled={currentPage === 0}
+                      className="px-3 py-1 border border-outline-variant rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                      disabled={currentPage >= totalPages - 1}
+                      className="px-3 py-1 border border-outline-variant rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </motion.div>
@@ -364,14 +468,20 @@ export default function OwnerHorsesTab() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Breed</label>
-                      <input 
-                        type="text" 
+                      <select 
                         name="breed"
                         value={formData.breed}
                         onChange={handleInputChange}
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                        placeholder="e.g. Thoroughbred"
-                      />
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300 ease-in-out cursor-pointer"
+                      >
+                        <option value="" disabled>Select a breed</option>
+                        <option value="Thoroughbred">Thoroughbred</option>
+                        <option value="Quarter Horse">Quarter Horse</option>
+                        <option value="Standardbred">Standardbred</option>
+                        <option value="Arabian">Arabian</option>
+                        <option value="Appaloosa">Appaloosa</option>
+                        <option value="Paint">Paint</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Date of Birth *</label>
