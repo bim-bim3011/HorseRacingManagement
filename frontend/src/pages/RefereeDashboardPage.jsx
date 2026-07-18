@@ -160,7 +160,10 @@ export default function RefereeDashboardPage() {
               transition={{ duration: 0.3 }}
               className="w-full h-full flex"
             >
-              <RefereeRaceTimeline currentStatus={currentStatus} />
+              <RefereeRaceTimeline 
+                currentStatus={currentStatus} 
+                onStepClick={setCurrentStatus}
+              />
               <RefereeRaceContent 
                 currentStatus={currentStatus} 
                 onNextStep={handleNextStep}

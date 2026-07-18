@@ -16,7 +16,8 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
   const [entryToKick, setEntryToKick] = useState(null);
   const [kickReason, setKickReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [incidents, setIncidents] = useState([]);
+
   // States for Racing phase
   const [raceState, setRaceState] = useState({
     status: 'NOT STARTED',
@@ -49,7 +50,7 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
 
       initRace();
 
-      const socketUrl = 'http://localhost:8080/ws';
+      const socketUrl = '/ws';
       const client = new Client({
         webSocketFactory: () => new SockJS(socketUrl),
         reconnectDelay: 5000,
@@ -79,6 +80,20 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
           clientRef.current.deactivate();
         }
       };
+    }
+  }, [currentStatus, selectedRace]);
+
+  useEffect(() => {
+    if (currentStatus === 'reviewing' && selectedRace) {
+      const loadIncidents = async () => {
+        try {
+          const data = await raceSimulatorApi.getIncidents(selectedRace.tournamentId, selectedRace.raceId);
+          setIncidents(data || []);
+        } catch (error) {
+          console.error("Failed to load incidents", error);
+        }
+      };
+      loadIncidents();
     }
   }, [currentStatus, selectedRace]);
 
@@ -147,15 +162,15 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
     <div className="h-full flex flex-col relative">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-display text-title-lg text-on-surface font-bold">Horse Checklist</h3>
-        <button 
+        <button
           onClick={handleMarkAsReady}
           disabled={isSubmitting || selectedRace.raceStatus !== 'checking'}
           className="bg-primary text-on-primary px-6 py-2 rounded font-body text-label-md font-bold uppercase hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           title={selectedRace.raceStatus !== 'checking' ? 'Race must be in checking phase to mark as ready' : ''}
         >
-          {selectedRace.raceStatus === 'scheduled' ? 'Waiting for Admin' : 
-           selectedRace.raceStatus === 'ready_to_run' ? 'Already Ready' : 
-           'Mark as Ready'}
+          {selectedRace.raceStatus === 'scheduled' ? 'Waiting for Admin' :
+            selectedRace.raceStatus === 'ready_to_run' ? 'Already Ready' :
+              'Mark as Ready'}
         </button>
       </div>
 
@@ -169,7 +184,7 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
             {entries.map(entry => {
               const isRejected = entry.status === 'rejected';
               return (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={entry.id}
@@ -202,7 +217,7 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
                         REJECTED
                       </span>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => handleOpenKickModal(entry)}
                         className="bg-error/10 text-error hover:bg-error hover:text-white px-4 py-2 rounded font-bold text-sm uppercase transition-colors flex items-center gap-2"
                       >
@@ -226,14 +241,14 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
       <AnimatePresence>
         {kickModalOpen && (
           <div className="absolute inset-0 z-50 flex items-center justify-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={handleCloseKickModal}
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -246,22 +261,22 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
               <p className="text-body-md text-on-surface-variant mb-4">
                 You are about to reject <strong>{entryToKick?.horseName}</strong>. Please provide a reason.
               </p>
-              
-              <textarea 
+
+              <textarea
                 value={kickReason}
                 onChange={(e) => setKickReason(e.target.value)}
                 placeholder="e.g. Overweight, Injured, Equipment Failed..."
                 className="w-full bg-surface border border-outline rounded-lg p-3 text-on-surface focus:outline-none focus:border-primary mb-6 resize-none h-24"
               />
-              
+
               <div className="flex justify-end gap-3">
-                <button 
+                <button
                   onClick={handleCloseKickModal}
                   className="px-4 py-2 text-on-surface-variant font-bold hover:bg-surface-container rounded transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSubmitKick}
                   disabled={isSubmitting || !kickReason.trim()}
                   className="bg-error text-white px-4 py-2 rounded font-bold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
@@ -296,7 +311,7 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
                 <span className="text-on-surface-variant font-bold text-sm">
                   Status: <span className="text-primary">{raceState.status}</span>
                 </span>
-                <button 
+                <button
                   onClick={onNextStep}
                   disabled={raceState.status === 'RUNNING'}
                   className="bg-primary text-on-primary px-4 py-2 rounded hover:bg-primary-container hover:text-on-primary-container transition-colors font-bold text-sm disabled:opacity-50"
@@ -310,10 +325,10 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
               <div className="flex-1 flex flex-col">
                 <div className="flex-1 min-h-[400px] flex items-center justify-center bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant">
                   {raceState.horses && raceState.horses.length > 0 ? (
-                    <RaceTrack 
-                      horses={raceState.horses} 
-                      distance={raceState.distance} 
-                      raceEntries={entries} 
+                    <RaceTrack
+                      horses={raceState.horses}
+                      distance={raceState.distance}
+                      raceEntries={entries}
                     />
                   ) : (
                     <div className="text-on-surface-variant flex flex-col items-center">
@@ -325,9 +340,9 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
               </div>
 
               <div className="xl:w-1/3 w-full h-[500px] xl:h-auto border border-outline-variant rounded-2xl overflow-hidden shadow-sm bg-surface-container-lowest">
-                <RaceLeaderboard 
-                  horses={raceState.horses} 
-                  raceEntries={entries} 
+                <RaceLeaderboard
+                  horses={raceState.horses}
+                  raceEntries={entries}
                   isReferee={true}
                   onFlagHorse={handleFlagHorse}
                   raceStatus={raceState.status}
@@ -341,7 +356,7 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
           <div className="h-full flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-display text-title-lg text-on-surface">VAR / Review Room</h3>
-              <button 
+              <button
                 onClick={onNextStep}
                 className="bg-primary text-on-primary px-4 py-2 rounded font-body text-label-md font-bold uppercase hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm"
               >
@@ -353,10 +368,27 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
                 <span className="material-symbols-outlined text-[48px] text-outline mb-2">smart_display</span>
                 <p className="text-on-surface-variant">Video Replay Area</p>
               </div>
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col">
-                <h4 className="font-body font-bold text-on-surface border-b border-outline-variant pb-2 mb-4">Flagged Incidents</h4>
-                <div className="flex-1 flex items-center justify-center text-on-surface-variant text-sm italic text-center">
-                  List of flags generated during the race will appear here for review.
+              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col h-full overflow-hidden">
+                <h4 className="font-body font-bold text-on-surface border-b border-outline-variant pb-2 mb-4 flex justify-between items-center">
+                  Flagged Incidents
+                  <span className="bg-error text-white text-xs px-2 py-1 rounded-full">{incidents.length}</span>
+                </h4>
+                <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-3">
+                  {incidents.length > 0 ? incidents.map(incident => (
+                    <div key={incident.id} className="bg-surface-container border border-outline-variant rounded p-3 text-sm flex flex-col gap-1">
+                      <div className="flex justify-between font-bold text-on-surface">
+                        <span>Lane {incident.laneNumber} - {incident.horseName}</span>
+                      </div>
+                      <div className="flex justify-between text-on-surface-variant text-xs">
+                        <span>Flagged by: {incident.refereeUsername}</span>
+                        <span>{new Date(incident.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="flex-1 flex items-center justify-center text-on-surface-variant text-sm italic text-center h-full">
+                      No flags were generated during this race.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

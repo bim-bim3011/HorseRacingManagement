@@ -44,5 +44,13 @@ export const raceSimulatorApi = {
       throw new Error('Failed to flag horse');
     }
     return response.text();
+  },
+
+  getIncidents: async (tournamentId, raceId) => {
+    const response = await fetchWithAuth(`/api/tournaments/${tournamentId}/races/${raceId}/simulator/incidents`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch incidents');
+    }
+    return response.json();
   }
 };

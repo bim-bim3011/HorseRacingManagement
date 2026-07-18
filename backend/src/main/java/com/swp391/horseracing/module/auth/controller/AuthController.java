@@ -94,7 +94,7 @@ public class AuthController {
     ){
         var result = authService.outboundAuthenticate(code);
 
-        setRefreshTokenCookie(response, result.getRefreshToken(), 7 * 24 * 60 * 60);
+            setRefreshTokenCookie(response, result.getRefreshToken(), 7 * 24 * 60 * 60);
 
         return ApiResponse.success(result);
     }
@@ -102,10 +102,10 @@ public class AuthController {
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // Đổi thành false khi dev local (HTTP)
                 .path("/")
                 .maxAge(maxAge)
-                .sameSite("None")
+                .sameSite("Lax") // Đổi thành Lax vì frontend dùng proxy nên được tính là cùng origin
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }

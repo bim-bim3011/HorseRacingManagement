@@ -60,4 +60,11 @@ public class RaceSimulatorController {
         RaceSnapshotResponse state = simulationService.getRaceState(raceId);
         return ResponseEntity.ok(state);
     }
+
+    @GetMapping("/incidents")
+    public ResponseEntity<java.util.List<com.swp391.horseracing.module.race.dto.response.RaceIncidentResponse>> getRaceIncidents(
+            @PathVariable Integer tournamentId, 
+            @PathVariable Integer raceId) {
+        return ResponseEntity.ok(simulationService.getRaceIncidents(raceId));
+    }
 }

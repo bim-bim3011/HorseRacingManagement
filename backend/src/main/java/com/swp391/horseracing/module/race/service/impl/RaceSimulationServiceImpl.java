@@ -9,7 +9,11 @@ import com.swp391.horseracing.module.race.repository.RaceEntryRepository;
 import com.swp391.horseracing.module.race.repository.RaceRepository;
 import com.swp391.horseracing.module.race.repository.RaceResultRepository;
 import com.swp391.horseracing.module.race.entity.result.RaceResult;
+import com.swp391.horseracing.module.race.entity.result.RaceIncident;
+import com.swp391.horseracing.module.race.dto.response.RaceIncidentResponse;
 import com.swp391.horseracing.module.race.service.RaceSimulationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -36,6 +40,8 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
     private final RaceRepository raceRepository;
     private final RaceEntryRepository raceEntryRepository;
     private final RaceResultRepository raceResultRepository;
+    private final com.swp391.horseracing.module.race.repository.RaceIncidentRepository raceIncidentRepository;
+    private final ObjectMapper objectMapper;
     private final ThreadPoolTaskScheduler taskScheduler;
 
 
@@ -232,6 +238,33 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
             }
         }
         
+        // Save incidents from Redis to Database
+        String flagsKey = "race:" + raceId + ":flags";
+        List<String> flagJsons = redisTemplate.opsForList().range(flagsKey, 0, -1);
+        if (flagJsons != null && !flagJsons.isEmpty()) {
+            for (String json : flagJsons) {
+                try {
+                    JsonNode node = objectMapper.readTree(json);
+                    String referee = node.get("referee").asText();
+                    Integer horseId = node.get("horseId").asInt();
+                    Long timestamp = node.get("timestamp").asLong();
+
+                    RaceEntry entry = raceEntryRepository.findByRaceIdAndHorseId(raceId, horseId).orElse(null);
+                    if (entry != null) {
+                        RaceIncident incident = RaceIncident.builder()
+                                .entry(entry)
+                                .refereeUsername(referee)
+                                .timestamp(timestamp)
+                                .build();
+                        raceIncidentRepository.save(incident);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to parse flag event JSON: {}", json, e);
+                }
+            }
+        }
+        redisTemplate.delete(flagsKey);
+        
         // Dọn dẹp RAM (Redis Cleanup)
         String positionKey = "race:" + raceId + ":positions";
         String finishOrderKey = "race:" + raceId + ":finishOrder";
@@ -400,5 +433,19 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         String flagJson = String.format("{\"referee\":\"%s\", \"horseId\":%d, \"timestamp\":%d}", 
                                         refereeUsername, horseId, System.currentTimeMillis());
         redisTemplate.opsForList().rightPush(flagsKey, flagJson);
+    }
+
+    @Override
+    public List<RaceIncidentResponse> getRaceIncidents(Integer raceId) {
+        List<RaceIncident> incidents = raceIncidentRepository.findByEntry_Race_Id(raceId);
+        return incidents.stream().map(incident -> RaceIncidentResponse.builder()
+                .id(incident.getId())
+                .horseId(incident.getEntry().getHorse().getId())
+                .horseName(incident.getEntry().getHorse().getName())
+                .laneNumber(incident.getEntry().getLaneNumber())
+                .refereeUsername(incident.getRefereeUsername())
+                .timestamp(incident.getTimestamp())
+                .createdAt(incident.getCreatedAt())
+                .build()).toList();
     }
 }

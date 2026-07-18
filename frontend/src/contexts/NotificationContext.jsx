@@ -8,11 +8,11 @@ const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
   const { accessToken, isAuthenticated } = useAuth();
-  
+
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [latestToast, setLatestToast] = useState(null);
-  
+
   const stompClient = useRef(null);
 
   // Load initial notifications when user becomes authenticated
@@ -32,7 +32,7 @@ export function NotificationProvider({ children }) {
 
     const connectStomp = () => {
       const client = new Client({
-        webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+        webSocketFactory: () => new SockJS('/ws'),
         connectHeaders: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -77,7 +77,7 @@ export function NotificationProvider({ children }) {
       // First page of notifications
       const notifsPage = await getMyNotifications(0, 10);
       setNotifications(notifsPage.content || []);
-      
+
       const unread = await getUnreadCount();
       setUnreadCount(unread);
     } catch (error) {
@@ -88,10 +88,10 @@ export function NotificationProvider({ children }) {
   const handleNewNotification = useCallback((newNotif) => {
     setNotifications(prev => [newNotif, ...prev]);
     setUnreadCount(prev => prev + 1);
-    
+
     // Trigger toast
     setLatestToast(newNotif);
-    
+
     // Auto clear toast after 5 seconds
     setTimeout(() => {
       setLatestToast(prev => (prev?.id === newNotif.id ? null : prev));
@@ -113,7 +113,7 @@ export function NotificationProvider({ children }) {
   const handleMarkAsRead = async (id) => {
     try {
       await markAsRead(id);
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, isRead: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));

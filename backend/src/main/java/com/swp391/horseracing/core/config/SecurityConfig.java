@@ -27,91 +27,86 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final UserDetailServiceCustomize userDetailsService;
+        private final UserDetailServiceCustomize userDetailsService;
 
-    private final String[] PUBLIC_ENDPOINTS= {
+        private final String[] PUBLIC_ENDPOINTS = {
 
-            "/api/auth/**",
-            "/api/register/**",
-            "/api/auth/logout",
-            "/home/**",
+                        "/api/auth/**",
+                        "/api/register/**",
+                        "/api/auth/logout",
+                        "/home/**",
 
-            "/swagger-ui.html",
-            "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
 
-            "/v3/api-docs",
-            "/v3/api-docs/**",
+                        "/v3/api-docs",
+                        "/v3/api-docs/**",
 
-            "/ws/**"
+                        "/ws/**"
 
+        };
 
-    };
+        private final String[] TEST_ENDPOINTS = {
 
-    private final String[] TEST_ENDPOINTS= {
+                        "/api/test/**",
+                        "/api/payment/**"
 
-            "/api/test/**",
-            "/api/payment/**"
+        };
 
-    };
+        @Bean
+        public SecurityFilterChain configure(HttpSecurity http,
+                        CustomJwtDecoder jwtDecoder,
+                        JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
 
+                http
 
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/tournaments/**")
+                                                .permitAll()
+                                                .requestMatchers(TEST_ENDPOINTS).permitAll()
+                                                .anyRequest().authenticated()
 
-    @Bean
-    public SecurityFilterChain configure(HttpSecurity http,
-                                         CustomJwtDecoder jwtDecoder,
-                                         JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception{
+                                )
 
+                                .oauth2ResourceServer(oauth2 -> oauth2
+                                                .jwt(jwt -> jwt.decoder(jwtDecoder))
+                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
-        http
+                return http.build();
+        }
 
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tournaments/**").permitAll()
-                        .requestMatchers(TEST_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated()
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-                )
+        @Bean
+        public AuthenticationManager authenticationManager() {
+                DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+                authenticationProvider.setPasswordEncoder(passwordEncoder());
 
-         .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.decoder(jwtDecoder))
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        );
+                return new ProviderManager(authenticationProvider);
+        }
 
-        return http.build();
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration config = new CorsConfiguration();
+                //config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+                config.setAllowedOriginPatterns(List.of("*"));
 
-
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
-
-
-
-    @Bean
-    public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-
-        return new ProviderManager(authenticationProvider);
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
-        source.registerCorsConfiguration("/ws/**", config);
-        return source;
-    }
-
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(true);
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/api/**", config);
+                source.registerCorsConfiguration("/ws/**", config);
+                return source;
+        }
 
 }
