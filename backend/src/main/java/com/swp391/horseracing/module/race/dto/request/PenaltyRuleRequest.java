@@ -19,4 +19,6 @@ public class PenaltyRuleRequest {
     @NotNull(message = "Ban days is required")
     private Integer banDays;
     private String description;
+    
+    private Boolean isDisqualification;
 }

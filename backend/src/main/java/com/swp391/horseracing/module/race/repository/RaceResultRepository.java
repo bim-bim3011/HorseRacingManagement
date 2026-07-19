@@ -12,6 +12,8 @@ import com.swp391.horseracing.module.horse.dto.response.HorseStatsDto;
 @Repository
 public interface RaceResultRepository extends JpaRepository<RaceResult, Integer> {
 
+    List<RaceResult> findByEntry_Race_Id(Integer raceId);
+
     @Query("SELECT COUNT(rr) FROM RaceResult rr WHERE rr.entry.horse.owner.id = :ownerId AND rr.position = 1")
     Integer countFirstPlacesByOwnerId(@Param("ownerId") Integer ownerId);
 

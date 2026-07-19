@@ -45,7 +45,17 @@ export default function RefereeDashboardPage() {
 
   const handleSelectRace = (assignment) => {
     setSelectedRace(assignment);
-    setCurrentStatus('checking');
+    
+    let initialStatus = 'checking';
+    const backendStatus = assignment.raceStatus?.toLowerCase();
+    
+    if (backendStatus === 'racing') {
+      initialStatus = 'racing';
+    } else if (backendStatus === 'finished') {
+      initialStatus = 'reviewing';
+    }
+    
+    setCurrentStatus(initialStatus);
   };
 
   const handleBackToAssignments = () => {
@@ -162,7 +172,6 @@ export default function RefereeDashboardPage() {
             >
               <RefereeRaceTimeline 
                 currentStatus={currentStatus} 
-                onStepClick={setCurrentStatus}
               />
               <RefereeRaceContent 
                 currentStatus={currentStatus} 

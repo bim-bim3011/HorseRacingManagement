@@ -52,5 +52,31 @@ export const raceSimulatorApi = {
       throw new Error('Failed to fetch incidents');
     }
     return response.json();
+  },
+
+  getRaceResults: async (tournamentId, raceId) => {
+    const response = await fetchWithAuth(`/api/tournaments/${tournamentId}/races/${raceId}/results`, {
+      method: 'GET'
+    });
+    const data = await response.json();
+    if (!response.ok || data.code !== 1000) {
+      throw new Error(data.message || 'Failed to fetch results');
+    }
+    return data.result;
+  },
+
+  confirmRaceResults: async (tournamentId, raceId, content) => {
+    const response = await fetchWithAuth(`/api/tournaments/${tournamentId}/races/${raceId}/reports`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content })
+    });
+    const data = await response.json();
+    if (!response.ok || data.code !== 1000) {
+      throw new Error(data.message || 'Failed to confirm results');
+    }
+    return data.result;
   }
 };

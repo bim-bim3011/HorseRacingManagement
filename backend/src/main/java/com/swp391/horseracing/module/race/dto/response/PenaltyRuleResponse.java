@@ -13,4 +13,5 @@ public class PenaltyRuleResponse {
     private BigDecimal fineAmount;
     private Integer banDays;
     private String description;
+    private Boolean isDisqualification;
 }

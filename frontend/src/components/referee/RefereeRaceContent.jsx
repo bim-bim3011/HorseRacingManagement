@@ -30,8 +30,12 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
   const [reviewFormData, setReviewFormData] = useState({
     entryId: '',
     penaltyRuleIds: [],
-    description: ''
   });
+
+  // Confirm States
+  const [finalResults, setFinalResults] = useState([]);
+  const [refereeNotes, setRefereeNotes] = useState('');
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   // States for Racing phase
   const [raceState, setRaceState] = useState({
@@ -45,6 +49,9 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
   useEffect(() => {
     if (currentStatus === 'checking' && selectedRace) {
       loadEntries();
+    }
+    if (currentStatus === 'finished' && selectedRace) {
+      handleLoadFinalResults();
     }
   }, [currentStatus, selectedRace]);
 
@@ -262,6 +269,38 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
     } catch (error) {
       console.error("Failed to delete violation", error);
       alert(error.message || "Failed to delete violation");
+    }
+  };
+
+  const handleLoadFinalResults = async () => {
+    try {
+      setIsSubmitting(true);
+      const results = await raceSimulatorApi.getRaceResults(selectedRace.tournamentId, selectedRace.raceId);
+      setFinalResults(results || []);
+
+      const loadedViolations = await getViolations(selectedRace.tournamentId, selectedRace.raceId);
+      setViolations(loadedViolations || []);
+    } catch (error) {
+      console.error("Failed to load final results", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmResultsSubmit = async () => {
+    if (!refereeNotes.trim()) {
+      alert("Please enter Stewards' Remarks.");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await raceSimulatorApi.confirmRaceResults(selectedRace.tournamentId, selectedRace.raceId, refereeNotes);
+      setIsConfirmed(true);
+    } catch (error) {
+      console.error("Failed to confirm results", error);
+      alert("Failed to confirm results");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -519,7 +558,7 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
                 onClick={onNextStep}
                 className="bg-primary text-on-primary px-4 py-2 rounded font-body text-label-md font-bold uppercase hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm"
               >
-                Confirm Results
+                Proceed to Report
               </button>
             </div>
             <div className="flex-1 grid grid-cols-4 gap-6 overflow-hidden">
@@ -689,21 +728,120 @@ export default function RefereeRaceContent({ currentStatus, onNextStep, selected
       case 'finished':
         return (
           <div className="h-full flex flex-col">
-            <h3 className="font-display text-title-lg text-on-surface mb-6">Race Finalized & Report</h3>
-            <div className="flex-1 flex gap-6">
-              <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
-                <h4 className="font-bold text-on-surface mb-4">Official Leaderboard</h4>
-                <p className="text-on-surface-variant text-sm italic text-center mt-10">Final rankings here...</p>
-              </div>
-              <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col">
-                <h4 className="font-bold text-on-surface mb-4">Race Report</h4>
-                <div className="flex-1 border border-outline-variant rounded p-4 text-on-surface-variant text-sm mb-4">
-                  (Auto-generated report template based on results and violations will be shown here for editing)
-                </div>
-                <button className="bg-primary text-on-primary w-full py-3 rounded font-bold uppercase hover:bg-primary-container hover:text-on-primary-container transition-colors">
-                  Submit Report
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-display text-title-lg text-on-surface">
+                {isConfirmed ? (
+                  <span className="flex items-center gap-2 text-primary">
+                    <span className="material-symbols-outlined text-[28px]">verified</span>
+                    Official Results Published
+                  </span>
+                ) : (
+                  "Stewards' Report - Official Confirmation"
+                )}
+              </h3>
+              {isConfirmed && (
+                <button
+                  onClick={() => window.location.href = "/"} // Fallback, could pass prop for real navigation
+                  className="bg-surface-container text-on-surface px-4 py-2 rounded font-bold hover:bg-surface-container-high transition-colors"
+                >
+                  Back to Dashboard
                 </button>
+              )}
+            </div>
+            
+            <div className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col overflow-hidden">
+              <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-6 custom-scrollbar">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Cột 1: Xếp hạng */}
+                  <div>
+                    <h4 className="font-bold text-on-surface mb-3 flex items-center gap-2 border-b pb-2">
+                      <span className="material-symbols-outlined text-primary">emoji_events</span>
+                      Official Standings
+                    </h4>
+                    <div className="bg-surface-container rounded border border-outline-variant p-2 flex flex-col gap-2">
+                      {finalResults.length > 0 ? [...finalResults].sort((a,b) => a.position - b.position).map(res => {
+                        const isDSQ = res.isDisqualified || res.disqualified;
+                        return (
+                        <div key={res.id} className={`flex items-center gap-3 p-2 rounded shadow-sm border ${isDSQ ? 'bg-error/10 border-error/50 opacity-80' : 'bg-surface border-outline-variant/50'}`}>
+                          {isDSQ ? (
+                            <span className="font-bold w-10 text-center text-error text-xs bg-error/20 py-1 rounded tracking-widest">DSQ</span>
+                          ) : (
+                            <span className={`font-bold w-10 text-center text-lg ${res.position === 1 ? 'text-yellow-600' : res.position === 2 ? 'text-gray-500' : res.position === 3 ? 'text-amber-700' : 'text-on-surface-variant'}`}>
+                              {res.position}
+                            </span>
+                          )}
+                          <div className={`flex-1 font-bold text-sm ${isDSQ ? 'text-error line-through' : 'text-on-surface'}`}>
+                            Lane {res.laneNumber} - {res.horseName}
+                          </div>
+                          <div className={`text-xs text-right ${isDSQ ? 'text-error' : 'text-on-surface-variant'}`}>
+                            {res.jockeyName}
+                          </div>
+                        </div>
+                      )}) : (
+                        <div className="text-sm italic text-on-surface-variant text-center p-4">No results recorded.</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Cột 2: Vi phạm */}
+                  <div>
+                    <h4 className="font-bold text-on-surface mb-3 flex items-center gap-2 border-b pb-2">
+                      <span className="material-symbols-outlined text-error">warning</span>
+                      Penalties Summary
+                    </h4>
+                    <div className="bg-surface-container rounded border border-outline-variant p-2 flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                      {violations.length > 0 ? violations.map(v => (
+                        <div key={v.id} className="bg-error/10 border border-error/30 p-2 rounded flex flex-col gap-1">
+                          <div className="font-bold text-sm text-on-surface">{v.horseName} - {v.violationType}</div>
+                          <div className="text-xs text-error font-bold flex gap-3">
+                            {v.pointDeduction > 0 && <span>-{v.pointDeduction} pts</span>}
+                            {v.fineAmount > 0 && <span>${v.fineAmount}</span>}
+                            {v.banDays > 0 && <span>Ban {v.banDays} days</span>}
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="text-sm italic text-on-surface-variant text-center p-4">No penalties recorded. Fair race.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Textarea Report */}
+                <div>
+                  <h4 className="font-bold text-on-surface mb-3 flex items-center gap-2 border-b pb-2">
+                    <span className="material-symbols-outlined text-primary">edit_document</span>
+                    Stewards' Remarks (Required)
+                  </h4>
+                  <textarea
+                    value={refereeNotes}
+                    onChange={(e) => setRefereeNotes(e.target.value)}
+                    placeholder="Summarize the race events, inquiries, and justifications for penalties here..."
+                    className="w-full h-32 bg-surface border border-outline-variant rounded p-3 text-on-surface focus:outline-none focus:border-primary resize-none disabled:bg-surface-container disabled:text-on-surface-variant"
+                    required
+                    disabled={isConfirmed}
+                  />
+                </div>
               </div>
+
+              {/* Footer / Actions */}
+              {!isConfirmed && (
+                <div className="bg-surface-container-low p-4 border-t border-outline-variant flex justify-end gap-4 shrink-0">
+                  <button
+                    onClick={handleConfirmResultsSubmit}
+                    disabled={isSubmitting || !refereeNotes.trim()}
+                    className="bg-primary text-on-primary px-8 py-3 rounded font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm text-lg"
+                  >
+                    {isSubmitting ? (
+                      <span className="material-symbols-outlined animate-spin">sync</span>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">lock</span>
+                        Sign & Publish Official Results
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );
