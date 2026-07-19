@@ -144,9 +144,9 @@ public class JwtServiceImpl implements JwtService {
         SignedJWT jwt = SignedJWT.parse(token);
         Date expirationTime = jwt.getJWTClaimsSet().getExpirationTime();
 
-        var ischange = jwt.verify(verifier);
+        var isValidSignature = jwt.verify(verifier);
 
-        if (!ischange && expirationTime.after(new Date())) {
+        if (!isValidSignature || expirationTime.before(new Date())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 

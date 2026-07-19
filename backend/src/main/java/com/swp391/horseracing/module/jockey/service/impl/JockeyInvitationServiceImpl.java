@@ -7,6 +7,7 @@ import com.swp391.horseracing.module.jockey.dto.response.JockeyInvitationRespons
 import com.swp391.horseracing.module.jockey.dto.response.JockeyResponse;
 import com.swp391.horseracing.module.jockey.repository.JockeyInvitationRepository;
 import com.swp391.horseracing.module.jockey.repository.JockeyRepository;
+import com.swp391.horseracing.module.notification.entity.Notification;
 import com.swp391.horseracing.module.race.repository.RaceRepository;
 import com.swp391.horseracing.module.user.entity.User;
 import com.swp391.horseracing.module.horse.entity.horse.Horse;
@@ -38,200 +39,263 @@ import org.springframework.data.domain.Sort;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JockeyInvitationServiceImpl implements JockeyInvitationService {
 
-    JockeyInvitationRepository jockeyInvitationRepository;
-    JockeyRepository jockeyRepository;
-    RaceRepository raceRepository;
-    HorseRepository horseRepository;
-    HorseOwnerRepository horseOwnerRepository;
-    UserRepository userRepository;
-    RaceEntryService raceEntryService;
+        JockeyInvitationRepository jockeyInvitationRepository;
+        JockeyRepository jockeyRepository;
+        RaceRepository raceRepository;
+        HorseRepository horseRepository;
+        HorseOwnerRepository horseOwnerRepository;
+        UserRepository userRepository;
+        RaceEntryService raceEntryService;
+        com.swp391.horseracing.module.notification.service.NotificationService notificationService;
 
-    @Override
-    public JockeyInvitationResponse sendInvitation(JockeyInvitationRequest request) {
-        HorseOwner owner = getCurrentOwner();
+        @Override
+        public JockeyInvitationResponse sendInvitation(JockeyInvitationRequest request) {
+                HorseOwner owner = getCurrentOwner();
 
-        Race race = raceRepository.findById(request.getRaceId())
-                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+                Race race = raceRepository.findById(request.getRaceId())
+                                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
 
-        if (race.getStatus() != Race.RaceStatus.scheduled && race.getStatus() != Race.RaceStatus.checking) {
-            throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
+                if (race.getStatus() != Race.RaceStatus.scheduled && race.getStatus() != Race.RaceStatus.checking && race.getStatus() != Race.RaceStatus.ready_to_run) {
+                        throw new AppException(ErrorCode.RACE_NOT_AVAILABLE);
+                }
+
+                Horse horse = horseRepository.findById(request.getHorseId())
+                                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
+
+                if (!horse.getOwner().getId().equals(owner.getId())) {
+                        throw new AppException(ErrorCode.ACCESS_DENIED);
+                }
+                boolean isApprovedEntry = horse.getRaceEntries().stream()
+                                .anyMatch(entry -> entry.getRace().getId().equals(race.getId())
+                                                && entry.getStatus() == RaceEntry.EntryStatus.approved);
+
+                if (!isApprovedEntry) {
+                        throw new AppException(ErrorCode.HORSE_ENTRY_NOT_APPROVED);
+                }
+                Jockey jockey = jockeyRepository.findById(request.getJockeyId())
+                                .orElseThrow(() -> new AppException(ErrorCode.JOCKEY_NOT_FOUND));
+
+                if (jockey.getJockeyStatus() != Jockey.JockeyStatus.approval) {
+                        throw new AppException(ErrorCode.JOCKEY_NOT_APPROVED);
+                }
+                Tournament tournament = race.getTournament();
+                if (jockey.getWeight() != null && tournament.getWeightLimit() != null
+                                && jockey.getWeight() > tournament.getWeightLimit()) {
+                        throw new AppException(ErrorCode.JOCKEY_WEIGHT_EXCEEDS_LIMIT);
+                }
+
+                if (jockeyInvitationRepository.existsByRaceIdAndHorseIdAndStatus(
+                                request.getRaceId(), request.getHorseId(),
+                                JockeyInvitation.InvitationStatus.accepted)) {
+                        throw new AppException(ErrorCode.HORSE_ALREADY_HAS_JOCKEY);
+                }
+
+                if (jockeyInvitationRepository.existsByRaceIdAndHorseIdAndJockeyId(
+                                request.getRaceId(), request.getHorseId(), request.getJockeyId())) {
+                        throw new AppException(ErrorCode.INVITATION_ALREADY_EXISTS);
+                }
+
+                if (jockeyInvitationRepository.existsByRaceIdAndJockeyIdAndStatus(
+                                request.getRaceId(), request.getJockeyId(),
+                                JockeyInvitation.InvitationStatus.accepted)) {
+                        throw new AppException(ErrorCode.JOCKEY_ALREADY_ASSIGNED);
+                }
+
+                JockeyInvitation invitation = JockeyInvitation.builder()
+                                .race(race)
+                                .horse(horse)
+                                .jockey(jockey)
+                                .build();
+
+                jockeyInvitationRepository.save(invitation);
+
+                // Notify the Jockey
+                String title = "New Jockey Invitation";
+                String content = String.format("You have been invited by %s to ride %s in the race %s.", 
+                        owner.getFullName(),
+                        horse.getName(), 
+                        race.getName());
+                        
+                notificationService.sendNotification(
+                        jockey, 
+                        Notification.NotificationType.JOCKEY_INVITATION_RECEIVED,
+                        title, 
+                        content
+                );
+
+                return mapToResponse(invitation);
         }
 
-        Horse horse = horseRepository.findById(request.getHorseId())
-                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
+        @Override
+        public List<JockeyInvitationResponse> getInvitationsByHorse(Integer horseId) { // owner watch Invitations send
+                HorseOwner owner = getCurrentOwner();
 
-        if (!horse.getOwner().getId().equals(owner.getId())) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
-        }
-        boolean isApprovedEntry = horse.getRaceEntries().stream()
-                .anyMatch(entry -> entry.getRace().getId().equals(race.getId())
-                        && entry.getStatus() == RaceEntry.EntryStatus.approved);
+                Horse horse = horseRepository.findById(horseId)
+                                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
 
-        if (!isApprovedEntry) {
-            throw new AppException(ErrorCode.HORSE_ENTRY_NOT_APPROVED);
-        }
-        Jockey jockey = jockeyRepository.findById(request.getJockeyId())
-                .orElseThrow(() -> new AppException(ErrorCode.JOCKEY_NOT_FOUND));
+                if (!horse.getOwner().getId().equals(owner.getId())) {
+                        throw new AppException(ErrorCode.ACCESS_DENIED);
+                }
 
-        if (jockey.getJockeyStatus() != Jockey.JockeyStatus.approval) {
-            throw new AppException(ErrorCode.JOCKEY_NOT_APPROVED);
-        }
-        Tournament tournament = race.getTournament();
-        if (jockey.getWeight() != null && tournament.getWeightLimit() != null
-                && jockey.getWeight() > tournament.getWeightLimit()) {
-            throw new AppException(ErrorCode.JOCKEY_WEIGHT_EXCEEDS_LIMIT);
+                return jockeyInvitationRepository.findByHorseId(horseId)
+                                .stream()
+                                .map(this::mapToResponse)
+                                .toList();
         }
 
-        if (jockeyInvitationRepository.existsByRaceIdAndHorseIdAndStatus(
-                request.getRaceId(), request.getHorseId(), JockeyInvitation.InvitationStatus.accepted)) {
-            throw new AppException(ErrorCode.HORSE_ALREADY_HAS_JOCKEY);
+        @Override
+        public List<JockeyInvitationResponse> getMyInvitations() { // jockey watch Invitations send it
+                String username = SecurityContextHolder.getContext()
+                                .getAuthentication().getName();
+                User user = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                jockeyRepository.findById(user.getId())
+                                .orElseThrow(() -> new AppException(ErrorCode.NOT_JOCKEY));
+                return jockeyInvitationRepository.findByJockeyId(user.getId())
+                                .stream()
+                                .map(this::mapToResponse)
+                                .toList();
         }
 
-        if (jockeyInvitationRepository.existsByRaceIdAndHorseIdAndJockeyId(
-                request.getRaceId(), request.getHorseId(), request.getJockeyId())) {
-            throw new AppException(ErrorCode.INVITATION_ALREADY_EXISTS);
+        @Override
+        public void acceptInvitation(Integer id) {
+                String username = SecurityContextHolder.getContext()
+                                .getAuthentication().getName();
+                User user = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                jockeyRepository.findById(user.getId())
+                                .orElseThrow(() -> new AppException(ErrorCode.NOT_JOCKEY));
+                JockeyInvitation invitation = jockeyInvitationRepository.findById(id)
+                                .orElseThrow(() -> new AppException(ErrorCode.INVITATION_NOT_FOUND));
+                if (!invitation.getJockey().getId().equals(user.getId())) {
+                        throw new AppException(ErrorCode.ACCESS_DENIED);
+                }
+                invitation.setStatus(JockeyInvitation.InvitationStatus.accepted);
+                jockeyInvitationRepository.save(invitation);
+
+                List<JockeyInvitation> others = jockeyInvitationRepository
+                                .findByRaceIdAndHorseIdAndStatus(
+                                                invitation.getRace().getId(),
+                                                invitation.getHorse().getId(),
+                                                JockeyInvitation.InvitationStatus.pending);
+
+                others.forEach(inv -> {
+                        if (!inv.getId().equals(id)) {
+                                inv.setStatus(JockeyInvitation.InvitationStatus.declined);
+                                jockeyInvitationRepository.save(inv);
+                        }
+                });
+
+                raceEntryService.assignJockey(invitation.getRace().getId(), invitation.getHorse().getId(),
+                                invitation.getJockey());
+
+                // Notify the horse owner
+                User owner = invitation.getHorse().getOwner();
+                String title = "Jockey Invitation Accepted";
+                String content = String.format("Jockey %s has accepted your invitation to ride %s in the race %s.", 
+                        invitation.getJockey().getFullName(),
+                        invitation.getHorse().getName(), 
+                        invitation.getRace().getName());
+                        
+                notificationService.sendNotification(
+                        owner, 
+                        Notification.NotificationType.JOCKEY_INVITATION_ACCEPTED,
+                        title, 
+                        content
+                );
         }
 
-        if (jockeyInvitationRepository.existsByRaceIdAndJockeyIdAndStatus(
-                request.getRaceId(), request.getJockeyId(), JockeyInvitation.InvitationStatus.accepted)) {
-            throw new AppException(ErrorCode.JOCKEY_ALREADY_ASSIGNED);
+        @Override
+        public void declineInvitation(Integer id) {
+                String username = SecurityContextHolder.getContext()
+                                .getAuthentication().getName();
+                User user = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                jockeyRepository.findById(user.getId())
+                                .orElseThrow(() -> new AppException(ErrorCode.NOT_JOCKEY));
+                JockeyInvitation invitation = jockeyInvitationRepository.findById(id)
+                                .orElseThrow(() -> new AppException(ErrorCode.INVITATION_NOT_FOUND));
+                if (!invitation.getJockey().getId().equals(user.getId())) {
+                        throw new AppException(ErrorCode.ACCESS_DENIED);
+                }
+                invitation.setStatus(JockeyInvitation.InvitationStatus.declined);
+                jockeyInvitationRepository.save(invitation);
+
+                // Notify the horse owner
+                User owner = invitation.getHorse().getOwner();
+                String title = "Jockey Invitation Declined";
+                String content = String.format("Jockey %s has declined your invitation to ride %s in the race %s.", 
+                        invitation.getJockey().getFullName(),
+                        invitation.getHorse().getName(), 
+                        invitation.getRace().getName());
+                        
+                notificationService.sendNotification(
+                        owner, 
+                        Notification.NotificationType.JOCKEY_INVITATION_DECLINED,
+                        title, 
+                        content
+                );
         }
 
-        JockeyInvitation invitation = JockeyInvitation.builder()
-                .race(race)
-                .horse(horse)
-                .jockey(jockey)
-                .build();
-
-        jockeyInvitationRepository.save(invitation);
-        return mapToResponse(invitation);
-    }
-
-    @Override
-    public List<JockeyInvitationResponse> getInvitationsByHorse(Integer horseId) { //owner watch Invitations send
-        HorseOwner owner = getCurrentOwner();
-
-        Horse horse = horseRepository.findById(horseId)
-                .orElseThrow(() -> new AppException(ErrorCode.HORSE_NOT_FOUND));
-
-
-        if (!horse.getOwner().getId().equals(owner.getId())) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
+        @Override
+        public List<JockeyResponse> getAvailableJockeys() {
+                return jockeyRepository.findByJockeyStatus(Jockey.JockeyStatus.approval)
+                                .stream()
+                                .map(this::mapToJockeyResponse)
+                                .toList();
         }
 
-        return jockeyInvitationRepository.findByHorseId(horseId)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
+        @Override
+        public Page<JockeyResponse> getAvailableJockeysPaginated(String keyword, String gender, Integer minExperience,
+                        Float maxWeight, String sortBy, String sortDir, int page, int size) {
+                Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
 
-    @Override
-    public List<JockeyInvitationResponse> getMyInvitations() { //jockey watch Invitations send it
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        jockeyRepository.findById(user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_JOCKEY));
-        return jockeyInvitationRepository.findByJockeyId(user.getId())
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
+                Pageable pageable = PageRequest.of(page, size, sort);
 
-    @Override
-    public void acceptInvitation(Integer id) {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        jockeyRepository.findById(user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_JOCKEY));
-        JockeyInvitation invitation = jockeyInvitationRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.INVITATION_NOT_FOUND));
-        if (!invitation.getJockey().getId().equals(user.getId())) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
+                return jockeyRepository
+                                .findAvailableJockeysWithFilters(Jockey.JockeyStatus.approval, keyword, gender,
+                                                minExperience, maxWeight, pageable)
+                                .map(this::mapToJockeyResponse);
         }
-        invitation.setStatus(JockeyInvitation.InvitationStatus.accepted);
-        jockeyInvitationRepository.save(invitation);
 
-        List<JockeyInvitation> others = jockeyInvitationRepository
-                .findByRaceIdAndHorseIdAndStatus(
-                        invitation.getRace().getId(),
-                        invitation.getHorse().getId(),
-                        JockeyInvitation.InvitationStatus.pending);
-
-        others.forEach(inv -> {
-            if (!inv.getId().equals(id)) {
-                inv.setStatus(JockeyInvitation.InvitationStatus.declined);
-                jockeyInvitationRepository.save(inv);
-            }
-        });
-
-        raceEntryService.assignJockey(invitation.getRace().getId(), invitation.getHorse().getId(), invitation.getJockey());
-    }
-
-    @Override
-    public void declineInvitation(Integer id) {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        jockeyRepository.findById(user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_JOCKEY));
-        JockeyInvitation invitation = jockeyInvitationRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.INVITATION_NOT_FOUND));
-        if (!invitation.getJockey().getId().equals(user.getId())) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
+        private HorseOwner getCurrentOwner() {
+                String username = SecurityContextHolder.getContext()
+                                .getAuthentication().getName();
+                User user = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                return horseOwnerRepository.findById(user.getId())
+                                .orElseThrow(() -> new AppException(ErrorCode.NOT_HORSE_OWNER));
         }
-        invitation.setStatus(JockeyInvitation.InvitationStatus.declined);
-        jockeyInvitationRepository.save(invitation);
-    }
 
-    @Override
-    public List<JockeyResponse> getAvailableJockeys() {
-        return jockeyRepository.findByJockeyStatus(Jockey.JockeyStatus.approval)
-                .stream()
-                .map(this::mapToJockeyResponse)
-                .toList();
-    }
+        private JockeyInvitationResponse mapToResponse(JockeyInvitation invitation) {
+                return JockeyInvitationResponse.builder()
+                                .id(invitation.getId())
+                                .raceName(invitation.getRace().getName())
+                                .horseName(invitation.getHorse().getName())
+                                .jockeyName(invitation.getJockey().getFullName())
+                                .status(invitation.getStatus().name())
+                                .raceDatetime(invitation.getRace().getRaceDatetime())
+                                .raceDistance(invitation.getRace().getDistance())
+                                .tournamentName(invitation.getRace().getTournament().getName())
+                                .raceRound(invitation.getRace().getIsFinal() != null
+                                                && invitation.getRace().getIsFinal() ? "Final"
+                                                                : "Round " + invitation.getRace().getRoundOrder())
+                                .ownerName(invitation.getHorse().getOwner().getFullName())
+                                .horseBreed(invitation.getHorse().getBreed())
+                                .horseGender(invitation.getHorse().getGender())
+                                .horseAge(invitation.getHorse().getDateOfBirth() != null ? java.time.LocalDate.now().getYear() - invitation.getHorse().getDateOfBirth().getYear() : null)
+                                .horseHealthStatus(invitation.getHorse().getHealthStatus())
+                                .build();
+        }
 
-    @Override
-    public Page<JockeyResponse> getAvailableJockeysPaginated(String keyword, String gender, Integer minExperience, Float maxWeight, String sortBy, String sortDir, int page, int size) {
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
-        return jockeyRepository.findAvailableJockeysWithFilters(Jockey.JockeyStatus.approval, keyword, gender, minExperience, maxWeight, pageable)
-                .map(this::mapToJockeyResponse);
-    }
-    private HorseOwner getCurrentOwner() {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return horseOwnerRepository.findById(user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_HORSE_OWNER));
-    }
-
-    private JockeyInvitationResponse mapToResponse(JockeyInvitation invitation) {
-        return JockeyInvitationResponse.builder()
-                .id(invitation.getId())
-                .raceName(invitation.getRace().getName())
-                .horseName(invitation.getHorse().getName())
-                .jockeyName(invitation.getJockey().getFullName())
-                .status(invitation.getStatus().name())
-                .build();
-    }
-
-    private JockeyResponse mapToJockeyResponse(Jockey jockey) {
-        return JockeyResponse.builder()
-                .id(jockey.getId())
-                .fullName(jockey.getFullName())
-                .weight(jockey.getWeight())
-                .experienceYears(jockey.getExperienceYears())
-                .height(jockey.getHeight())
-                .build();
-    }
+        private JockeyResponse mapToJockeyResponse(Jockey jockey) {
+                return JockeyResponse.builder()
+                                .id(jockey.getId())
+                                .fullName(jockey.getFullName())
+                                .weight(jockey.getWeight())
+                                .experienceYears(jockey.getExperienceYears())
+                                .height(jockey.getHeight())
+                                .build();
+        }
 }

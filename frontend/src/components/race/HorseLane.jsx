@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const HorseLane = ({ horse, laneIndex, laneNumber, distance, horseName, jockeyName }) => {
+const HorseLane = ({ horse, laneIndex, laneNumber, distance, horseName, jockeyName, onHorseClick }) => {
   // Calculate percentage of progress. Cap at 100% just in case
   const progressPercent = Math.min((horse.progress / distance) * 100, 100) || 0;
 
@@ -40,7 +40,14 @@ const HorseLane = ({ horse, laneIndex, laneNumber, distance, horseName, jockeyNa
       </div>
 
       <motion.div
-        className="absolute h-full flex flex-col items-center justify-center z-10"
+        className={`absolute h-full flex flex-col items-center justify-center z-10 ${onHorseClick && !horse.isFlagged ? 'cursor-pointer hover:scale-125 transition-transform duration-200' : ''}`}
+        title={onHorseClick && !horse.isFlagged ? `Click to Flag: ${horseName}` : ''}
+        onClick={(e) => { 
+          if (onHorseClick && !horse.isFlagged) {
+            e.stopPropagation();
+            onHorseClick(horse); 
+          }
+        }}
         initial={{ left: `${startOffset}px` }}
         animate={{ left: `calc(${progressPercent}% - ${currentOffset}px)` }}
         transition={{ type: "tween", ease: "linear", duration: 0.3 }}

@@ -32,52 +32,68 @@ export async function fetchWithAuth(url, options = {}) {
   const config = {
     ...options,
     headers,
-    credentials: options.credentials || 'same-origin', // Ensure cookies are sent to same-origin
+    credentials: 'include', // Always send cookies (needed for refreshToken HttpOnly cookie)
   };
 
   try {
     let response = await fetch(url, config);
 
-    // The backend's JwtAuthenticationEntryPoint currently maps authentication errors to 403 (ACCESS_DENIED)
+    // Check if the response indicates an authentication issue (token expired)
     if (response.status === 401 || response.status === 403) {
-      if (isRefreshing) {
-        // If already refreshing, wait for the new token
-        return new Promise(function (resolve, reject) {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((newToken) => {
-            config.headers['Authorization'] = 'Bearer ' + newToken;
-            return fetch(url, config);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+      // Clone response so we can read the body without consuming it
+      const clonedResponse = response.clone();
+      let shouldRefresh = false;
+      
+      try {
+        const errorData = await clonedResponse.json();
+        // Only refresh for UNAUTHENTICATED (1006) or ACCESS_TOKEN_EXPIRED (1011)
+        // Do NOT refresh for ACCESS_DENIED (1005) - that's a real permission issue
+        shouldRefresh = errorData.code === 1006 || errorData.code === 1011;
+      } catch {
+        // If we can't parse the response, try refreshing anyway for 401
+        shouldRefresh = response.status === 401;
       }
 
-      isRefreshing = true;
+      if (shouldRefresh) {
+        if (isRefreshing) {
+          // If already refreshing, wait for the new token
+          return new Promise(function (resolve, reject) {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((newToken) => {
+              config.headers['Authorization'] = 'Bearer ' + newToken;
+              return fetch(url, config);
+            })
+            .catch((err) => {
+              return Promise.reject(err);
+            });
+        }
 
-      try {
-        const refreshData = await refreshTokenApi();
-        const newToken = refreshData.accessToken;
-        
-        localStorage.setItem('accessToken', newToken);
-        
-        // Notify AuthContext to update state if necessary
-        window.dispatchEvent(new CustomEvent('token-refreshed', { detail: newToken }));
+        isRefreshing = true;
 
-        processQueue(null, newToken);
-        
-        // Retry original request
-        config.headers['Authorization'] = 'Bearer ' + newToken;
-        response = await fetch(url, config);
-      } catch (err) {
-        processQueue(err, null);
-        // Refresh failed, log out
-        localStorage.removeItem('accessToken');
-        window.dispatchEvent(new Event('auth-logout'));
-        return response; // Return original 401 response so caller can handle it
-      } finally {
-        isRefreshing = false;
+        try {
+          const refreshData = await refreshTokenApi();
+          const newToken = refreshData.accessToken;
+          
+          localStorage.setItem('accessToken', newToken);
+          
+          // Notify AuthContext to update state if necessary
+          window.dispatchEvent(new CustomEvent('token-refreshed', { detail: newToken }));
+
+          processQueue(null, newToken);
+          
+          // Retry original request
+          config.headers['Authorization'] = 'Bearer ' + newToken;
+          response = await fetch(url, config);
+        } catch (err) {
+          processQueue(err, null);
+          // Refresh failed, log out
+          localStorage.removeItem('accessToken');
+          window.dispatchEvent(new Event('auth-logout'));
+          return response; // Return original 401 response so caller can handle it
+        } finally {
+          isRefreshing = false;
+        }
       }
     }
 

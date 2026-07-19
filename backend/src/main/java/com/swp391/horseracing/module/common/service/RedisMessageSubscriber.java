@@ -38,20 +38,20 @@ public class RedisMessageSubscriber implements MessageListener {
             
             Map<String, Object> notificationData = objectMapper.readValue(jsonMessage, Map.class);
             
-            String userId = String.valueOf(notificationData.get("userId"));
+            String username = String.valueOf(notificationData.get("username"));
             Object payload = notificationData.get("payload");
 
 
-            // gui message nay qua websocket toi dung user
-            // kenh dich danh se la : /user/{userId}/queue/notifications
+            // gui message nay qua websocket toi dung user (username)
+            // kenh dich danh se la : /user/{username}/queue/notifications
             messagingTemplate.convertAndSendToUser(
-                    userId,
+                    username,
                     "/queue/notifications",
                     payload
             );
             
 
-            log.info("Da gui websocket thanh cong toi User {} {}", userId, payload);
+            log.info("Da gui websocket thanh cong toi User {} {}", username, payload);
 
         } catch (Exception e) {
             System.err.println("Lỗi khi xử lý Redis message: " + e.getMessage());

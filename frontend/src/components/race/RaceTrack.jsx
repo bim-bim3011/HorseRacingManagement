@@ -1,7 +1,7 @@
 import React from 'react';
 import HorseLane from './HorseLane';
 
-const RaceTrack = ({ horses, distance, raceEntries }) => {
+const RaceTrack = ({ horses, distance, raceEntries, onHorseClick }) => {
   return (
     <div className="w-full h-full flex flex-col relative bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant shadow-sm">
       
@@ -55,6 +55,7 @@ const RaceTrack = ({ horses, distance, raceEntries }) => {
                   distance={distance} 
                   horseName={horseName}
                   jockeyName={jockeyName}
+                  onHorseClick={onHorseClick}
                 />
               );
             });

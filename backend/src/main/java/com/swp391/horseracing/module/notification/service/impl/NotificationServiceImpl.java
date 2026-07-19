@@ -43,7 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             // Đóng gói dữ liệu để gửi đi
             Map<String, Object> messageMap = new HashMap<>();
-            messageMap.put("userId", user.getId());
+            messageMap.put("username", user.getUsername());
             
             // Payload gửi cho Frontend có thể chứa toàn bộ object notification
             Map<String, Object> payload = new HashMap<>();

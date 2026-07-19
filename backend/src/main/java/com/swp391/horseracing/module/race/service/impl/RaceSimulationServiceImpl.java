@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -177,6 +178,7 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
                     long finishScore = System.currentTimeMillis() - (long) (overDistance * 1000); 
                     
                     redisTemplate.opsForZSet().add("race:" + raceId + ":finishOrder", horseIdStr, finishScore);
+                    redisTemplate.expire("race:" + raceId + ":finishOrder", 2, TimeUnit.HOURS);
                 }
 
                 redisTemplate.opsForHash().put(horseKey, "progress", String.valueOf(newProgress));
@@ -288,6 +290,9 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         redisTemplate.opsForHash().put(metaKey, "status", "RUNNING");
         redisTemplate.opsForHash().put(metaKey, "distance", String.valueOf(race.getDistance()));
         redisTemplate.opsForHash().put(metaKey, "startedAt", LocalDateTime.now().toString());
+        
+        redisTemplate.expire(metaKey, 2, TimeUnit.HOURS);
+        redisTemplate.expire(positionKey, 2, TimeUnit.HOURS);
 
         int lane = 1;
 
@@ -316,6 +321,7 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
             redisTemplate.opsForHash().put(horseKey, "isFlagged", "false");
 
             redisTemplate.opsForZSet().add(positionKey, String.valueOf(horseId), 0);
+            redisTemplate.expire(horseKey, 2, TimeUnit.HOURS);
 
             lane++;
         }
@@ -425,6 +431,12 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
             throw new RuntimeException("Horse not found in race");
         }
 
+        // Prevent duplicate flags
+        Object isFlaggedObj = redisTemplate.opsForHash().get(horseKey, "isFlagged");
+        if (isFlaggedObj != null && "true".equals(String.valueOf(isFlaggedObj))) {
+            throw new RuntimeException("Horse has already been flagged");
+        }
+
         // Set isFlagged for realtime visual effect
         redisTemplate.opsForHash().put(horseKey, "isFlagged", "true");
 
@@ -433,6 +445,7 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         String flagJson = String.format("{\"referee\":\"%s\", \"horseId\":%d, \"timestamp\":%d}", 
                                         refereeUsername, horseId, System.currentTimeMillis());
         redisTemplate.opsForList().rightPush(flagsKey, flagJson);
+        redisTemplate.expire(flagsKey, 2, TimeUnit.HOURS);
     }
 
     @Override
