@@ -1,12 +1,8 @@
-# 🏇 Horse Racing Management System
-
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-brightgreen?style=for-the-badge&logo=springboot)
-![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java)
-![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss)
-![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+<div align="center">
+  <h1>🏇 Horse Racing Management System</h1>
+  <br />
+  <img src="https://skillicons.dev/icons?i=spring,java,react,tailwind,vite,mysql,redis&theme=light" alt="Tech Stack" />
+</div>
 
 ## 📖 Introduction
 
@@ -17,11 +13,11 @@ The **Horse Racing Management System** is a comprehensive full-stack web applica
 ## ✨ Key Features
 
 *   **Role-Based Access & Dashboards:**
-    *   🛡️ **Admin:** Manage tournaments, races, users, and overall system configuration.
-    *   ⚖️ **Referee:** Oversee race integrity, input race results, and manage live racing events.
-    *   🏇 **Jockey:** View assigned races, manage schedules, and track performance.
-    *   🐎 **Horse Owner:** Register horses, view horse statistics, and manage participation in races.
-    *   👤 **User (Bettor):** Browse tournaments, place bets, and view transaction history.
+    *   **Admin:** Manage tournaments, races, users, and overall system configuration.
+    *   **Referee:** Oversee race integrity, input race results, and manage live racing events.
+    *   **Jockey:** View assigned races, manage schedules, and track performance.
+    *   **Horse Owner:** Register horses, view horse statistics, and manage participation in races.
+    *   **User (Bettor):** Browse tournaments, place bets, and view transaction history.
 *   **Live Racing System:** Real-time updates on race progress and results using WebSockets (STOMP).
 *   **Betting & Payment:** Secure deposit system integrated with the **PayOS** gateway for seamless transactions and betting payouts.
 *   **Tournament & Horse Management:** Complete lifecycle management from horse registration and verification to tournament creation and race scheduling.
