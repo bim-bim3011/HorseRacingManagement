@@ -27,11 +27,11 @@ function Footer() {
         {/* Copyright */}
         <div className="text-center md:text-right">
           <span className="font-body text-body-md block mb-2 text-surface">
-            © 2026 the elite club. All rights reserved.
+            © 2026 Derby Hub. All rights reserved.
           </span>
           {/* Brand Anchor */}
           <span className="font-display text-[16px] text-primary-fixed block uppercase tracking-widest font-semibold">
-            The elite club
+            Derby Hub
           </span>
         </div>
       </div>

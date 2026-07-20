@@ -46,5 +46,6 @@ public class TournamentRequest {
     @NotBlank(message = "Allowed breed is required")
     private String allowedBreed;
 
+    private String regulations;
 
 }

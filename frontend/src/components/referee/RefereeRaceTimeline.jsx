@@ -7,7 +7,7 @@ const STEPS = [
   { id: 'finished', label: 'Finished', icon: 'sports_score' }
 ];
 
-export default function RefereeRaceTimeline({ currentStatus }) {
+export default function RefereeRaceTimeline({ currentStatus, onStepClick }) {
   const currentIndex = STEPS.findIndex(s => s.id === currentStatus);
   const activeIndex = currentIndex === -1 ? 0 : currentIndex;
 
@@ -27,7 +27,8 @@ export default function RefereeRaceTimeline({ currentStatus }) {
             return (
               <div 
                 key={step.id} 
-                className={`flex items-start gap-4 relative ${!isActive && !isCompleted ? 'opacity-50' : ''}`}
+                className={`flex items-start gap-4 relative ${!isActive && !isCompleted ? 'opacity-50' : ''} ${onStepClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                onClick={() => onStepClick && onStepClick(step.id)}
               >
                 <div 
                   className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors duration-300

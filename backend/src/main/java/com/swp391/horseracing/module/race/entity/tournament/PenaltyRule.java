@@ -45,4 +45,8 @@ public class PenaltyRule {
 
     @OneToMany(mappedBy = "penaltyRule")
     private List<Violation> violations;
+
+    @Column(name = "is_disqualification")
+    @Builder.Default
+    private Boolean isDisqualification = false;
 }

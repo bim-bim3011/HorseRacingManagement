@@ -27,6 +27,13 @@ public class HorseOwnerController {
         return ApiResponse.success(result);
     }
 
+    @GetMapping("/overview")
+    ApiResponse<com.swp391.horseracing.module.horse.dto.response.OwnerOverviewResponse> getOverview() {
+        var result = horseOwnerService.getOwnerOverview();
+        return ApiResponse.success(result);
+    }
+
+
     @PutMapping("/{id}")
     ApiResponse<HorseOwnerResponse> update(@PathVariable Integer id,
                                            @RequestBody UpdateHorseOwnerRequest request) {

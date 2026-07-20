@@ -22,4 +22,7 @@ public interface JockeyInvitationRepository extends JpaRepository<JockeyInvitati
 
     List<JockeyInvitation> findByRaceIdAndHorseIdAndStatus(
             Integer raceId, Integer horseId, JockeyInvitation.InvitationStatus status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT i.jockey.id) FROM JockeyInvitation i WHERE i.horse.owner.id = :ownerId AND i.status = :status")
+    Integer countUniqueJockeysByOwnerIdAndStatus(@org.springframework.data.repository.query.Param("ownerId") Integer ownerId, @org.springframework.data.repository.query.Param("status") JockeyInvitation.InvitationStatus status);
 }

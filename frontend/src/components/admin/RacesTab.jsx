@@ -425,19 +425,20 @@ export default function RacesTab({ tournament, onBack }) {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Round Order *</label>
-                      <input
-                        type="number"
-                        name="roundOrder"
-                        value={formData.roundOrder}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                        placeholder="1"
-                      />
-                    </div>
-                    <div>
+                    {editingRace && (
+                      <div>
+                        <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Round Order</label>
+                        <input
+                          type="number"
+                          name="roundOrder"
+                          value={formData.roundOrder}
+                          disabled
+                          className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 font-interactive-md text-interactive-md text-on-surface opacity-60 cursor-not-allowed transition-colors"
+                          placeholder="Auto-generated"
+                        />
+                      </div>
+                    )}
+                    <div className={!editingRace ? "col-span-2" : ""}>
                       <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Distance (meters) *</label>
                       <input
                         type="number"

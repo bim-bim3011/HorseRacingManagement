@@ -24,4 +24,5 @@ public class TournamentResponse {
     private BigDecimal registrationFee;
     private Integer maxParticipants;
     private String bannerUrl;
+    private String regulations;
 }

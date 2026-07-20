@@ -9,7 +9,11 @@ import com.swp391.horseracing.module.race.repository.RaceEntryRepository;
 import com.swp391.horseracing.module.race.repository.RaceRepository;
 import com.swp391.horseracing.module.race.repository.RaceResultRepository;
 import com.swp391.horseracing.module.race.entity.result.RaceResult;
+import com.swp391.horseracing.module.race.entity.result.RaceIncident;
+import com.swp391.horseracing.module.race.dto.response.RaceIncidentResponse;
 import com.swp391.horseracing.module.race.service.RaceSimulationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +41,8 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
     private final RaceRepository raceRepository;
     private final RaceEntryRepository raceEntryRepository;
     private final RaceResultRepository raceResultRepository;
+    private final com.swp391.horseracing.module.race.repository.RaceIncidentRepository raceIncidentRepository;
+    private final ObjectMapper objectMapper;
     private final ThreadPoolTaskScheduler taskScheduler;
 
 
@@ -90,6 +97,32 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         if (future != null) {
             future.cancel(false);
         }
+    }
+
+    @Override
+    public void abortRace(Integer tournamentId, Integer raceId) {
+        stopRace(raceId);
+        
+        String metaKey = "race:" + raceId + ":meta";
+        String positionKey = "race:" + raceId + ":positions";
+        String finishOrderKey = "race:" + raceId + ":finishOrder";
+        String flagsKey = "race:" + raceId + ":flags";
+        
+        Set<String> horseIds = redisTemplate.opsForZSet().range(positionKey, 0, -1);
+        if (horseIds != null) {
+            for(String horseId : horseIds) {
+                redisTemplate.delete("race:" + raceId + ":horse:" + horseId);
+            }
+        }
+        
+        redisTemplate.delete(metaKey);
+        redisTemplate.delete(positionKey);
+        redisTemplate.delete(finishOrderKey);
+        redisTemplate.delete(flagsKey);
+        
+        RaceSnapshotResponse snapshot = getRaceState(raceId);
+        RaceMessage<RaceSnapshotResponse> message = new RaceMessage<>("ABORTED", snapshot);
+        messagingTemplate.convertAndSend("/topic/tournaments/" + tournamentId + "/races/" + raceId, message);
     }
 
     private void simulateTick(Integer tournamentId, Integer raceId) {
@@ -171,6 +204,7 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
                     long finishScore = System.currentTimeMillis() - (long) (overDistance * 1000); 
                     
                     redisTemplate.opsForZSet().add("race:" + raceId + ":finishOrder", horseIdStr, finishScore);
+                    redisTemplate.expire("race:" + raceId + ":finishOrder", 2, TimeUnit.HOURS);
                 }
 
                 redisTemplate.opsForHash().put(horseKey, "progress", String.valueOf(newProgress));
@@ -232,6 +266,33 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
             }
         }
         
+        // Save incidents from Redis to Database
+        String flagsKey = "race:" + raceId + ":flags";
+        List<String> flagJsons = redisTemplate.opsForList().range(flagsKey, 0, -1);
+        if (flagJsons != null && !flagJsons.isEmpty()) {
+            for (String json : flagJsons) {
+                try {
+                    JsonNode node = objectMapper.readTree(json);
+                    String referee = node.get("referee").asText();
+                    Integer horseId = node.get("horseId").asInt();
+                    Long timestamp = node.get("timestamp").asLong();
+
+                    RaceEntry entry = raceEntryRepository.findByRaceIdAndHorseId(raceId, horseId).orElse(null);
+                    if (entry != null) {
+                        RaceIncident incident = RaceIncident.builder()
+                                .entry(entry)
+                                .refereeUsername(referee)
+                                .timestamp(timestamp)
+                                .build();
+                        raceIncidentRepository.save(incident);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to parse flag event JSON: {}", json, e);
+                }
+            }
+        }
+        redisTemplate.delete(flagsKey);
+        
         // Dọn dẹp RAM (Redis Cleanup)
         String positionKey = "race:" + raceId + ":positions";
         String finishOrderKey = "race:" + raceId + ":finishOrder";
@@ -255,6 +316,9 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         redisTemplate.opsForHash().put(metaKey, "status", "RUNNING");
         redisTemplate.opsForHash().put(metaKey, "distance", String.valueOf(race.getDistance()));
         redisTemplate.opsForHash().put(metaKey, "startedAt", LocalDateTime.now().toString());
+        
+        redisTemplate.expire(metaKey, 2, TimeUnit.HOURS);
+        redisTemplate.expire(positionKey, 2, TimeUnit.HOURS);
 
         int lane = 1;
 
@@ -283,6 +347,7 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
             redisTemplate.opsForHash().put(horseKey, "isFlagged", "false");
 
             redisTemplate.opsForZSet().add(positionKey, String.valueOf(horseId), 0);
+            redisTemplate.expire(horseKey, 2, TimeUnit.HOURS);
 
             lane++;
         }
@@ -295,27 +360,52 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
 
         Object distanceObj = redisTemplate.opsForHash().get(metaKey, "distance");
         if (distanceObj == null) {
-            // Chưa có trong Redis (chưa start), lấy từ DB
+            // Chưa có trong Redis (chưa start hoặc đã kết thúc), lấy từ DB
             Race race = raceRepository.findById(raceId)
                     .orElseThrow(() -> new RuntimeException("Race not found"));
                     
             List<RaceEntry> entries = raceEntryRepository.findByRaceId(raceId);
             List<HorseTickState> initialHorses = new ArrayList<>();
+            
+            boolean isFinished = race.getStatus() == com.swp391.horseracing.module.race.entity.tournament.Race.RaceStatus.finished;
+            List<com.swp391.horseracing.module.race.entity.result.RaceResult> results = null;
+            if (isFinished) {
+                results = raceResultRepository.findByEntry_Race_Id(raceId);
+            }
+            
             if (entries != null) {
-                int lane = 1;
                 for (RaceEntry entry : entries) {
                     if (entry.getStatus() == RaceEntry.EntryStatus.approved) {
+                        int rank = 0;
+                        double progress = 0.0;
+                        boolean finished = false;
+                        
+                        if (isFinished && results != null) {
+                            progress = race.getDistance() != null ? race.getDistance().doubleValue() : 1000.0;
+                            finished = true;
+                            for (com.swp391.horseracing.module.race.entity.result.RaceResult r : results) {
+                                if (r.getEntry().getId().equals(entry.getId())) {
+                                    rank = r.getPosition();
+                                    break;
+                                }
+                            }
+                        }
+                        
                         initialHorses.add(HorseTickState.builder()
                                 .horseId(entry.getHorse().getId().longValue())
-                                .progress(0.0)
+                                .progress(progress)
                                 .speed(0.0)
                                 .stamina(100.0)
-                                .rank(0)
+                                .rank(rank)
                                 .effect("NORMAL")
-                                .finished(false)
+                                .finished(finished)
                                 .build());
                     }
                 }
+            }
+            
+            if (isFinished) {
+                initialHorses.sort(java.util.Comparator.comparingInt(HorseTickState::getRank));
             }
             
             return RaceSnapshotResponse.builder()
@@ -335,8 +425,13 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
 
         String status = String.valueOf(redisTemplate.opsForHash().get(metaKey, "status"));
 
-        Set<ZSetOperations.TypedTuple<String>> ranking =
-                redisTemplate.opsForZSet().reverseRangeWithScores(positionKey, 0, -1);
+        Set<ZSetOperations.TypedTuple<String>> ranking;
+        if ("FINISHED".equals(status)) {
+            String finishOrderKey = "race:" + raceId + ":finishOrder";
+            ranking = redisTemplate.opsForZSet().rangeWithScores(finishOrderKey, 0, -1);
+        } else {
+            ranking = redisTemplate.opsForZSet().reverseRangeWithScores(positionKey, 0, -1);
+        }
 
         List<HorseTickState> horses = new ArrayList<>();
 
@@ -392,6 +487,12 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
             throw new RuntimeException("Horse not found in race");
         }
 
+        // Prevent duplicate flags
+        Object isFlaggedObj = redisTemplate.opsForHash().get(horseKey, "isFlagged");
+        if (isFlaggedObj != null && "true".equals(String.valueOf(isFlaggedObj))) {
+            throw new RuntimeException("Horse has already been flagged");
+        }
+
         // Set isFlagged for realtime visual effect
         redisTemplate.opsForHash().put(horseKey, "isFlagged", "true");
 
@@ -400,5 +501,20 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         String flagJson = String.format("{\"referee\":\"%s\", \"horseId\":%d, \"timestamp\":%d}", 
                                         refereeUsername, horseId, System.currentTimeMillis());
         redisTemplate.opsForList().rightPush(flagsKey, flagJson);
+        redisTemplate.expire(flagsKey, 2, TimeUnit.HOURS);
+    }
+
+    @Override
+    public List<RaceIncidentResponse> getRaceIncidents(Integer raceId) {
+        List<RaceIncident> incidents = raceIncidentRepository.findByEntry_Race_Id(raceId);
+        return incidents.stream().map(incident -> RaceIncidentResponse.builder()
+                .id(incident.getId())
+                .horseId(incident.getEntry().getHorse().getId())
+                .horseName(incident.getEntry().getHorse().getName())
+                .laneNumber(incident.getEntry().getLaneNumber())
+                .refereeUsername(incident.getRefereeUsername())
+                .timestamp(incident.getTimestamp())
+                .createdAt(incident.getCreatedAt())
+                .build()).toList();
     }
 }

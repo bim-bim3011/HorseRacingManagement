@@ -23,7 +23,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Endpoint cho client kết nối tới
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173")
+//                .setAllowedOriginPatterns("http://localhost:5173")
+                .setAllowedOriginPatterns("*")
                 .withSockJS(); // Fallback neu trinh duyet khong ho tro websocket
     }
 
@@ -34,7 +35,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker("/topic", "/queue");
 
         registry.setApplicationDestinationPrefixes("/app");
-        
+
 
         // cau hinh prefix de server gui tin nhan dich danh (user specific)
         registry.setUserDestinationPrefix("/user");

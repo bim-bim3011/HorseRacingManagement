@@ -13,7 +13,7 @@ const LiveRacePage = () => {
   const { tournamentId, raceId } = useParams();
   const navigate = useNavigate();
   const { hasRole } = useAuth();
-  
+
   const [raceData, setRaceData] = useState(null);
   const [raceState, setRaceState] = useState({
     status: 'NOT STARTED',
@@ -24,7 +24,7 @@ const LiveRacePage = () => {
   const [raceEntries, setRaceEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const clientRef = useRef(null);
 
   // Check if user is admin or owner to show controls
@@ -42,7 +42,7 @@ const LiveRacePage = () => {
         ]);
         setRaceData(data);
         setRaceEntries(entries);
-        
+
         // Try fetching initial race state if it's already running
         try {
           const stateData = await raceSimulatorApi.getRaceState(tournamentId, raceId);
@@ -59,15 +59,15 @@ const LiveRacePage = () => {
         setLoading(false);
       }
     };
-    
+
     initData();
   }, [tournamentId, raceId]);
 
   useEffect(() => {
     // 2. Setup STOMP WebSocket Connection
     // Ensure we use the full backend URL for SockJS
-    const socketUrl = 'http://localhost:8080/ws';
-    
+    const socketUrl = '/ws';
+
     const client = new Client({
       webSocketFactory: () => new SockJS(socketUrl),
       reconnectDelay: 5000,
@@ -129,7 +129,7 @@ const LiveRacePage = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <button 
+          <button
             onClick={() => navigate(`/races/${tournamentId}/${raceId}`)}
             className="text-on-surface-variant hover:text-primary transition-colors mb-2 flex items-center text-sm font-interactive-md"
           >
@@ -145,7 +145,7 @@ const LiveRacePage = () => {
             Distance: {raceState.distance || raceData?.distance || 0}m | Status: <span className="text-primary font-bold">{raceState.status}</span>
           </p>
         </div>
-        
+
         {/* Simple live indicator */}
         <div className="flex items-center space-x-2 bg-surface px-4 py-2 rounded-full border border-outline-variant shadow-sm">
           <div className={`w-3 h-3 rounded-full ${raceState.status === 'RUNNING' ? 'bg-error animate-pulse' : 'bg-surface-variant'}`}></div>
@@ -158,10 +158,10 @@ const LiveRacePage = () => {
         <div className="flex-1 flex flex-col">
           <div className="flex-1 min-h-[400px] flex items-center justify-center bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant">
             {raceState.horses && raceState.horses.length > 0 ? (
-              <RaceTrack 
-                horses={raceState.horses} 
-                distance={raceState.distance} 
-                raceEntries={raceEntries} 
+              <RaceTrack
+                horses={raceState.horses}
+                distance={raceState.distance}
+                raceEntries={raceEntries}
               />
             ) : (
               <div className="text-on-surface-variant flex flex-col items-center">
@@ -172,22 +172,22 @@ const LiveRacePage = () => {
               </div>
             )}
           </div>
-          
+
           {/* Admin Controls below the track */}
           {isAdmin && (
-            <RaceAdminControls 
-              tournamentId={tournamentId} 
-              raceId={raceId} 
-              status={raceState.status} 
+            <RaceAdminControls
+              tournamentId={tournamentId}
+              raceId={raceId}
+              status={raceState.status}
             />
           )}
         </div>
 
         {/* Leaderboard Sidebar */}
         <div className="xl:w-1/3 w-full h-[500px] xl:h-auto border border-outline-variant rounded-2xl overflow-hidden shadow-sm bg-surface">
-          <RaceLeaderboard 
-            horses={raceState.horses} 
-            raceEntries={raceEntries} 
+          <RaceLeaderboard
+            horses={raceState.horses}
+            raceEntries={raceEntries}
           />
         </div>
       </div>

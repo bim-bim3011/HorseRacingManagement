@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 public interface HorseRepository extends JpaRepository<Horse , Integer> {
     boolean existsByNameAndOwnerId(String name, Integer ownerId);
     List<Horse> findByOwnerId(Integer ownerId);
+    Integer countByOwnerId(Integer ownerId);
 
     List<Horse> findByStatus(Horse.HorseStatus status);
 

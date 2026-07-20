@@ -74,6 +74,17 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(errorCode.getStatus().value()).body(apiResponse);
     }
+
+    @ExceptionHandler(org.springframework.web.bind.MissingRequestCookieException.class)
+    public ResponseEntity<ApiResponse<?>> handleMissingCookieException(org.springframework.web.bind.MissingRequestCookieException exception) {
+        log.warn("Missing cookie: {}", exception.getCookieName());
+        ErrorCode errorCode = ErrorCode.UNAUTHENTICATED;
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .code(errorCode.getCode())
+                .message("Required cookie is missing: " + exception.getCookieName())
+                .build();
+        return ResponseEntity.status(errorCode.getStatus().value()).body(apiResponse);
+    }
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
             DataIntegrityViolationException exception, WebRequest request) {

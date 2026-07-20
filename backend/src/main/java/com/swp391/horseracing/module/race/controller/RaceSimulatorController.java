@@ -39,7 +39,7 @@ public class RaceSimulatorController {
     @PostMapping("/stop")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<String> stopRace(@PathVariable Integer tournamentId, @PathVariable Integer raceId) {
-        simulationService.stopRace(raceId);
+        simulationService.abortRace(tournamentId, raceId);
         return ResponseEntity.ok("Race " + raceId + " simulation stopped");
     }
 
@@ -59,5 +59,12 @@ public class RaceSimulatorController {
     public ResponseEntity<RaceSnapshotResponse> getRaceState(@PathVariable Integer tournamentId, @PathVariable Integer raceId) {
         RaceSnapshotResponse state = simulationService.getRaceState(raceId);
         return ResponseEntity.ok(state);
+    }
+
+    @GetMapping("/incidents")
+    public ResponseEntity<java.util.List<com.swp391.horseracing.module.race.dto.response.RaceIncidentResponse>> getRaceIncidents(
+            @PathVariable Integer tournamentId, 
+            @PathVariable Integer raceId) {
+        return ResponseEntity.ok(simulationService.getRaceIncidents(raceId));
     }
 }

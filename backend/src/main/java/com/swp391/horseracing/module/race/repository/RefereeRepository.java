@@ -12,4 +12,6 @@ public interface RefereeRepository extends JpaRepository<Referee, Integer> {
     boolean existsByLicenseNumber(String licenseNumber);
 
     boolean existsByLicenseNumberAndIdNot(String licenseNumber, Integer id);
+    
+    java.util.Optional<Referee> findByUsername(String username);
 }

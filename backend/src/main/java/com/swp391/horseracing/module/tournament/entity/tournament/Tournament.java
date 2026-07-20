@@ -76,6 +76,9 @@ public class Tournament extends BaseEntity {
     @Column(name = "banner_url")
     private String bannerUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String regulations;
+
     public enum TournamentStatus {
         upcoming, ongoing, completed
     }

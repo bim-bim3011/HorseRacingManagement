@@ -19,7 +19,8 @@ export async function loginApi(username, password) {
   const data = await response.json();
 
   if (!response.ok || data.code !== 1000) {
-    throw new Error(data.message || 'Login failed');
+    // Override raw backend exception messages with a user-friendly message
+    throw new Error('Incorrect username or password. Please try again.');
   }
 
   return data.result;

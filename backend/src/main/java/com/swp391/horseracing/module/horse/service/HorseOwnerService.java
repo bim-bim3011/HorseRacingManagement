@@ -17,4 +17,6 @@ public interface HorseOwnerService {
 
     HorseOwnerResponse getHorseOwnerById(Integer horseOwnerId);
 
+    com.swp391.horseracing.module.horse.dto.response.OwnerOverviewResponse getOwnerOverview();
+
 }
