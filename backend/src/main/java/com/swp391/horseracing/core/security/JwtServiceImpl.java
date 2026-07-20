@@ -67,11 +67,11 @@ public class JwtServiceImpl implements JwtService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         Date issueTime = new Date();
-        Date expirationTime = Date.from(issueTime.toInstant().plus(30, ChronoUnit.MINUTES));
+        Date expirationTime = Date.from(issueTime.toInstant().plus(2, ChronoUnit.HOURS));
         String uuid = UUID.randomUUID().toString();
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
-                .issuer("elite-derby-platform")
+                .issuer("derby-hub")
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
                 .jwtID(uuid)

@@ -9,6 +9,7 @@ public interface RaceSimulationService {
     void pauseRace(Integer raceId);
     void resumeRace(Integer raceId);
     void stopRace(Integer raceId);
+    void abortRace(Integer tournamentId, Integer raceId);
     RaceSnapshotResponse getRaceState(Integer raceId);
     void flagHorse(Integer raceId, Integer horseId, String refereeUsername);
     List<RaceIncidentResponse> getRaceIncidents(Integer raceId);

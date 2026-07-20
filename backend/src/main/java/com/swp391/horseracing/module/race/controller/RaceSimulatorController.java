@@ -39,7 +39,7 @@ public class RaceSimulatorController {
     @PostMapping("/stop")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<String> stopRace(@PathVariable Integer tournamentId, @PathVariable Integer raceId) {
-        simulationService.stopRace(raceId);
+        simulationService.abortRace(tournamentId, raceId);
         return ResponseEntity.ok("Race " + raceId + " simulation stopped");
     }
 

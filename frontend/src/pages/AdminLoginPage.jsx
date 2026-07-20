@@ -48,7 +48,7 @@ function AdminLoginPage() {
         <div className="w-full max-w-md bg-surface-container-lowest rounded-lg p-8 border border-outline-variant shadow-sm relative overflow-hidden group">
           <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-10 transition-opacity duration-1000 bg-gradient-to-tr from-primary/10 via-transparent to-transparent"></div>
           <div className="text-center mb-8">
-            <h1 className="font-display text-4xl text-on-surface tracking-tight font-bold">THE ELITE CLUB</h1>
+            <h1 className="font-display text-4xl text-on-surface tracking-tight font-bold">DERBY HUB</h1>
             <p className="font-body text-base text-on-surface-variant mt-2">Administrative Portal</p>
           </div>
 

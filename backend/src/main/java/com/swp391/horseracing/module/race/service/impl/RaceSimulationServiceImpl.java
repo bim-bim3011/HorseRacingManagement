@@ -99,6 +99,32 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
         }
     }
 
+    @Override
+    public void abortRace(Integer tournamentId, Integer raceId) {
+        stopRace(raceId);
+        
+        String metaKey = "race:" + raceId + ":meta";
+        String positionKey = "race:" + raceId + ":positions";
+        String finishOrderKey = "race:" + raceId + ":finishOrder";
+        String flagsKey = "race:" + raceId + ":flags";
+        
+        Set<String> horseIds = redisTemplate.opsForZSet().range(positionKey, 0, -1);
+        if (horseIds != null) {
+            for(String horseId : horseIds) {
+                redisTemplate.delete("race:" + raceId + ":horse:" + horseId);
+            }
+        }
+        
+        redisTemplate.delete(metaKey);
+        redisTemplate.delete(positionKey);
+        redisTemplate.delete(finishOrderKey);
+        redisTemplate.delete(flagsKey);
+        
+        RaceSnapshotResponse snapshot = getRaceState(raceId);
+        RaceMessage<RaceSnapshotResponse> message = new RaceMessage<>("ABORTED", snapshot);
+        messagingTemplate.convertAndSend("/topic/tournaments/" + tournamentId + "/races/" + raceId, message);
+    }
+
     private void simulateTick(Integer tournamentId, Integer raceId) {
         try {
             String metaKey = "race:" + raceId + ":meta";
@@ -334,27 +360,52 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
 
         Object distanceObj = redisTemplate.opsForHash().get(metaKey, "distance");
         if (distanceObj == null) {
-            // Chưa có trong Redis (chưa start), lấy từ DB
+            // Chưa có trong Redis (chưa start hoặc đã kết thúc), lấy từ DB
             Race race = raceRepository.findById(raceId)
                     .orElseThrow(() -> new RuntimeException("Race not found"));
                     
             List<RaceEntry> entries = raceEntryRepository.findByRaceId(raceId);
             List<HorseTickState> initialHorses = new ArrayList<>();
+            
+            boolean isFinished = race.getStatus() == com.swp391.horseracing.module.race.entity.tournament.Race.RaceStatus.finished;
+            List<com.swp391.horseracing.module.race.entity.result.RaceResult> results = null;
+            if (isFinished) {
+                results = raceResultRepository.findByEntry_Race_Id(raceId);
+            }
+            
             if (entries != null) {
-                int lane = 1;
                 for (RaceEntry entry : entries) {
                     if (entry.getStatus() == RaceEntry.EntryStatus.approved) {
+                        int rank = 0;
+                        double progress = 0.0;
+                        boolean finished = false;
+                        
+                        if (isFinished && results != null) {
+                            progress = race.getDistance() != null ? race.getDistance().doubleValue() : 1000.0;
+                            finished = true;
+                            for (com.swp391.horseracing.module.race.entity.result.RaceResult r : results) {
+                                if (r.getEntry().getId().equals(entry.getId())) {
+                                    rank = r.getPosition();
+                                    break;
+                                }
+                            }
+                        }
+                        
                         initialHorses.add(HorseTickState.builder()
                                 .horseId(entry.getHorse().getId().longValue())
-                                .progress(0.0)
+                                .progress(progress)
                                 .speed(0.0)
                                 .stamina(100.0)
-                                .rank(0)
+                                .rank(rank)
                                 .effect("NORMAL")
-                                .finished(false)
+                                .finished(finished)
                                 .build());
                     }
                 }
+            }
+            
+            if (isFinished) {
+                initialHorses.sort(java.util.Comparator.comparingInt(HorseTickState::getRank));
             }
             
             return RaceSnapshotResponse.builder()
@@ -374,8 +425,13 @@ public class RaceSimulationServiceImpl implements RaceSimulationService {
 
         String status = String.valueOf(redisTemplate.opsForHash().get(metaKey, "status"));
 
-        Set<ZSetOperations.TypedTuple<String>> ranking =
-                redisTemplate.opsForZSet().reverseRangeWithScores(positionKey, 0, -1);
+        Set<ZSetOperations.TypedTuple<String>> ranking;
+        if ("FINISHED".equals(status)) {
+            String finishOrderKey = "race:" + raceId + ":finishOrder";
+            ranking = redisTemplate.opsForZSet().rangeWithScores(finishOrderKey, 0, -1);
+        } else {
+            ranking = redisTemplate.opsForZSet().reverseRangeWithScores(positionKey, 0, -1);
+        }
 
         List<HorseTickState> horses = new ArrayList<>();
 

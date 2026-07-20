@@ -28,12 +28,18 @@ public class RaceServiceImpl implements RaceService {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
 
+        List<Race> existingRaces = raceRepository.findByTournamentId(tournamentId);
+        int nextRoundOrder = existingRaces.stream()
+                .mapToInt(r -> r.getRoundOrder() != null ? r.getRoundOrder() : 0)
+                .max()
+                .orElse(0) + 1;
+
         Race race = Race.builder()
                 .tournament(tournament)
                 .name(request.getName())
                 .raceDatetime(request.getRaceDatetime())
-                .roundOrder(request.getRoundOrder())
-                .isFinal(request.getIsFinal())
+                .roundOrder(nextRoundOrder)
+                .isFinal(request.getIsFinal() != null ? request.getIsFinal() : false)
                 .maxEntries(request.getMaxEntries())
                 .qualifyCount(request.getQualifyCount())
                 .distance(request.getDistance())

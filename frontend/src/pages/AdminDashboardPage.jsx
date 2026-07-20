@@ -19,14 +19,12 @@ export default function AdminDashboardPage() {
   const navigationItems = [
     { id: 'overview', icon: 'dashboard', label: 'System Overview' },
     { id: 'tournaments', icon: 'calendar_today', label: 'Tournament Scheduling' },
-    { id: 'approvals', icon: 'fact_check', label: 'Entry Approvals' },
     { id: 'horse_approvals', icon: 'how_to_reg', label: 'Horse Approvals' },
     { id: 'listings', icon: 'pets', label: 'Jockey & Horse Listings' },
     { id: 'referees', icon: 'assignment_ind', label: 'Referee Management' },
     { id: 'results', icon: 'publish', label: 'Result Publishing' },
     { id: 'withdrawals', icon: 'payments', label: 'Withdrawal Approvals' },
     { id: 'predictions', icon: 'online_prediction', label: 'Prediction Management' },
-    { id: 'permissions', icon: 'verified_user', label: 'Role Permissions' },
     { id: 'accounts', icon: 'manage_accounts', label: 'Account Management' }
   ];
 
@@ -119,7 +117,7 @@ export default function AdminDashboardPage() {
                   className="flex flex-col cursor-pointer overflow-hidden whitespace-nowrap" 
                   onClick={() => setActiveTab('overview')}
                 >
-                  <h1 className="font-display-lg text-[20px] leading-none text-on-surface uppercase tracking-wider">The Elite Club</h1>
+                  <h1 className="font-display-lg text-[20px] leading-none text-on-surface uppercase tracking-wider">Derby Hub</h1>
                   <p className="font-label-caps text-label-caps text-on-surface-variant mt-unit">Admin Dashboard</p>
                 </motion.div>
               )}
