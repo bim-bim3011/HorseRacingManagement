@@ -35,8 +35,7 @@ public class ViolationController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all violations of a race", description = "ADMIN and REFEREE can view")
-    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN') or hasAuthority('SCOPE_ROLE_REFEREE')")
+    @Operation(summary = "Get all violations of a race", description = "All users can view violations of a race")
     public ApiResponse<List<ViolationResponse>> getViolations(
             @PathVariable Integer tournamentId,
             @PathVariable Integer raceId) {

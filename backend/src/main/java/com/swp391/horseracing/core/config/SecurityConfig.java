@@ -49,7 +49,8 @@ public class SecurityConfig {
         private final String[] TEST_ENDPOINTS = {
 
                         "/api/test/**",
-                        "/api/payment/**"
+                        "/api/payment/**",
+                        "/api/admin/users/test"
 
         };
 
@@ -67,7 +68,9 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
-                                                                "/api/tournaments/**")
+                                                                "/api/tournaments/**",
+                                                                "/api/race-entries/race/**",
+                                                                "/api/races/*/bet-odds")
                                                 .permitAll()
                                                 .requestMatchers(TEST_ENDPOINTS).permitAll()
                                                 .anyRequest().authenticated()

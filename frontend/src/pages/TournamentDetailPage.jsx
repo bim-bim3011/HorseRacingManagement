@@ -303,17 +303,69 @@ export default function TournamentDetailPage() {
                     <motion.div key="rules" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
                       <h3 className="font-display text-2xl text-on-surface mb-6 uppercase">Tournament Rules & Penalties</h3>
                       {tournament.penaltyRules?.length > 0 ? (
-                        <div className="grid gap-4">
+                        <div className="flex flex-col gap-4">
                           {tournament.penaltyRules.map((rule) => (
-                            <div key={rule.id} className="p-4 rounded-xl border border-outline-variant bg-surface-container-lowest">
-                              <h4 className="font-bold text-on-surface mb-1">{rule.name || rule.ruleType}</h4>
-                              <p className="text-sm text-on-surface-variant">{rule.description}</p>
-                            </div>
+                            <motion.div 
+                              key={rule.id} 
+                              whileHover={{ x: 4, backgroundColor: 'var(--surface-container-low)' }}
+                              className={`p-4 rounded-xl border bg-surface-container-lowest transition-all duration-300 flex flex-col md:flex-row md:items-center gap-4 ${
+                                rule.isDisqualification ? 'border-error/40 hover:border-error' : 'border-outline-variant hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 md:w-1/4 min-w-[200px]">
+                                <span className={`material-symbols-outlined text-[20px] ${rule.isDisqualification ? 'text-error' : 'text-primary'}`}>
+                                  {rule.isDisqualification ? 'gavel' : 'warning'}
+                                </span>
+                                <h4 className="font-display text-lg font-bold text-on-surface uppercase tracking-tight">
+                                  {rule.violationType}
+                                </h4>
+                              </div>
+                              
+                              <div className="md:w-2/4 flex-grow">
+                                <p className="text-sm text-on-surface-variant line-clamp-2 md:line-clamp-none">
+                                  {rule.description || 'No detailed description provided.'}
+                                </p>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-2 md:w-1/4 md:justify-end shrink-0">
+                                {rule.isDisqualification && (
+                                  <span className="px-2 py-1 bg-error/10 text-error border border-error/20 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px]">do_not_disturb_on</span>
+                                    Disqualified
+                                  </span>
+                                )}
+                                {rule.pointDeduction > 0 && (
+                                  <span className="px-2 py-1 bg-orange-500/10 text-orange-600 border border-orange-500/20 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px]">trending_down</span>
+                                    -{rule.pointDeduction} Pts
+                                  </span>
+                                )}
+                                {rule.fineAmount > 0 && (
+                                  <span className="px-2 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px]">payments</span>
+                                    ${rule.fineAmount.toLocaleString()}
+                                  </span>
+                                )}
+                                {rule.banDays > 0 && (
+                                  <span className="px-2 py-1 bg-surface-variant text-on-surface-variant border border-outline-variant rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px]">event_busy</span>
+                                    {rule.banDays}d Ban
+                                  </span>
+                                )}
+                                {!rule.isDisqualification && rule.pointDeduction === 0 && rule.fineAmount === 0 && rule.banDays === 0 && (
+                                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-wider">
+                                    Warning
+                                  </span>
+                                )}
+                              </div>
+                            </motion.div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-12 text-on-surface-variant bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant">
-                          <p>Standard racing rules apply.</p>
+                        <div className="text-center py-12 text-on-surface-variant bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant flex flex-col items-center justify-center">
+                          <span className="material-symbols-outlined text-[48px] opacity-50 mb-4">policy</span>
+                          <p className="text-lg">Standard racing rules apply.</p>
+                          <p className="text-sm mt-2 opacity-75">No specific penalty rules are configured for this tournament.</p>
                         </div>
                       )}
                     </motion.div>
