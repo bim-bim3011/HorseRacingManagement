@@ -1,0 +1,180 @@
+package com.swp391.horseracing.module.race.service.impl;
+
+import com.swp391.horseracing.module.race.dto.request.RaceRequest;
+import com.swp391.horseracing.module.race.dto.response.RaceResponse;
+import com.swp391.horseracing.module.race.entity.tournament.Race;
+import com.swp391.horseracing.module.race.repository.RaceRepository;
+import com.swp391.horseracing.module.race.repository.RefereeAssignmentRepository;
+import com.swp391.horseracing.module.tournament.entity.tournament.Tournament;
+import com.swp391.horseracing.core.exception.AppException;
+import com.swp391.horseracing.core.exception.ErrorCode;
+import com.swp391.horseracing.module.tournament.repository.TournamentRepository;
+import com.swp391.horseracing.module.race.service.RaceService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class RaceServiceImpl implements RaceService {
+    RaceRepository raceRepository;
+    TournamentRepository tournamentRepository;
+    RefereeAssignmentRepository refereeAssignmentRepository;
+    @Override
+    public RaceResponse createRace(Integer tournamentId, RaceRequest request) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        List<Race> existingRaces = raceRepository.findByTournamentId(tournamentId);
+        int nextRoundOrder = existingRaces.stream()
+                .mapToInt(r -> r.getRoundOrder() != null ? r.getRoundOrder() : 0)
+                .max()
+                .orElse(0) + 1;
+
+        Race race = Race.builder()
+                .tournament(tournament)
+                .name(request.getName())
+                .raceDatetime(request.getRaceDatetime())
+                .roundOrder(nextRoundOrder)
+                .isFinal(request.getIsFinal() != null ? request.getIsFinal() : false)
+                .maxEntries(request.getMaxEntries())
+                .qualifyCount(request.getQualifyCount())
+                .distance(request.getDistance())
+                .build();
+
+        raceRepository.save(race);
+        return mapToResponse(race);
+    }
+
+    @Override
+    public RaceResponse getRace(Integer tournamentId, Integer id) {
+        tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        Race race = raceRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (!race.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
+
+        return mapToResponse(race);
+    }
+
+    @Override
+    public RaceResponse updateRace(Integer tournamentId, Integer id, RaceRequest request) {
+        tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        Race race = raceRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (!race.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
+
+        race.setName(request.getName());
+        race.setRaceDatetime(request.getRaceDatetime());
+        race.setRoundOrder(request.getRoundOrder());
+        race.setIsFinal(request.getIsFinal());
+        race.setMaxEntries(request.getMaxEntries());
+        race.setQualifyCount(request.getQualifyCount());
+        race.setDistance(request.getDistance());
+
+
+        return mapToResponse(raceRepository.save(race));
+    }
+
+    @Override
+    public void deleteRace(Integer tournamentId, Integer id) {
+        tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        Race race = raceRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (!race.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
+
+        raceRepository.delete(race);
+    }
+
+    @Override
+    public List<RaceResponse> getAllRaces(Integer tournamentId) {
+        tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        return raceRepository.findByTournamentId(tournamentId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public void activateRace(Integer tournamentId, Integer raceId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (!race.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
+
+        if (tournament.getPenaltyRules().isEmpty())
+            throw new AppException(ErrorCode.TOURNAMENT_MISSING_PENALTY_RULES);
+
+
+
+        if (race.getMaxEntries() == null || race.getQualifyCount() == null || race.getRoundOrder() == null)
+            throw new AppException(ErrorCode.RACE_MISSING_STANDARDS);
+
+        int refereeCount = refereeAssignmentRepository.countByRaceId(raceId);
+        if (refereeCount < 1)
+            throw new AppException(ErrorCode.RACE_MISSING_REFEREES);
+        race.setStatus(Race.RaceStatus.checking);
+        tournament.setStatus(Tournament.TournamentStatus.ongoing);
+
+        raceRepository.save(race);
+        tournamentRepository.save(tournament);
+    }
+
+    @Override
+    public void markReadyForRace(Integer tournamentId, Integer raceId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOURNAMENT_NOT_FOUND));
+
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new AppException(ErrorCode.RACE_NOT_FOUND));
+
+        if (!race.getTournament().getId().equals(tournamentId))
+            throw new AppException(ErrorCode.RACE_NOT_BELONG_TO_TOURNAMENT);
+            
+        if (race.getStatus() != Race.RaceStatus.checking) {
+            throw new AppException(ErrorCode.RACE_NOT_IN_CHECKING_STATUS); // Needs to be in checking to move to ready
+        }
+        
+        race.setStatus(Race.RaceStatus.ready_to_run);
+        raceRepository.save(race);
+    }
+
+
+    private RaceResponse mapToResponse(Race race) {
+        return RaceResponse.builder()
+                .id(race.getId())
+                .name(race.getName())
+                .raceDatetime(race.getRaceDatetime())
+                .startedAt(race.getStartedAt())
+                .endedAt(race.getEndedAt())
+                .status(race.getStatus().name())
+                .bettingStatus(race.getBettingStatus() != null ? race.getBettingStatus().name() : Race.BettingStatus.pending.name())
+                .roundOrder(race.getRoundOrder())
+                .isFinal(race.getIsFinal())
+                .maxEntries(race.getMaxEntries())
+                .qualifyCount(race.getQualifyCount())
+                .distance(race.getDistance())
+                .tournamentId(race.getTournament().getId())
+                .build();
+    }
+}

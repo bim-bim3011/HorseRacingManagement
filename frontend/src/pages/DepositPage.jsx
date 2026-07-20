@@ -49,7 +49,7 @@ export default function DepositPage() {
       setError('');
 
       if (paymentMethod === 'VNPAY') {
-        const response = await fetch(`http://localhost:8080/api/payment/vn-pay?amount=${numericAmount}&bankCode=NCB`, {
+        const response = await fetch(`/api/payment/vn-pay?amount=${numericAmount}&bankCode=NCB`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -66,7 +66,7 @@ export default function DepositPage() {
           throw new Error('Could not generate VNPAY payment URL');
         }
       } else if (paymentMethod === 'PAYOS') {
-        const response = await fetch(`http://localhost:8080/api/payment/payos/create`, {
+        const response = await fetch(`/api/payment/payos/create`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,

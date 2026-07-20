@@ -8,11 +8,55 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [formErrors, setFormErrors] = useState({ username: '', password: '' });
   const { login, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    let isValid = true;
+    const errors = { username: '', password: '' };
+
+    // Validate Username/Email
+    if (!username.trim()) {
+      errors.username = 'Username or Email is required';
+      isValid = false;
+    } else if (username.includes('@')) {
+      // Validate Email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(username)) {
+        errors.username = 'Please enter a valid email address';
+        isValid = false;
+      }
+    } else {
+      // Validate Username format
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      if (!usernameRegex.test(username)) {
+        errors.username = 'Username must be 3-20 characters long, no spaces, only letters, numbers, and underscores';
+        isValid = false;
+      }
+    }
+
+    // Validate Password
+    if (!password) {
+      errors.password = 'Password is required';
+      isValid = false;
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters long';
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    clearError();
+
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       const result = await login(username, password);
       const roles = getRolesFromToken(result.accessToken);
@@ -93,10 +137,19 @@ function LoginPage() {
               name="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                if (formErrors.username) setFormErrors({ ...formErrors, username: '' });
+              }}
               required
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 font-body text-body-md text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
+              className={`w-full bg-surface-container-lowest border rounded px-4 py-3 font-body text-body-md text-on-surface focus:outline-none focus:ring-1 transition-colors ${formErrors.username
+                  ? 'border-error focus:ring-error focus:border-error'
+                  : 'border-outline-variant focus:ring-primary focus:border-primary'
+                }`}
             />
+            {formErrors.username && (
+              <p className="mt-1 text-sm text-error font-body">{formErrors.username}</p>
+            )}
           </div>
 
           {/* Password Field */}
@@ -113,10 +166,16 @@ function LoginPage() {
                 name="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (formErrors.password) setFormErrors({ ...formErrors, password: '' });
+                }}
                 placeholder="Enter your password"
                 required
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-3 font-body text-body-md text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors pr-12"
+                className={`w-full bg-surface-container-lowest border rounded px-4 py-3 font-body text-body-md text-on-surface focus:outline-none focus:ring-1 transition-colors pr-12 ${formErrors.password
+                    ? 'border-error focus:ring-error focus:border-error'
+                    : 'border-outline-variant focus:ring-primary focus:border-primary'
+                  }`}
               />
               <button
                 type="button"
@@ -129,6 +188,9 @@ function LoginPage() {
                 </span>
               </button>
             </div>
+            {formErrors.password && (
+              <p className="mt-1 text-sm text-error font-body">{formErrors.password}</p>
+            )}
           </div>
 
           {/* Forgot Password */}

@@ -128,14 +128,7 @@ function Header() {
                       <span className="material-symbols-outlined text-[20px]">person</span>
                       Profile
                     </Link>
-                    <Link
-                      to="#"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 font-body text-body-md text-on-surface hover:bg-surface-container-low hover:text-primary transition-colors no-underline"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">settings</span>
-                      Settings
-                    </Link>
+
                     {hasRole('ROLE_HORSE_OWNER') && (
                       <Link
                         to="/owner/dashboard"
@@ -225,7 +218,7 @@ function Header() {
         <div className={`bg-surface rounded-full transition-all duration-300 ${scrolled ? 'w-2 h-2' : 'w-3 h-3'}`}></div>
       </div>
       <span className={`font-display font-bold text-on-surface uppercase tracking-tight transition-all duration-300 ${scrolled ? 'text-[20px] md:text-[24px]' : 'text-[24px] md:text-[32px]'}`}>
-        The elite club
+        Derby Hub
       </span>
     </Link>
   );

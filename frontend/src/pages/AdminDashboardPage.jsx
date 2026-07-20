@@ -7,6 +7,7 @@ import RefereesTab from '../components/admin/RefereesTab';
 import ApprovalsTab from '../components/admin/ApprovalsTab';
 import TournamentManagementView from '../components/admin/TournamentManagementView';
 import WithdrawalsTab from '../components/admin/WithdrawalsTab';
+import AccountsTab from '../components/admin/AccountsTab';
 import NotificationDropdown from '../components/common/NotificationDropdown';
 
 export default function AdminDashboardPage() {
@@ -19,8 +20,12 @@ export default function AdminDashboardPage() {
     { id: 'overview', icon: 'dashboard', label: 'System Overview' },
     { id: 'tournaments', icon: 'calendar_today', label: 'Tournament Scheduling' },
     { id: 'horse_approvals', icon: 'how_to_reg', label: 'Horse Approvals' },
+    { id: 'listings', icon: 'pets', label: 'Jockey & Horse Listings' },
     { id: 'referees', icon: 'assignment_ind', label: 'Referee Management' },
-    { id: 'withdrawals', icon: 'payments', label: 'Withdrawal Approvals' }
+    { id: 'results', icon: 'publish', label: 'Result Publishing' },
+    { id: 'withdrawals', icon: 'payments', label: 'Withdrawal Approvals' },
+    { id: 'predictions', icon: 'online_prediction', label: 'Prediction Management' },
+    { id: 'accounts', icon: 'manage_accounts', label: 'Account Management' }
   ];
 
   return (
@@ -90,24 +95,36 @@ export default function AdminDashboardPage() {
 
       {/* Side Navigation */}
       <motion.nav
-        initial={{ x: -288 }}
-        animate={{ x: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className={`fixed left-0 top-0 h-full flex flex-col z-50 overflow-y-auto bg-surface border-r border-outline-variant transition-all duration-300 ${isSidebarCollapsed ? 'w-20 px-2' : 'w-72 px-unit'}`}
+        initial={false}
+        animate={{ 
+          width: isSidebarCollapsed ? 80 : 288,
+          transition: { duration: 0.3, ease: 'easeInOut' }
+        }}
+        className={`fixed left-0 top-0 h-full flex flex-col z-50 overflow-y-auto overflow-x-hidden bg-surface border-r border-outline-variant ${isSidebarCollapsed ? 'px-2' : 'px-unit'}`}
       >
         <div className={`py-stack-md flex items-center border-b border-outline-variant mb-stack-md ${isSidebarCollapsed ? 'justify-center px-0' : 'px-stack-sm gap-stack-sm'}`}>
           <div className={`flex items-center w-full ${isSidebarCollapsed ? 'justify-center' : 'gap-stack-sm'}`}>
             <Link to="/" className="w-10 h-10 bg-primary flex items-center justify-center rounded-DEFAULT shadow-sm cursor-pointer no-underline shrink-0 transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-md group">
               <span className="material-symbols-outlined text-surface transition-transform duration-300 group-hover:scale-110">home</span>
             </Link>
-            {!isSidebarCollapsed && (
-              <div className="flex flex-col cursor-pointer overflow-hidden whitespace-nowrap" onClick={() => setActiveTab('overview')}>
-                <h1 className="font-display-lg text-[20px] leading-none text-on-surface uppercase tracking-wider">The Elite Club</h1>
-                <p className="font-label-caps text-label-caps text-on-surface-variant mt-unit">Admin Dashboard</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {!isSidebarCollapsed && (
+                <motion.div 
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col cursor-pointer overflow-hidden whitespace-nowrap" 
+                  onClick={() => setActiveTab('overview')}
+                >
+                  <h1 className="font-display-lg text-[20px] leading-none text-on-surface uppercase tracking-wider">Derby Hub</h1>
+                  <p className="font-label-caps text-label-caps text-on-surface-variant mt-unit">Admin Dashboard</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
+        
         <ul className="flex flex-col gap-unit flex-grow">
           {/* Navigation Items */}
           {navigationItems.map((item, index) => {
@@ -123,33 +140,66 @@ export default function AdminDashboardPage() {
                   onClick={() => setActiveTab(item.id)}
                   title={isSidebarCollapsed ? item.label : ""}
                   className={`w-full flex items-center py-stack-sm font-interactive-md text-interactive-md transition-all duration-200 rounded-DEFAULT relative group cursor-pointer
-                    ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-stack-sm px-stack-md'}
+                    ${isSidebarCollapsed ? 'justify-center px-0' : 'px-stack-md'}
                     ${isActive ? 'text-primary bg-primary/10' : 'text-on-surface-variant hover:text-primary hover:bg-primary/5'}
                   `}
                 >
-                  <span className="material-symbols-outlined relative z-10 group-hover:scale-110 transition-transform">{item.icon}</span>
-                  {!isSidebarCollapsed && (
-                    <span className="relative z-10 text-left flex-grow whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>
-                  )}
+                  <span className="material-symbols-outlined relative z-10 group-hover:scale-110 transition-transform flex-shrink-0">{item.icon}</span>
+                  <AnimatePresence>
+                    {!isSidebarCollapsed && (
+                      <motion.span 
+                        initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+                        animate={{ opacity: 1, width: 'auto', marginLeft: 12 }}
+                        exit={{ opacity: 0, width: 0, marginLeft: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="relative z-10 text-left whitespace-nowrap overflow-hidden"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </button>
               </motion.li>
             );
           })}
         </ul>
+        
         <div className={`mt-auto mb-stack-md ${isSidebarCollapsed ? 'px-0' : 'px-stack-sm'}`}>
           <motion.button
             onClick={() => setActiveTab('tournaments')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             title={isSidebarCollapsed ? "Manage Tournaments" : ""}
-            className={`w-full bg-surface-container-low border border-primary text-primary font-interactive-md text-interactive-md py-stack-sm rounded-lg hover:bg-primary hover:text-on-primary transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center ${isSidebarCollapsed ? 'px-0' : 'px-4'}`}
+            className={`w-full bg-surface-container-low border border-primary text-primary font-interactive-md text-interactive-md py-stack-sm rounded-lg hover:bg-primary hover:text-on-primary transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center overflow-hidden ${isSidebarCollapsed ? 'px-0' : 'px-4 gap-2'}`}
           >
-            {isSidebarCollapsed ? (
-              <span className="material-symbols-outlined text-[20px]">emoji_events</span>
-            ) : (
-              "Manage Tournaments"
-            )}
+            <span className="material-symbols-outlined text-[20px] flex-shrink-0">emoji_events</span>
+            <AnimatePresence>
+              {!isSidebarCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="whitespace-nowrap overflow-hidden"
+                >
+                  Manage Tournaments
+                </motion.span>
+              )}
+            </AnimatePresence>
           </motion.button>
+        </div>
+
+        {/* Optional explicit collapse toggle button at bottom */}
+        <div className="border-t border-outline-variant p-2 flex justify-center">
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="w-full py-2 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <span className="material-symbols-outlined">
+              {isSidebarCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left'}
+            </span>
+          </button>
         </div>
       </motion.nav>
 
@@ -176,8 +226,9 @@ export default function AdminDashboardPage() {
             />
           )}
           {activeTab === 'withdrawals' && <WithdrawalsTab key="withdrawals" />}
+          {activeTab === 'accounts' && <AccountsTab key="accounts" />}
           {/* Placeholder for other tabs */}
-          {activeTab !== 'overview' && activeTab !== 'withdrawals' && activeTab !== 'tournaments' && activeTab !== 'referees' && activeTab !== 'horse_approvals' && activeTab !== 'tournament_detail' && (
+          {activeTab !== 'overview' && activeTab !== 'withdrawals' && activeTab !== 'tournaments' && activeTab !== 'referees' && activeTab !== 'horse_approvals' && activeTab !== 'tournament_detail' && activeTab !== 'accounts' && (
             <motion.div
               key="placeholder"
               initial={{ opacity: 0, y: 20 }}

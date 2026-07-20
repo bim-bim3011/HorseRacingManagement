@@ -27,9 +27,7 @@ function HeroSection() {
           unparalleled precision.
         </p>
 
-        <Link to="/tournaments" className="font-body text-interactive-md font-semibold border border-primary text-primary px-8 py-3 hover:bg-primary hover:text-on-primary transition-all duration-300 uppercase tracking-widest bg-surface cursor-pointer no-underline inline-block">
-          Explore Platform
-        </Link>
+
       </div>
 
       {/* Right: Atmospheric Image */}

@@ -1,0 +1,175 @@
+package com.swp391.horseracing.core.security;
+
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.swp391.horseracing.module.common.dto.JwtInfo;
+import com.swp391.horseracing.module.auth.dto.TokenPayLoad;
+import com.swp391.horseracing.module.common.dto.request.IntrospectRequest;
+import com.swp391.horseracing.module.common.dto.response.IntrospectResponse;
+import com.swp391.horseracing.module.auth.entity.Role;
+import com.swp391.horseracing.module.user.entity.User;
+import com.swp391.horseracing.core.exception.AppException;
+import com.swp391.horseracing.core.exception.ErrorCode;
+import com.swp391.horseracing.module.auth.repository.InvalidatedTokenRepository;
+import com.swp391.horseracing.module.auth.repository.RedisTokenRepository;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.text.ParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.StringJoiner;
+import java.util.UUID;
+
+@Service
+@Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
+public class JwtServiceImpl implements JwtService {
+
+    final InvalidatedTokenRepository invalidatedTokenRepository;
+
+    @Value("${jwt.signerKey}")
+    String secret;
+
+    @Value("${jwt.expiration}")
+    String expiration;
+
+    final RedisTokenRepository redisTokenRepository;
+
+    @Override
+    public IntrospectResponse introspect(IntrospectRequest introspectRequest) throws ParseException, JOSEException {
+        var token = introspectRequest.getToken();
+
+        boolean check = true;
+
+        try {
+            verifyToken(token);
+        } catch (Exception e) {
+            check = false;
+        }
+
+        return IntrospectResponse.builder()
+                .isValid(check)
+                .build();
+    }
+
+    @Override
+    public TokenPayLoad generateAccessToken(User user) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        Date issueTime = new Date();
+        Date expirationTime = Date.from(issueTime.toInstant().plus(2, ChronoUnit.HOURS));
+        String uuid = UUID.randomUUID().toString();
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getUsername())
+                .issuer("derby-hub")
+                .issueTime(issueTime)
+                .expirationTime(expirationTime)
+                .jwtID(uuid)
+                .claim("scope", buildScope(user))
+                .claim("category", "access")
+                .build();
+
+        Payload payload = new Payload(claimsSet.toJSONObject());
+
+        JWSObject jwsObject = new JWSObject(header, payload);
+
+        try {
+            jwsObject.sign(new MACSigner(secret));
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+
+        return TokenPayLoad.builder()
+                .Token(jwsObject.serialize())
+                .jwtId(uuid)
+                .expirationTime(expirationTime)
+                .build();
+    }
+
+    @Override
+    public TokenPayLoad generateRefreshToken(User user) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        Date issueTime = new Date();
+        Date expirationTime = new Date(issueTime.getTime() + Long.parseLong(expiration));
+        String uuid = UUID.randomUUID().toString();
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getUsername())
+                .issueTime(issueTime)
+                .expirationTime(expirationTime)
+                .jwtID(uuid)
+                .claim("category", "refresh")
+                .build();
+        Payload payload = new Payload(claimsSet.toJSONObject());
+        JWSObject jwsObject = new JWSObject(header, payload);
+
+        try {
+            jwsObject.sign(new MACSigner(secret));
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+        return TokenPayLoad.builder()
+                .Token(jwsObject.serialize())
+                .jwtId(uuid)
+                .expirationTime(expirationTime)
+                .build();
+    }
+
+    private String buildScope(User user) {
+        StringJoiner scope = new StringJoiner(" ");
+
+        if (!user.getRoles().isEmpty()) {
+            for (Role role : user.getRoles()) {
+                scope.add("ROLE_" + role.getRoleName());
+            }
+
+        }
+        return scope.toString();
+    }
+
+    @Override
+    public SignedJWT verifyToken(String token) throws ParseException, JOSEException {
+
+        JWSVerifier verifier = new MACVerifier(secret.getBytes());
+        SignedJWT jwt = SignedJWT.parse(token);
+        Date expirationTime = jwt.getJWTClaimsSet().getExpirationTime();
+
+        var isValidSignature = jwt.verify(verifier);
+
+        if (!isValidSignature || expirationTime.before(new Date())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        // if(invalidatedTokenRepository.existsById(jwt.getJWTClaimsSet().getJWTID())){
+        // throw new AppException(ErrorCode.UNAUTHENTICATED);
+        // }
+
+        if (redisTokenRepository.existsById(jwt.getJWTClaimsSet().getJWTID())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        return jwt;
+
+    }
+
+    @Override
+    public JwtInfo parseToken(String token) throws ParseException {
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        return JwtInfo.builder()
+                .jwtId(signedJWT.getJWTClaimsSet().getJWTID())
+                .issueTime(signedJWT.getJWTClaimsSet().getIssueTime())
+                .expirationTime(signedJWT.getJWTClaimsSet().getExpirationTime())
+                .build();
+    }
+}

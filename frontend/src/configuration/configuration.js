@@ -1,6 +1,6 @@
 export const OAuthConfig = {
   clientId: '48862700047-a6kebfhchktuntqpbh227hbtbbqs6j4s.apps.googleusercontent.com',
-  redirectUri: 'http://localhost:5173/authenticate',
+  redirectUri: `${window.location.origin}/authenticate`,
   authUri: 'https://accounts.google.com/o/oauth2/v2/auth',
 };
 

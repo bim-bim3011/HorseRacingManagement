@@ -1,11 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RacesTab from './RacesTab';
 import PenaltyRulesTab from './PenaltyRulesTab';
 import TournamentRegistrationsTab from './TournamentRegistrationsTab';
+import TournamentOverviewTab from './TournamentOverviewTab';
+import { getTournamentById } from '../../api/tournamentApi';
 
-export default function TournamentManagementView({ tournament, onBack }) {
+export default function TournamentManagementView({ tournament: initialTournament, onBack }) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [tournament, setTournament] = useState(initialTournament);
+
+  const refreshTournament = async () => {
+    try {
+      if (tournament && tournament.id) {
+        const data = await getTournamentById(tournament.id);
+        setTournament(data);
+      }
+    } catch (error) {
+      console.error("Failed to refresh tournament", error);
+    }
+  };
+
+  useEffect(() => {
+    setTournament(initialTournament);
+  }, [initialTournament]);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: 'dashboard' },
@@ -87,49 +105,12 @@ export default function TournamentManagementView({ tournament, onBack }) {
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
               <motion.div key="overview" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 border border-outline-variant rounded-xl bg-surface">
-                    <h3 className="font-headline-md text-on-surface mb-4">Tournament Details</h3>
-                    <ul className="space-y-3 font-body text-on-surface-variant">
-                      <li className="flex justify-between border-b border-outline-variant pb-2">
-                        <span>Max Participants:</span>
-                        <span className="font-bold text-on-surface">{tournament.maxParticipants}</span>
-                      </li>
-                      <li className="flex justify-between border-b border-outline-variant pb-2">
-                        <span>Registration Fee:</span>
-                        <span className="font-bold text-on-surface">${tournament.registrationFee?.toLocaleString()}</span>
-                      </li>
-                      <li className="flex justify-between border-b border-outline-variant pb-2">
-                        <span>Registration Opens:</span>
-                        <span className="font-bold text-on-surface">{tournament.registrationStart}</span>
-                      </li>
-                      <li className="flex justify-between border-b border-outline-variant pb-2">
-                        <span>Registration Closes:</span>
-                        <span className="font-bold text-on-surface">{tournament.registrationEnd}</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="p-6 border border-outline-variant rounded-xl bg-surface">
-                     <h3 className="font-headline-md text-on-surface mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">rule</span>
-                        Entry Requirements
-                      </h3>
-                      <ul className="space-y-3 font-body text-on-surface-variant">
-                        <li className="flex justify-between border-b border-outline-variant pb-2">
-                          <span>Age Limit:</span>
-                          <span className="font-bold text-on-surface">{tournament.minHorseAge} - {tournament.maxHorseAge} years</span>
-                        </li>
-                        <li className="flex justify-between border-b border-outline-variant pb-2">
-                          <span>Weight Limit:</span>
-                          <span className="font-bold text-on-surface">Max {tournament.weightLimit} kg</span>
-                        </li>
-                        <li className="flex justify-between border-b border-outline-variant pb-2">
-                          <span>Allowed Breed:</span>
-                          <span className="font-bold text-on-surface uppercase">{tournament.allowedBreed}</span>
-                        </li>
-                      </ul>
-                  </div>
-                </div>
+                <TournamentOverviewTab 
+                  tournament={tournament} 
+                  onTournamentUpdated={() => {
+                    refreshTournament();
+                  }} 
+                />
               </motion.div>
             )}
 
